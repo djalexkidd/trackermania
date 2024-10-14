@@ -1,0 +1,104 @@
+[gd_scene load_steps=3 format=3 uid="uid://dadevgawscx88"]
+
+[ext_resource type="Texture2D" uid="uid://k0afwhi4bsyp" path="res://assets/controller_test/controller_p1.png" id="1_lkm0n"]
+[ext_resource type="Script" path="res://scripts/menu/controller_test/p1_texture.gd" id="2_4uxbi"]
+
+[node name="P1Texture" type="TextureRect"]
+texture_filter = 1
+texture = ExtResource("1_lkm0n")
+script = ExtResource("2_4uxbi")
+
+[node name="B1Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 298.0
+offset_top = 107.0
+offset_right = 315.0
+offset_bottom = 137.0
+
+[node name="B2Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 317.0
+offset_top = 59.0
+offset_right = 334.0
+offset_bottom = 89.0
+
+[node name="B3Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 338.0
+offset_top = 107.0
+offset_right = 355.0
+offset_bottom = 137.0
+
+[node name="B4Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 358.0
+offset_top = 59.0
+offset_right = 375.0
+offset_bottom = 89.0
+
+[node name="B5Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 379.0
+offset_top = 107.0
+offset_right = 396.0
+offset_bottom = 137.0
+
+[node name="B6Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 398.0
+offset_top = 59.0
+offset_right = 415.0
+offset_bottom = 89.0
+
+[node name="B7Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 419.0
+offset_top = 107.0
+offset_right = 436.0
+offset_bottom = 137.0
+
+[node name="E1Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 245.0
+offset_top = 13.0
+offset_right = 250.0
+offset_bottom = 18.0
+
+[node name="E2Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 264.0
+offset_top = 13.0
+offset_right = 269.0
+offset_bottom = 18.0
+
+[node name="E3Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 283.0
+offset_top = 13.0
+offset_right = 288.0
+offset_bottom = 18.0
+
+[node name="E4Pressed" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 302.0
+offset_top = 13.0
+offset_right = 307.0
+offset_bottom = 18.0
+
+[node name="Turntable" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 126.0
+offset_top = 50.0
+offset_right = 130.0
+offset_bottom = 54.0

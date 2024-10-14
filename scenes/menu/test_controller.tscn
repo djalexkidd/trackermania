@@ -1,0 +1,97 @@
+[gd_scene load_steps=5 format=3 uid="uid://c0me54qvehuvi"]
+
+[ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="1_vfluu"]
+[ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_r16qi"]
+[ext_resource type="PackedScene" uid="uid://dadevgawscx88" path="res://scenes/menu/controller_test/p1_texture.tscn" id="3_hys6r"]
+[ext_resource type="Texture2D" uid="uid://ojq4ejib6mii" path="res://assets/controller_test/controller_p2.png" id="4_rgrp1"]
+
+[node name="TestController" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TestLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 309.0
+offset_bottom = 76.0
+theme_override_fonts/font = ExtResource("1_vfluu")
+theme_override_font_sizes/font_size = 64
+text = "controller setup"
+
+[node name="TestLabel2" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -232.0
+offset_top = -140.0
+offset_right = 232.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("1_vfluu")
+theme_override_font_sizes/font_size = 48
+text = "press both e1+e2 buttons to exit"
+
+[node name="P1Container" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 80.0
+offset_top = -113.5
+offset_right = 558.0
+offset_bottom = 113.5
+grow_vertical = 2
+
+[node name="P1Text" type="Label" parent="P1Container"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.686275, 1, 1)
+theme_override_fonts/font = ExtResource("2_r16qi")
+theme_override_font_sizes/font_size = 32
+text = "player 1"
+
+[node name="P1Texture" parent="P1Container" instance=ExtResource("3_hys6r")]
+layout_mode = 2
+
+[node name="P2Container" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -558.0
+offset_top = -113.5
+offset_right = -80.0
+offset_bottom = 113.5
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="P2Text" type="Label" parent="P2Container"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.156863, 0, 1)
+theme_override_fonts/font = ExtResource("2_r16qi")
+theme_override_font_sizes/font_size = 32
+text = "player 2"
+horizontal_alignment = 2
+
+[node name="P2Texture" type="TextureRect" parent="P2Container"]
+layout_mode = 2
+texture = ExtResource("4_rgrp1")

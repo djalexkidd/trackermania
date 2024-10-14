@@ -99,6 +99,7 @@ offset_bottom = 18.0
 [node name="Turntable" type="ColorRect" parent="."]
 layout_mode = 0
 offset_left = 126.0
-offset_top = 50.0
+offset_top = 30.0
 offset_right = 130.0
-offset_bottom = 54.0
+offset_bottom = 161.0
+pivot_offset = Vector2(2, 66)

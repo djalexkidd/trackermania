@@ -1,5 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://c0me54qvehuvi"]
+[gd_scene load_steps=6 format=3 uid="uid://c0me54qvehuvi"]
 
+[ext_resource type="Script" path="res://scripts/menu/controller_test/test_controller.gd" id="1_nh7a8"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="1_vfluu"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_r16qi"]
 [ext_resource type="PackedScene" uid="uid://dadevgawscx88" path="res://scenes/menu/controller_test/p1_texture.tscn" id="3_hys6r"]
@@ -12,6 +13,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_nh7a8")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -70,6 +72,11 @@ text = "player 1"
 [node name="P1Texture" parent="P1Container" instance=ExtResource("3_hys6r")]
 layout_mode = 2
 
+[node name="P1AnalogValues" type="Label" parent="P1Container"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_vfluu")
+theme_override_font_sizes/font_size = 48
+
 [node name="P2Container" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 6
@@ -95,3 +102,8 @@ horizontal_alignment = 2
 [node name="P2Texture" type="TextureRect" parent="P2Container"]
 layout_mode = 2
 texture = ExtResource("4_rgrp1")
+
+[node name="P2AnalogValues" type="Label" parent="P2Container"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_vfluu")
+theme_override_font_sizes/font_size = 48

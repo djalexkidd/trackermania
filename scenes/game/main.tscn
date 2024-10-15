@@ -259,6 +259,19 @@ theme_override_font_sizes/font_size = 27
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="getready" type="Label" parent="."]
+offset_left = 250.0
+offset_top = 340.0
+offset_right = 350.0
+offset_bottom = 377.0
+pivot_offset = Vector2(50, 15)
+theme_override_colors/font_color = Color(0.148037, 0.508607, 1, 1)
+theme_override_fonts/font = ExtResource("3_15r0s")
+theme_override_font_sizes/font_size = 27
+text = "Get Ready !"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="isautoplay" type="Label" parent="."]
 visible = false
 offset_left = 245.0

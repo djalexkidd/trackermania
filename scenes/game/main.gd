@@ -22,13 +22,13 @@ const AUTOPLAY : bool = false
 var speed : float = 1.0
 # Note information corresponding to 7 channels
 var noteArray      : Array = [
-							[[5.2], [6.4], [6.8], [8]],
-							[[8.4], [10]],
-							[[5.6], [7.2]],
-							[[8.8], [10.4]],
-							[[6], [7.6]],
-							[[9.2], [10.8]],
-							[]
+							[[5.2], [6.4], [6.8], [8], [15.2], [16.8], [18], [19.6]],
+							[[8.4], [10], [14.8], [18.2], [19.8]],
+							[[5.6], [7.2], [15.6], [15.8], [16], [16.4], [17.2], [17.4], [17.6], [18.4], [20]],
+							[[8.8], [10.4], [12.8], [14.4], [18.6], [20.2]],
+							[[6], [7.6], [12.4], [14], [18.8], [20.4]],
+							[[9.2], [10.8], [11.6], [13.2], [19], [20.6]],
+							[[12], [13.6], [19.2], [19.4], [20.8], [21]]
 							]
 # Auxiliary line information
 var subLineArray   : Array = []
@@ -162,7 +162,7 @@ func _ready() -> void:
 		$isautoplay.visible = true
 		print("AUTO PLAYING...")
 	await get_tree().create_timer(1.0).timeout
-	print("Game Start")
+	$getready.hide()
 	get_node(audio).play()
 	set_process(true)
 

@@ -51,6 +51,27 @@ theme_override_fonts/font = ExtResource("4_vxrwm")
 theme_override_font_sizes/font_size = 64
 text = "test menu"
 
+[node name="SysinfoContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -68.0
+offset_right = 48.0
+offset_bottom = -8.0
+grow_vertical = 0
+
+[node name="FPSLabel" type="Label" parent="SysinfoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_vxrwm")
+theme_override_font_sizes/font_size = 32
+
+[node name="EngineLabel" type="Label" parent="SysinfoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_vxrwm")
+theme_override_font_sizes/font_size = 32
+
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8

@@ -103,3 +103,19 @@ offset_top = 30.0
 offset_right = 130.0
 offset_bottom = 161.0
 pivot_offset = Vector2(2, 66)
+
+[node name="Turntable2" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 174.0
+offset_top = 64.0
+offset_right = 178.0
+offset_bottom = 80.0
+
+[node name="Turntable3" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 174.0
+offset_top = 112.0
+offset_right = 178.0
+offset_bottom = 128.0

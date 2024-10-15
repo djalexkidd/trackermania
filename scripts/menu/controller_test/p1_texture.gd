@@ -40,6 +40,12 @@ func _process(delta: float) -> void:
 	if Input.is_action_pressed("p1_meta"):
 		$E4Pressed.show()
 	
+	if Input.is_action_pressed("p1_digital_turntable_fwd"):
+		$Turntable3.show()
+	
+	if Input.is_action_pressed("p1_digital_turntable_rew"):
+		$Turntable2.show()
+	
 	
 	if Input.is_action_just_released("p1_key1"):
 		$B1Pressed.hide()
@@ -73,6 +79,12 @@ func _process(delta: float) -> void:
 	
 	if Input.is_action_just_released("p1_meta"):
 		$E4Pressed.hide()
+	
+	if Input.is_action_just_released("p1_digital_turntable_fwd"):
+		$Turntable3.hide()
+	
+	if Input.is_action_just_released("p1_digital_turntable_rew"):
+		$Turntable2.hide()
 	
 	if Input.is_action_pressed("p1_start") and Input.is_action_pressed("p1_effect"):
 		get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")

@@ -1,5 +1,11 @@
 extends Control
 
+func _ready() -> void:
+	$SysinfoContainer/EngineLabel.text = "Godot Engine " + str(Engine.get_version_info().string)
+
+func _process(delta: float) -> void:
+	$SysinfoContainer/FPSLabel.text = str(Engine.get_frames_per_second()) + " FPS"
+
 # Controller Setup
 func _on_controller_setup_texture_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/test_controller.tscn")

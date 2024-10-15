@@ -1,24 +1,26 @@
 extends Node2D
 
-# 스크린 상에서 눌러야 하는 완벽한 y좌표
+# The following code is based from https://github.com/scenent/gd-rhythm
+
+# The perfect y coordinate to press on the screen
 const PERFECT_YPOS : float = 500
-# 기어 UI의 Y축 끝부분
+# Y-axis end of the Gear UI
 const GEAR_END : float = 520
-# 마지막 노트가 끝난 후 이 여백동안 대기했다가 게임이 끝남
+# After the last note is finished, wait for this margin and then the game ends.
 const ENDPOS_BIAS : float = +2.0
-# 보조선 간격(초)
+# Auxiliary line spacing (sec)
 const SUBLINE_LENGTH : float = 1.0
-# 자동 플레이 플래그
+# Autoplay flag
 const AUTOPLAY : bool = false
-# 4채널 각각의 키코드(input map에서 추가 가능)
+# Key code for each of the 4 channels (can be added in the input map)
 @export var keycodes : PackedStringArray
-# 오디오 플레이어 노드 경로
+# Audio Player Node Path
 @export_node_path("AudioStreamPlayer") var audio
-# 노트 씬 미리 로드
+# Preload note scene
 @onready var noteScene : Note = preload("res://scenes/game/note.tscn").instantiate()
-# 노트가 (y=0) 부터 (y=PERFECT_YPOS) 까지 내려오는 시간
+# The time it takes for a note to descend from (y=0) to (y=PERFECT_YPOS)
 var speed : float = 1.0
-# 4개의 채널에 해당하는 노트 정보
+# Note information corresponding to 7 channels
 var noteArray      : Array = [
 							[[5.2], [6.4], [6.8], [8]],
 							[[8.4], [10]],
@@ -28,34 +30,34 @@ var noteArray      : Array = [
 							[[9.2], [10.8]],
 							[]
 							]
-# 보조선 정보
+# Auxiliary line information
 var subLineArray   : Array = []
-# 현재 음원 재생 시간(초)
+# Current audio playback time (seconds)
 var currentSongPos : float   = 0.0
-# 1프레임 당 노트가 내려오는 y좌표값
+# The y-coordinate at which the note descends per frame
 var coordPerFrame  : float
-# 게임이 끝나는 시간(초)
+# Time until game ends (in seconds)
 var endPos         : float   = 0.0
 
-# 현재 유효한 노트 씬이 담긴 4개의 큐
+# 7 cues containing currently valid note scenes
 var queue          : Array   = [[], [], [], [], [], [], []]
-# 각 채널의 눌린 상태 확인
+# Check the pressed state of each channel
 var pressed        : Array   = [false, false, false, false, false, false, false]
-# 현재 누르고 있어야 하는지 확인
+# Check if you should press and hold now
 var shouldPress    : Array   = [false, false, false, false, false, false, false]
-# 현재 누르고 있는 롱노트가 끝나는 시간 
+# The time when the currently pressed long note ends
 var shouldPressEnd : Array   = [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
-# 게임이 끝났는지 확인하는 플래그
+# Flag to check if the game is over
 var done           : bool    = false
-# 현재 콤보 수
+# Current combo count
 var combo          : int     = 0
-# 최대 콤보 수
+# Maximum number of combos
 var comboMax       : int     = 0
-# 현재 점수
+# Current score
 var currentScore   : float   = 0.0
-# 얻을 수 있는 최대 점수
+# Maximum points you can get
 var maximumScore   : float   = 0.0
-# 노트 시간 정보의 가장 끝 값을 얻는다.
+# Gets the end value of the note time information.
 func getEndPos(array : Array, sp : float, bias : float) -> float:
 	var result : float  = -1.0
 	for noteInfo in array:
@@ -66,21 +68,21 @@ func getEndPos(array : Array, sp : float, bias : float) -> float:
 			if (result < noteInfo[0] + noteInfo[1]):
 				result = noteInfo[0] + noteInfo[1]
 	return result + sp + bias
-# 1프레임 당 노트가 내려와야 하는 좌표값을 얻는다.
+# Get the coordinates at which the note should drop per frame.
 func getCoordPerFrame(sp : float, perfectYpos : float) -> float:
 	if (sp != 1.0):
 		perfectYpos /= sp
 		sp          /= sp
 	perfectYpos /= 60.0
 	return perfectYpos
-# 모든 노트 시간 정보에 대해 speed값만큼 빼준다.
+# Subtract the speed value from all note time information.
 func getCorrectArr(array : Array, sp : float) -> Array:
 	var result : Array = []
 	for noteInfo in array:
 		noteInfo[0] -= sp
 		result.append(noteInfo)
 	return result
-# 보조선 리스트를 얻는다.
+# Get a list of auxiliary lines.
 func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 	var arr : Array = []
 	var index : float = sec
@@ -92,7 +94,7 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 	while (arr[0] < sp):
 		arr.pop_front()
 	return arr
-# 얻을 수 있는 최대 점수를 얻는다.
+# Get the maximum number of points you can get.
 func getMaximumScore(notearr : Array) -> float:
 	var result : float = 0.0
 	for i in notearr:
@@ -102,7 +104,7 @@ func getMaximumScore(notearr : Array) -> float:
 			else:
 				result += note[1] * 10.0
 	return result
-# 콤보를 더한다.
+# Add a combo.
 func addCombo(score : String) -> void:
 	combo += 1
 	if combo > comboMax:
@@ -116,7 +118,7 @@ func addCombo(score : String) -> void:
 	await $anim.animation_finished
 	$anim.play("combo")
 	await $anim.animation_finished
-# 콤보를 리셋한다.
+# Resets the combo.
 func resetCombo() -> void:
 	combo = 0
 	$combo.text = str(combo)
@@ -126,7 +128,6 @@ func resetCombo() -> void:
 	await $anim.animation_finished
 
 func _ready() -> void:
-	#Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process(false)
 	for i in range(1, 8):
 		get_node("pressed" + str(i)).visible = false
@@ -166,10 +167,10 @@ func _ready() -> void:
 	set_process(true)
 
 func _process(_delta) -> void:
-	# 현재 음원 재생 시간 얻기
+	# Get current audio playback time
 	currentSongPos = get_node(audio).get_playback_position()
 	currentSongPos -= AudioServer.get_output_latency()
-	# 게임 종료 확인
+	# Confirm game end
 	if (currentSongPos >= endPos):
 		done = true
 		for i in range(1, 5): get_node("pressed" + str(i)).visible = false
@@ -179,52 +180,52 @@ func _process(_delta) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		set_process(false)
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
-	# 롱노트 완료 확인
+	# Confirm completion of long note
 	for i in range(0, 7):
 		if shouldPressEnd[i] != -1.0 and shouldPressEnd[i] <= currentSongPos:
 			shouldPress[i] = false
 			shouldPressEnd[i] = -1.0
 			queue[i].pop_front()
-	# 노트 생성
+	# Create a note
 	for i in range(0, 7):
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
 			var note : Note = noteScene.duplicate()
 			var info : Array = noteArray[i].pop_front()
 			if (len(info) == 1):
-				# 일반 노트 생성
+				# Create a general note
 				note.setNote(i+1, speed, coordPerFrame)
 			else:
-				# 롱노트 생성
+				# Create long note
 				note.setNote(i+1, speed, coordPerFrame, info[1])
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
 			container.get_child(container.get_child_count()-1).global_position.x = 100 * (i+1)
 			container.get_child(container.get_child_count()-1).global_position.y += coordPerFrame * (currentSongPos - info[0]) / 60
 			queue[i].append(container.get_child(container.get_child_count()-1))
-	# 보조선 생성
+	# Create auxiliary line
 	if (subLineArray and subLineArray[0] <= currentSongPos):
 		subLineArray.pop_front()
 		var line : Line2D = Line2D.new()
 		line.width = 1
 		line.points = [Vector2(100, 0), Vector2(800, 0)]
 		$sublinecontainer.add_child(line)
-	# 보조선 이동 & 삭제
+	# Move & Delete Auxiliary Lines
 	for line in $sublinecontainer.get_children():
 		if line.position.y >= PERFECT_YPOS:
 			line.queue_free()
 		line.position.y += coordPerFrame
-	# 자동 플레이 확인
+	# Check auto play
 	if (AUTOPLAY):
 		autoplay()
 		killGarbage()
 		return
-	# 큐 안의 모든 노트들에게 점수 부여
+	# Assign points to all notes in the queue
 	updateQueue()
-	# 입력 확인 및 [롱노트 누르고 있던 도중 실패] 처리
+	# Input verification and [Failure while holding down long note] processing
 	updateInputState()
-	# [아예 누르지 못해 일반 노트 및 롱노트 실패] 처리
+	# [Failure to press at all, normal note and long note] Processing
 	dequeue()
-	# 스크린 밖으로 나간 모든 노트를 삭제
+	# Delete all notes that are outside the screen
 	killGarbage()
 
 func autoplay():
@@ -243,27 +244,27 @@ func autoplay():
 				shouldPress[i] = true
 				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
 				queue[i][0].longnoteStart()
-# i번째 채널 키가 눌렸을 시 호출됨
+# Called when the i-th channel key is pressed
 func keyPressed(i : int) -> void:
-	# 만약 해당 채널의 첫 번째 노트에 점수가 부여된 경우
+	# If the first note in that channel is scored
 	if len(queue[i]) != 0 and queue[i][0].score != "Default":
 		if queue[i][0].score == "Bad":
 			resetCombo()
 			if queue[i][0].isLongnote == false:
-				# 일반 노트 실패
+				# General note failure
 				queue[i][0].free()
 			else:
-				# 롱노트 실패
+				# Long note failure
 				queue[i][0].longnoteFailed()
 			queue[i].pop_front()
 		else:
 			if (queue[i][0].isLongnote == false):
-				# 일반노트 완료
+				# General notes completed
 				addCombo(queue[i][0].score)
 				queue[i][0].free()
 				queue[i].pop_front()
 			else:
-				# 롱노트 정상진입
+				# Long note normal entry
 				shouldPress[i] = true
 				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
 				queue[i][0].longnoteStart()
@@ -287,7 +288,7 @@ func updateInputState() -> void:
 		if (Input.is_action_just_released(keycodes[i])):
 			pressed[i] = false
 		if (pressed[i] == false and shouldPress[i]):
-			# 롱노트 누르던 도중 실패
+			# Failed while pressing long note
 			resetCombo()
 			queue[i][0].longnoteFailed()
 			queue[i].pop_front()
@@ -296,14 +297,14 @@ func updateInputState() -> void:
 func dequeue() -> void:
 	for i in range(0, 7):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):
-			# 롱노트일 경우
+			# If it's a long note
 			if (queue[i][0].isLongnote == true):
-				# 애초에 누르지 않았다면
+				# If you didn't press it in the first place
 				if (not shouldPress[i]):
 					queue[i][0].longnoteFailed()
 					queue[i].pop_front()
 					resetCombo()
-			# 일반 노트일 경우
+			# If it's a general note
 			else:
 				queue[i].pop_front()
 				resetCombo()

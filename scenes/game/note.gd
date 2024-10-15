@@ -24,7 +24,6 @@ var longnoteComboQueue : Array = []
 func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTime : float = -1.0) -> void:
 	self.global_position.y = 0.0
 	channel = _channel
-	print(channel)
 	speed = _speed
 	coordPerFrame = _coordPerFrame
 	effect = $LN_Effect

@@ -174,12 +174,11 @@ func _process(_delta) -> void:
 		done = true
 		for i in range(1, 5): get_node("pressed" + str(i)).visible = false
 		for i in $sublinecontainer.get_children(): i.free()
-		print("Game Finished")
-		print("Score : ", snapped(currentScore / maximumScore * 100.0, 0.1), "%")
-		print("Maximum Combo : ", comboMax)
+		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
+		Global.combo_max = comboMax
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		set_process(false)
-		return
+		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 	# 롱노트 완료 확인
 	for i in range(0, 7):
 		if shouldPressEnd[i] != -1.0 and shouldPressEnd[i] <= currentSongPos:

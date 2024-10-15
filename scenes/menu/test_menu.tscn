@@ -152,6 +152,7 @@ stretch_mode = 3
 layout_mode = 2
 text = "Exit Game"
 
+[connection signal="pressed" from="HBoxContainer/TestMusicButton/TestMusicTextureButton" to="." method="_on_test_music_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/MusicSelectButton/MusicSelectTextureButton" to="." method="_on_music_select_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/ControllerSetupButton/ControllerSetupTextureButton" to="." method="_on_controller_setup_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/FullScreenButton/FullScreenTextureButton" to="." method="_on_full_screen_texture_button_pressed"]

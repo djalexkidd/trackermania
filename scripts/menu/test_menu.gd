@@ -6,6 +6,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	$SysinfoContainer/FPSLabel.text = str(Engine.get_frames_per_second()) + " FPS"
 
+# Test Music
+func _on_test_music_texture_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/game/main.tscn")
+
 # Music Select
 func _on_music_select_texture_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")

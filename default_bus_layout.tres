@@ -1,0 +1,21 @@
+[gd_resource type="AudioBusLayout" load_steps=4 format=3 uid="uid://bf0gio4jet4y2"]
+
+[sub_resource type="AudioEffectChorus" id="AudioEffectChorus_x5wyn"]
+resource_name = "Chorus"
+dry = 0.5
+wet = 1.0
+voice/2/delay_ms = 25.0
+
+[sub_resource type="AudioEffectPhaser" id="AudioEffectPhaser_5qro0"]
+resource_name = "Phaser"
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_61oax"]
+resource_name = "Reverb"
+
+[resource]
+bus/0/effect/0/effect = SubResource("AudioEffectChorus_x5wyn")
+bus/0/effect/0/enabled = false
+bus/0/effect/1/effect = SubResource("AudioEffectPhaser_5qro0")
+bus/0/effect/1/enabled = false
+bus/0/effect/2/effect = SubResource("AudioEffectReverb_61oax")
+bus/0/effect/2/enabled = false

@@ -1,0 +1,192 @@
+[gd_scene load_steps=10 format=3 uid="uid://dv67rp7a6aimn"]
+
+[ext_resource type="Script" path="res://scripts/menu/music_select.gd" id="1_8an63"]
+[ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
+[ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="1_u0514"]
+[ext_resource type="Shader" path="res://assets/shaders/scroll.gdshader" id="1_y1sfi"]
+[ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="2_e4d0k"]
+[ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
+[ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
+[ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i76ow"]
+shader = ExtResource("1_y1sfi")
+shader_parameter/speed = 0.1
+
+[node name="MusicSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8an63")
+
+[node name="Background" type="TextureRect" parent="."]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_i76ow")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -180.0
+offset_right = 320.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_e4d0k")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -1920.0
+offset_bottom = 113.0
+grow_horizontal = 0
+texture = ExtResource("1_u0514")
+
+[node name="MusicSelectLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 512.0
+offset_bottom = 48.0
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 32
+text = "music select"
+
+[node name="SongWheel" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -751.0
+offset_top = 113.0
+grow_horizontal = 0
+grow_vertical = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SongWheel"]
+layout_mode = 2
+
+[node name="CategoryPurple" parent="SongWheel/VBoxContainer" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+
+[node name="BottomBar" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -88.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="P1ColorRect" type="ColorRect" parent="BottomBar"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -64.0
+offset_right = 264.0
+offset_bottom = -24.0
+grow_vertical = 0
+color = Color(0, 0.686275, 1, 1)
+
+[node name="P1Label" type="Label" parent="BottomBar/P1ColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.5
+offset_top = -12.0
+offset_right = 115.5
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 24
+text = "PLAYER 1"
+
+[node name="P1Name" type="Label" parent="BottomBar/P1ColorRect/P1Label"]
+layout_mode = 2
+offset_left = 259.5
+offset_right = 342.5
+offset_bottom = 23.0
+text = "########"
+
+[node name="P2ColorRect" type="ColorRect" parent="BottomBar"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -264.0
+offset_top = -64.0
+offset_right = -8.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+color = Color(1, 0.156863, 0, 1)
+
+[node name="P2Label" type="Label" parent="BottomBar/P2ColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.5
+offset_top = -12.0
+offset_right = 115.5
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 24
+text = "PLAYER 2"
+
+[node name="P2Name" type="Label" parent="BottomBar/P2ColorRect/P2Label"]
+layout_mode = 2
+offset_left = -102.5
+offset_right = -19.5
+offset_bottom = 23.0
+text = "########"
+horizontal_alignment = 2
+
+[node name="Label" type="Label" parent="BottomBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("7_q6por")
+theme_override_font_sizes/font_size = 32
+text = "effector off"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_pgr8v")
+volume_db = -6.0
+autoplay = true
+parameters/looping = true

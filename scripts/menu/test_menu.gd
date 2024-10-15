@@ -14,6 +14,13 @@ func _on_music_select_texture_button_pressed() -> void:
 func _on_controller_setup_texture_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/test_controller.tscn")
 
+# Full Screen
+func _on_full_screen_texture_button_pressed() -> void:
+	if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
 # Exit game
 func _on_exit_texture_button_pressed() -> void:
 	get_tree().quit()

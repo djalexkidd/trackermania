@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="1_2gbuf"]
 [ext_resource type="Shader" path="res://assets/shaders/scroll.gdshader" id="1_qeoaq"]
 [ext_resource type="Script" path="res://scripts/menu/test_menu.gd" id="1_vq0ip"]
-[ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_s4w8k"]
+[ext_resource type="FontFile" uid="uid://clutrvk1m4u8m" path="res://assets/font/ABSTRACT.TTF" id="4_66lkn"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="4_vxrwm"]
 [ext_resource type="Texture2D" uid="uid://c6qji8pqkbi2o" path="res://icon.png" id="5_mrtay"]
 
@@ -31,13 +31,24 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_2gbuf")
 
+[node name="Title2" type="Label" parent="."]
+layout_mode = 1
+offset_left = 13.0
+offset_top = 19.0
+offset_right = 1009.0
+offset_bottom = 63.0
+theme_override_colors/font_color = Color(100, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_66lkn")
+theme_override_font_sizes/font_size = 32
+text = "trackermania"
+
 [node name="Title" type="Label" parent="."]
 layout_mode = 1
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 512.0
 offset_bottom = 48.0
-theme_override_fonts/font = ExtResource("2_s4w8k")
+theme_override_fonts/font = ExtResource("4_66lkn")
 theme_override_font_sizes/font_size = 32
 text = "trackermania"
 

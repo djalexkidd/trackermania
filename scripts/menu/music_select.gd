@@ -17,6 +17,17 @@ func _process(delta):
 	if Input.is_action_just_pressed("p1_effect"):
 		_cycle_audio_effects()
 	
+	# Game Option Settings
+	if Input.is_action_just_pressed("p1_start"):
+		$SongWheel.hide()
+		$GameOptionSettings.show()
+		$GameOptionSettings/OpenAudio.play()
+	
+	if Input.is_action_just_released("p1_start"):
+		$SongWheel.show()
+		$GameOptionSettings.hide()
+		$GameOptionSettings/CloseAudio.play()
+	
 	# Exit button
 	if Input.is_action_just_pressed("p1_key2") or Input.is_action_just_pressed("p1_key4") or Input.is_action_just_pressed("p1_key6"):
 		get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")

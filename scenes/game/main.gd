@@ -11,7 +11,7 @@ const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing (sec)
 const SUBLINE_LENGTH : float = 1.0
 # Autoplay flag
-const AUTOPLAY : bool = false
+var AUTOPLAY : bool = Global.auto_play
 # Key code for each of the 4 channels (can be added in the input map)
 @export var keycodes : PackedStringArray
 # Audio Player Node Path

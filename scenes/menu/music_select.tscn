@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dv67rp7a6aimn"]
+[gd_scene load_steps=14 format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
@@ -8,6 +8,10 @@
 [ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
+[ext_resource type="Script" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
+[ext_resource type="Texture2D" uid="uid://cht6hbw5e3txs" path="res://assets/music_select/keyboard.png" id="9_vpjg6"]
+[ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="10_rocpe"]
+[ext_resource type="AudioStream" uid="uid://csvkylr0deve0" path="res://assets/music_select/close.ogg" id="11_uuciq"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i76ow"]
 shader = ExtResource("1_y1sfi")
@@ -186,3 +190,92 @@ stream = ExtResource("5_pgr8v")
 volume_db = -6.0
 autoplay = true
 parameters/looping = true
+
+[node name="GameOptionSettings" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -448.0
+offset_top = 112.0
+offset_bottom = -80.0
+grow_horizontal = 0
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+script = ExtResource("9_fxi4t")
+
+[node name="TextureRect" type="TextureRect" parent="GameOptionSettings"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -164.0
+offset_top = -82.0
+offset_right = 164.0
+offset_bottom = 82.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("9_vpjg6")
+
+[node name="GameOptionLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -119.0
+offset_top = 32.0
+offset_right = 119.0
+offset_bottom = 55.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("1_mbwtn")
+text = "GAME OPTIONS"
+
+[node name="AutoPlayLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 352.0
+offset_right = 112.0
+offset_bottom = 375.0
+text = "AUTO"
+
+[node name="HiSpeedLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 324.0
+offset_top = 352.0
+offset_right = 395.0
+offset_bottom = 375.0
+text = "HI-SPEED"
+
+[node name="EasyGaugeLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 204.0
+offset_top = 130.0
+offset_right = 244.0
+offset_bottom = 153.0
+text = "EASY"
+
+[node name="HardGaugeLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 201.0
+offset_top = 152.0
+offset_right = 246.0
+offset_bottom = 175.0
+text = "HARD"
+
+[node name="5KeysLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 291.0
+offset_top = 152.0
+offset_right = 338.0
+offset_bottom = 175.0
+text = "5KEYS"
+
+[node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
+stream = ExtResource("10_rocpe")
+
+[node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
+stream = ExtResource("11_uuciq")

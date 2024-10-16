@@ -19,7 +19,7 @@ var AUTOPLAY : bool = Global.auto_play
 # Preload note scene
 @onready var noteScene : Note = preload("res://scenes/game/note.tscn").instantiate()
 # The time it takes for a note to descend from (y=0) to (y=PERFECT_YPOS)
-var speed : float = 1.0
+var speed : float = Global.hispeed
 # Note information corresponding to 7 channels
 var noteArray      : Array = [
 							[[5.2], [6.4], [6.8], [8], [15.2], [16.8], [18], [19.6]],

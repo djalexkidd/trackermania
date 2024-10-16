@@ -24,3 +24,13 @@ func _process(delta: float) -> void:
 			Global.keys_mode = 7
 			$FiveKeysLabel.remove_theme_color_override("font_color")
 			emit_signal("update", "five", false)
+	
+	if Input.is_action_just_pressed("p1_key7") and visible:
+		Global.hispeed -= 0.05
+		$HiSpeedLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
+		
+		if Global.hispeed < 0.45:
+			Global.hispeed = 1.0
+			$HiSpeedLabel.remove_theme_color_override("font_color")
+		
+		emit_signal("update", "hispeed", Global.hispeed)

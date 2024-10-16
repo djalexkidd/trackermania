@@ -20,6 +20,21 @@
 shader = ExtResource("1_y1sfi")
 shader_parameter/speed = 0.1
 
+[sub_resource type="Animation" id="Animation_rejju"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.103744, 0.103744, 0.103744, 1)]
+}
+
 [sub_resource type="Animation" id="Animation_3eb5n"]
 resource_name = "auto"
 loop_mode = 1
@@ -34,21 +49,6 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [Color(100, 0.5, 0, 1), Color(100, 1, 0, 1), Color(100, 0.5, 0, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_rejju"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:color")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.103744, 0.103744, 0.103744, 1)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_j4c04"]
@@ -241,6 +241,34 @@ offset_right = 108.0
 offset_bottom = -8.0
 grow_vertical = 0
 
+[node name="hispeedColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/hispeedColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -12.5
+offset_right = 21.5
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "HI-S"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/hispeedColorRect"]
+libraries = {
+"": SubResource("AnimationLibrary_j4c04")
+}
+
 [node name="autoColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
@@ -424,3 +452,4 @@ stream = ExtResource("11_uuciq")
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hardColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hispeedColorRect" method="_on_game_option_settings_update"]

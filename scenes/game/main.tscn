@@ -161,6 +161,14 @@ audio = NodePath("audio")
 stream = ExtResource("2_t2qet")
 volume_db = -2.0
 
+[node name="GrooveGauge" type="ProgressBar" parent="."]
+offset_left = 99.0
+offset_top = 550.0
+offset_right = 801.0
+offset_bottom = 577.0
+step = 2.0
+value = 60.0
+
 [node name="ui" type="Node2D" parent="."]
 
 [node name="1" type="Line2D" parent="ui"]

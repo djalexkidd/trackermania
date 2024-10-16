@@ -1,10 +1,7 @@
 extends Control
 
 func _ready() -> void:
-	$SysinfoContainer/EngineLabel.text = "Godot Engine " + str(Engine.get_version_info().string)
-
-func _process(delta: float) -> void:
-	$SysinfoContainer/FPSLabel.text = str(Engine.get_frames_per_second()) + " FPS"
+	$EngineLabel.text = "Godot Engine " + str(Engine.get_version_info().string)
 
 # Test Music
 func _on_test_music_texture_button_pressed() -> void:

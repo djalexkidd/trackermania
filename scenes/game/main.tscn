@@ -1,8 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://dqo644576we4d"]
+[gd_scene load_steps=12 format=3 uid="uid://dqo644576we4d"]
 
 [ext_resource type="Script" path="res://scenes/game/main.gd" id="1_2b8v7"]
 [ext_resource type="AudioStream" uid="uid://dv6k62plfxkxy" path="res://scenes/game/hardbass.ogg" id="2_t2qet"]
+[ext_resource type="Texture2D" uid="uid://bl0lp2l46fft0" path="res://assets/play/p1_frame.png" id="3_8tcdk"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="3_15r0s"]
+[ext_resource type="Texture2D" uid="uid://brngqnudhveoc" path="res://assets/play/groove_gauge.png" id="3_60hwu"]
+[ext_resource type="Texture2D" uid="uid://b1bki7qlmh0er" path="res://assets/play/progress.png" id="4_7g6co"]
 
 [sub_resource type="Animation" id="Animation_ou11v"]
 resource_name = "Bad"
@@ -161,13 +164,25 @@ audio = NodePath("audio")
 stream = ExtResource("2_t2qet")
 volume_db = -2.0
 
-[node name="GrooveGauge" type="ProgressBar" parent="."]
-offset_left = 99.0
-offset_top = 550.0
-offset_right = 801.0
-offset_bottom = 577.0
-step = 2.0
+[node name="GrooveGauge" type="TextureProgressBar" parent="."]
+offset_left = 64.0
+offset_top = 656.0
+offset_right = 1126.0
+offset_bottom = 702.0
 value = 60.0
+texture_under = ExtResource("3_60hwu")
+texture_progress = ExtResource("4_7g6co")
+
+[node name="Label" type="Label" parent="GrooveGauge"]
+layout_mode = 0
+offset_left = 896.0
+offset_top = -56.0
+offset_right = 1052.0
+offset_bottom = -24.0
+theme_override_fonts/font = ExtResource("3_15r0s")
+theme_override_font_sizes/font_size = 32
+text = "60 %"
+horizontal_alignment = 2
 
 [node name="ui" type="Node2D" parent="."]
 
@@ -282,11 +297,13 @@ vertical_alignment = 1
 
 [node name="isautoplay" type="Label" parent="."]
 visible = false
-offset_left = 245.0
-offset_top = 540.0
-offset_right = 370.0
-offset_bottom = 566.0
-text = "AUTOPLAYING..."
+offset_left = 859.0
+offset_top = 34.0
+offset_right = 1235.0
+offset_bottom = 66.0
+theme_override_fonts/font = ExtResource("3_15r0s")
+theme_override_font_sizes/font_size = 32
+text = "AUTO PLAY"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -365,6 +382,29 @@ offset_bottom = 126.0
 rotation = 1.5708
 theme_override_fonts/font = ExtResource("3_15r0s")
 text = "AUTO PLAY LANE"
+
+[node name="P1Frame" type="TextureRect" parent="."]
+offset_left = -152.0
+offset_top = -227.0
+offset_right = 805.0
+offset_bottom = 629.0
+texture = ExtResource("3_8tcdk")
+
+[node name="TEMPColorRect" type="ColorRect" parent="P1Frame"]
+layout_mode = 0
+offset_left = -8.0
+offset_top = 299.0
+offset_right = 251.0
+offset_bottom = 859.0
+color = Color(0, 0, 0, 1)
+
+[node name="TEMPColorRect2" type="ColorRect" parent="P1Frame"]
+layout_mode = 0
+offset_left = -112.0
+offset_top = -261.0
+offset_right = 144.0
+offset_bottom = 299.0
+color = Color(0, 0, 0, 1)
 
 [node name="anim" type="AnimationPlayer" parent="."]
 libraries = {

@@ -252,7 +252,7 @@ offset_right = -265.0
 offset_bottom = 167.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Redifine P1 Keys"
+text = "Redefine P1 Keys"
 
 [node name="P1RemapFinish" type="Button" parent="."]
 visible = false

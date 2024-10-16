@@ -119,6 +119,7 @@ func addCombo(score : String) -> void:
 		currentScore += 0.7
 	$combo.text = str(combo)
 	$GrooveGauge.value += 2
+	$GrooveGauge/Label.text = str($GrooveGauge.value) + " %"
 	$anim.play(score)
 	await $anim.animation_finished
 	$anim.play("combo")
@@ -129,6 +130,7 @@ func resetCombo() -> void:
 	$combo.text = str(combo)
 	$anim.play("Bad")
 	$GrooveGauge.value -= 2
+	$GrooveGauge/Label.text = str($GrooveGauge.value) + " %"
 	await $anim.animation_finished
 	$anim.play("combo")
 	await $anim.animation_finished

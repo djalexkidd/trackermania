@@ -29,8 +29,10 @@ func _process(delta):
 		$GameOptionSettings/CloseAudio.play()
 	
 	# Exit button
-	if Input.is_action_just_pressed("p1_key2") or Input.is_action_just_pressed("p1_key4") or Input.is_action_just_pressed("p1_key6"):
-		get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+	for key in ["p1_key2", "p1_key4", "p1_key6"]:
+		if Input.is_action_just_pressed(key) and !$GameOptionSettings.visible:
+			get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+			break
 
 func _cycle_audio_effects():
 	# Disable all effects before cycling to the next one

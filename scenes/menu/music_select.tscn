@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dv67rp7a6aimn"]
+[gd_scene load_steps=19 format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
+[ext_resource type="Script" path="res://scripts/menu/music_select/options_indicator.gd" id="8_7kb4w"]
+[ext_resource type="FontFile" uid="uid://bmqjsoyv3o27y" path="res://assets/font/tallpixelfont.ttf" id="8_qtw6o"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
 [ext_resource type="Texture2D" uid="uid://cht6hbw5e3txs" path="res://assets/music_select/keyboard.png" id="9_vpjg6"]
 [ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="10_rocpe"]
@@ -16,6 +18,43 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i76ow"]
 shader = ExtResource("1_y1sfi")
 shader_parameter/speed = 0.1
+
+[sub_resource type="Animation" id="Animation_3eb5n"]
+resource_name = "auto"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(100, 0.5, 0, 1), Color(100, 1, 0, 1), Color(100, 0.5, 0, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_rejju"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.103744, 0.103744, 0.103744, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_j4c04"]
+_data = {
+"RESET": SubResource("Animation_rejju"),
+"auto": SubResource("Animation_3eb5n")
+}
 
 [node name="MusicSelect" type="Control"]
 layout_mode = 3
@@ -94,9 +133,9 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = -64.0
+offset_top = -80.0
 offset_right = 264.0
-offset_bottom = -24.0
+offset_bottom = -40.0
 grow_vertical = 0
 color = Color(0, 0.686275, 1, 1)
 
@@ -133,9 +172,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -264.0
-offset_top = -64.0
+offset_top = -80.0
 offset_right = -8.0
-offset_bottom = -24.0
+offset_bottom = -40.0
 grow_horizontal = 0
 grow_vertical = 0
 color = Color(1, 0.156863, 0, 1)
@@ -184,6 +223,101 @@ theme_override_font_sizes/font_size = 32
 text = "effector off"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="P1GameOptions" type="HBoxContainer" parent="BottomBar"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -40.0
+offset_right = 108.0
+offset_bottom = -8.0
+grow_vertical = 0
+
+[node name="autoColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/autoColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -12.5
+offset_right = 21.5
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "AUTO"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/autoColorRect"]
+libraries = {
+"": SubResource("AnimationLibrary_j4c04")
+}
+
+[node name="hardColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/hardColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -12.5
+offset_right = 21.5
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "EASY"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/hardColorRect"]
+libraries = {
+"": SubResource("AnimationLibrary_j4c04")
+}
+
+[node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/fivekeysColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -12.5
+offset_right = 21.5
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "5-KEYS"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect"]
+libraries = {
+"": SubResource("AnimationLibrary_j4c04")
+}
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_pgr8v")
@@ -266,7 +400,7 @@ offset_right = 246.0
 offset_bottom = 175.0
 text = "HARD"
 
-[node name="5KeysLabel" type="Label" parent="GameOptionSettings"]
+[node name="FiveKeysLabel" type="Label" parent="GameOptionSettings"]
 layout_mode = 0
 offset_left = 291.0
 offset_top = 152.0
@@ -279,3 +413,7 @@ stream = ExtResource("10_rocpe")
 
 [node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
 stream = ExtResource("11_uuciq")
+
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hardColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]

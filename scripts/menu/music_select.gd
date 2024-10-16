@@ -59,3 +59,6 @@ func _cycle_audio_effects():
 		_:
 			# All effects are off (default state)
 			$BottomBar/Label.text = "effector off"
+
+func _on_song_entry_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/game/main.tscn")

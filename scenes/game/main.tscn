@@ -324,6 +324,40 @@ offset_right = 800.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
+[node name="AutoPlay6" type="ColorRect" parent="."]
+visible = false
+offset_left = 601.0
+offset_right = 699.0
+offset_bottom = 520.0
+color = Color(0.194349, 0.194349, 0.194349, 1)
+
+[node name="Label" type="Label" parent="AutoPlay6"]
+layout_mode = 1
+offset_left = 59.0
+offset_top = 110.0
+offset_right = 347.0
+offset_bottom = 126.0
+rotation = 1.5708
+theme_override_fonts/font = ExtResource("3_15r0s")
+text = "AUTO PLAY LANE"
+
+[node name="AutoPlay7" type="ColorRect" parent="."]
+visible = false
+offset_left = 701.0
+offset_right = 799.0
+offset_bottom = 520.0
+color = Color(0.194349, 0.194349, 0.194349, 1)
+
+[node name="Label" type="Label" parent="AutoPlay7"]
+layout_mode = 1
+offset_left = 59.0
+offset_top = 110.0
+offset_right = 347.0
+offset_bottom = 126.0
+rotation = 1.5708
+theme_override_fonts/font = ExtResource("3_15r0s")
+text = "AUTO PLAY LANE"
+
 [node name="anim" type="AnimationPlayer" parent="."]
 libraries = {
 "": SubResource("AnimationLibrary_n70hp")

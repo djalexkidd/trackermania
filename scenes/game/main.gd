@@ -97,6 +97,10 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 # Get the maximum number of points you can get.
 func getMaximumScore(notearr : Array) -> float:
 	var result : float = 0.0
+	
+	if Global.keys_mode == 5:
+		noteArray.resize(5)
+	
 	for i in notearr:
 		for note in i:
 			if (len(note) == 1):
@@ -129,17 +133,18 @@ func resetCombo() -> void:
 
 func _ready() -> void:
 	set_process(false)
-	for i in range(1, 8):
+	if Global.keys_mode == 5:
+		$AutoPlay6.show()
+		$AutoPlay7.show()
+	for i in range(1, Global.keys_mode+1):
 		get_node("pressed" + str(i)).visible = false
 	var noteStart : float = INF
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		if len(noteArray[i]) > 0:
 			if (noteStart > noteArray[i][0][0]):
 				noteStart = noteArray[i][0][0]
 	if (noteStart <= speed):
 		OS.alert("There is no enough space in front of note info")
-	if (len(keycodes) != 7):
-		OS.alert("All of keycode has not been assigned")
 	for key in keycodes:
 		if key == "":
 			OS.alert("Please assign a keycode")
@@ -148,16 +153,17 @@ func _ready() -> void:
 		OS.alert("Please assign a AudioStreamPlayer node")
 	if (get_node(audio).stream == null):
 		OS.alert("Please assign a music")
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		noteArray[i] = getCorrectArr(noteArray[i], speed)
 	coordPerFrame = getCoordPerFrame(speed, PERFECT_YPOS)
-	for i in range(0, 7): 
+	for i in range(0, Global.keys_mode):
 		if getEndPos(noteArray[i], speed, ENDPOS_BIAS) > endPos:
 			endPos = getEndPos(noteArray[i], speed, ENDPOS_BIAS)
 	if (get_node(audio).stream.get_length() < endPos):
 		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
 	subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
 	maximumScore = getMaximumScore(noteArray)
+	print(maximumScore)
 	if (AUTOPLAY):
 		$isautoplay.visible = true
 		print("AUTO PLAYING...")
@@ -181,13 +187,13 @@ func _process(_delta) -> void:
 		set_process(false)
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 	# Confirm completion of long note
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		if shouldPressEnd[i] != -1.0 and shouldPressEnd[i] <= currentSongPos:
 			shouldPress[i] = false
 			shouldPressEnd[i] = -1.0
 			queue[i].pop_front()
 	# Create a note
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
 			var note : Note = noteScene.duplicate()
 			var info : Array = noteArray[i].pop_front()
@@ -229,7 +235,7 @@ func _process(_delta) -> void:
 	killGarbage()
 
 func autoplay():
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		if (queue[i] and queue[i][0] == null):
 			queue[i].pop_front()
 		if (queue[i] and queue[i][0].isLongnote == false):
@@ -280,7 +286,7 @@ func updateQueue() -> void:
 			elif (480 <= m and m < 520):
 				n.score = "Perfect"
 func updateInputState() -> void:
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		get_node("pressed" + str(i+1)).visible = pressed[i]
 		if (Input.is_action_just_pressed(keycodes[i])):
 			pressed[i] = true
@@ -295,7 +301,7 @@ func updateInputState() -> void:
 			shouldPressEnd[i] = -1.0
 			shouldPress[i] = false
 func dequeue() -> void:
-	for i in range(0, 7):
+	for i in range(0, Global.keys_mode):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):
 			# If it's a long note
 			if (queue[i][0].isLongnote == true):

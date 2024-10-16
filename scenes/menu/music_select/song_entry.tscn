@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://br2ctb78nps4r"]
+
+[ext_resource type="Texture2D" uid="uid://cdw4v0k1ab154" path="res://assets/music_select/music.png" id="1_j0avn"]
+[ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="2_3nd1l"]
+
+[node name="SongEntry" type="TextureButton"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture_normal = ExtResource("1_j0avn")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 124.0
+offset_top = 23.0
+offset_right = 497.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.968627, 0.968627, 0.968627, 1)
+theme_override_colors/font_outline_color = Color(0.101961, 0.156863, 0.34902, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_3nd1l")
+theme_override_font_sizes/font_size = 31
+text = "Test Music"

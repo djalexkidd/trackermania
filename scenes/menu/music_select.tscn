@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://dv67rp7a6aimn"]
+[gd_scene load_steps=20 format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
+[ext_resource type="PackedScene" uid="uid://br2ctb78nps4r" path="res://scenes/menu/music_select/song_entry.tscn" id="7_vtavg"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/options_indicator.gd" id="8_7kb4w"]
 [ext_resource type="FontFile" uid="uid://bmqjsoyv3o27y" path="res://assets/font/tallpixelfont.ttf" id="8_qtw6o"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
@@ -104,6 +105,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -751.0
 offset_top = 113.0
+offset_bottom = -88.0
 grow_horizontal = 0
 grow_vertical = 2
 follow_focus = true
@@ -112,8 +114,12 @@ vertical_scroll_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="SongWheel"]
 layout_mode = 2
+theme_override_constants/separation = 67
 
 [node name="CategoryPurple" parent="SongWheel/VBoxContainer" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+
+[node name="SongEntry" parent="SongWheel/VBoxContainer" instance=ExtResource("7_vtavg")]
 layout_mode = 2
 
 [node name="BottomBar" type="ColorRect" parent="."]
@@ -414,6 +420,7 @@ stream = ExtResource("10_rocpe")
 [node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
 stream = ExtResource("11_uuciq")
 
+[connection signal="pressed" from="SongWheel/VBoxContainer/SongEntry" to="." method="_on_song_entry_pressed"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hardColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]

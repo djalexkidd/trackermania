@@ -5,6 +5,7 @@ func _ready() -> void:
 
 # Test Music
 func _on_test_music_texture_button_pressed() -> void:
+	Global.auto_play = true
 	get_tree().change_scene_to_file("res://scenes/game/main.tscn")
 
 # Music Select

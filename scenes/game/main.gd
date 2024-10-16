@@ -302,6 +302,9 @@ func updateInputState() -> void:
 			queue[i].pop_front()
 			shouldPressEnd[i] = -1.0
 			shouldPress[i] = false
+	
+	if Input.is_action_just_pressed("p1_meta"):
+		get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")
 func dequeue() -> void:
 	for i in range(0, Global.keys_mode):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):

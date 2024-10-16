@@ -3,7 +3,14 @@ extends ColorRect
 signal update(option, status)
 
 func _ready():
-	pass
+	if Global.auto_play:
+		$AutoPlayLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
+	
+	if Global.keys_mode == 5:
+		$FiveKeysLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
+	
+	if Global.hispeed != 1.0:
+		$HiSpeedLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("p1_key1") and visible:

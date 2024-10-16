@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://c0me54qvehuvi"]
+[gd_scene load_steps=7 format=3 uid="uid://c0me54qvehuvi"]
 
 [ext_resource type="Script" path="res://scripts/menu/controller_test/test_controller.gd" id="1_nh7a8"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="1_vfluu"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_r16qi"]
 [ext_resource type="PackedScene" uid="uid://dadevgawscx88" path="res://scenes/menu/controller_test/p1_texture.tscn" id="3_hys6r"]
 [ext_resource type="Texture2D" uid="uid://ojq4ejib6mii" path="res://assets/controller_test/controller_p2.png" id="4_rgrp1"]
+[ext_resource type="Script" path="res://scripts/menu/controller_test/remap_keys.gd" id="5_161sk"]
 
 [node name="TestController" type="Control"]
 layout_mode = 3
@@ -107,3 +108,167 @@ texture = ExtResource("4_rgrp1")
 layout_mode = 2
 theme_override_fonts/font = ExtResource("1_vfluu")
 theme_override_font_sizes/font_size = 48
+
+[node name="P1RemapKeys" type="GridContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 32.0
+offset_top = -173.5
+offset_right = 119.0
+offset_bottom = 173.5
+grow_vertical = 2
+columns = 2
+
+[node name="Label" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 1 :"
+
+[node name="Button" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key1"
+
+[node name="Label2" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 2 :"
+
+[node name="Button2" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key2"
+
+[node name="Label3" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 3 :"
+
+[node name="Button3" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key3"
+
+[node name="Label4" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 4 :"
+
+[node name="Button4" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key4"
+
+[node name="Label5" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 5 :"
+
+[node name="Button5" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key5"
+
+[node name="Label6" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 6 :"
+
+[node name="Button6" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key6"
+
+[node name="Label7" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Key 7 :"
+
+[node name="Button7" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_key7"
+
+[node name="Label8" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Scratch+ :"
+
+[node name="Button8" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_digital_turntable_fwd"
+
+[node name="Label9" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Scratch- :"
+
+[node name="Button9" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_digital_turntable_rew"
+
+[node name="Label10" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Start :"
+
+[node name="Button10" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_start"
+
+[node name="Label11" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Effect :"
+
+[node name="Button11" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_effect"
+
+[node name="Label12" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "VEFX :"
+
+[node name="Button12" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_vefx"
+
+[node name="Label13" type="Label" parent="P1RemapKeys"]
+layout_mode = 2
+text = "Meta :"
+
+[node name="Button13" type="Button" parent="P1RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p1_meta"
+
+[node name="P1RemapKeysButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = 136.0
+offset_right = -265.0
+offset_bottom = 167.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Redifine P1 Keys"
+
+[node name="P1RemapFinish" type="Button" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -604.0
+offset_top = 255.0
+offset_right = -492.0
+offset_bottom = 286.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Save changes"
+
+[connection signal="pressed" from="P1RemapKeysButton" to="." method="_on_remap_keys_button_pressed"]
+[connection signal="pressed" from="P1RemapFinish" to="." method="_on_p_1_remap_finish_pressed"]

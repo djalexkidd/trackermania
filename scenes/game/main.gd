@@ -163,10 +163,8 @@ func _ready() -> void:
 		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
 	subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
 	maximumScore = getMaximumScore(noteArray)
-	print(maximumScore)
 	if (AUTOPLAY):
 		$isautoplay.visible = true
-		print("AUTO PLAYING...")
 	await get_tree().create_timer(1.0).timeout
 	$getready.hide()
 	get_node(audio).play()

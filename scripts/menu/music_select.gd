@@ -12,6 +12,11 @@ func _ready():
 	AudioServer.set_bus_effect_enabled(audio_bus, 1, false)  # Phaser
 	AudioServer.set_bus_effect_enabled(audio_bus, 2, false)  # Reverb
 	
+	if Global.p1_name != "":
+		$BottomBar/P1ColorRect/P1Label.hide()
+		$BottomBar/P1ColorRect/P1DJPrefixLabel/P1NameLabel.text = Global.p1_name
+		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
+	
 	# Analyse user folder for charts
 	var json_files = Loader.get_all_files("user://songs", "json")
 	

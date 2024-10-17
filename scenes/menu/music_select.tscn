@@ -158,6 +158,45 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 24
 text = "PLAYER 1"
+horizontal_alignment = 1
+
+[node name="P1DJPrefixLabel" type="Label" parent="BottomBar/P1ColorRect"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.0
+offset_top = -4.0
+offset_right = -71.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 16
+text = "DJ"
+horizontal_alignment = 1
+
+[node name="P1NameLabel" type="Label" parent="BottomBar/P1ColorRect/P1DJPrefixLabel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 44.0
+offset_top = -12.0
+offset_right = 209.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 20
+text = "######"
 
 [node name="P2ColorRect" type="ColorRect" parent="BottomBar"]
 layout_mode = 1
@@ -191,6 +230,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 24
 text = "PLAYER 2"
+horizontal_alignment = 1
 
 [node name="Label" type="Label" parent="BottomBar"]
 layout_mode = 1

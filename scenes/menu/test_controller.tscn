@@ -63,6 +63,11 @@ offset_right = 558.0
 offset_bottom = 113.5
 grow_vertical = 2
 
+[node name="LineEdit" type="LineEdit" parent="P1Container"]
+layout_mode = 2
+placeholder_text = "Player Name"
+max_length = 6
+
 [node name="P1Text" type="Label" parent="P1Container"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.686275, 1, 1)
@@ -270,5 +275,6 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "Save changes"
 
+[connection signal="text_changed" from="P1Container/LineEdit" to="." method="_on_line_edit_text_changed"]
 [connection signal="pressed" from="P1RemapKeysButton" to="." method="_on_remap_keys_button_pressed"]
 [connection signal="pressed" from="P1RemapFinish" to="." method="_on_p_1_remap_finish_pressed"]

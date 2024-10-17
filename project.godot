@@ -19,6 +19,7 @@ config/icon="res://icon.png"
 [autoload]
 
 Global="*res://scripts/Global.gd"
+Loader="*res://scripts/Loader.gd"
 
 [display]
 

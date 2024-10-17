@@ -21,15 +21,7 @@ var AUTOPLAY : bool = Global.auto_play
 # The time it takes for a note to descend from (y=0) to (y=PERFECT_YPOS)
 var speed : float = Global.hispeed
 # Note information corresponding to 7 channels
-var noteArray      : Array = [
-							[[5.2], [6.4], [6.8], [8], [15.2], [16.8], [18], [19.6]],
-							[[8.4], [10], [14.8], [18.2], [19.8]],
-							[[5.6], [7.2], [15.6], [15.8], [16], [16.4], [17.2], [17.4], [17.6], [18.4], [20]],
-							[[8.8], [10.4], [12.8], [14.4], [18.6], [20.2]],
-							[[6], [7.6], [12.4], [14], [18.8], [20.4]],
-							[[9.2], [10.8], [11.6], [13.2], [19], [20.6]],
-							[[12], [13.6], [19.2], [19.4], [20.8], [21]]
-							]
+var noteArray      : Array = []
 # Auxiliary line information
 var subLineArray   : Array = []
 # Current audio playback time (seconds)
@@ -135,7 +127,24 @@ func resetCombo() -> void:
 	$anim.play("combo")
 	await $anim.animation_finished
 
+func load_mp3(path):
+	var file = FileAccess.open(path, FileAccess.READ)
+	var sound = AudioStreamMP3.new()
+	sound.data = file.get_buffer(file.get_length())
+	return sound
+
 func _ready() -> void:
+	var json_data = Loader.load_json_file(Loader.file_path)
+	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
+	var file_extension = json_data["AudioFile"].get_extension()
+	
+	noteArray = json_data["noteArray"]
+	
+	if file_extension == "mp3":
+		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
+	elif file_extension == "ogg":
+		get_node(audio).stream = AudioStreamOggVorbis.load_from_file("user://songs/TestMusic/hardbass.ogg")
+	
 	set_process(false)
 	if Global.keys_mode == 5:
 		$AutoPlay6.show()

@@ -110,7 +110,10 @@ func addCombo(score : String) -> void:
 	elif (score == "Good"):
 		currentScore += 0.7
 	$combo.text = str(combo)
-	$GrooveGauge.value += 2
+	if combo % 50 == 0 and Global.gauge_level == 2:
+		$GrooveGauge.value += 2
+	if combo % 2 == 0 and Global.gauge_level < 2:
+		$GrooveGauge.value += 2
 	$GrooveGauge/Label.text = str($GrooveGauge.value) + " %"
 	$anim.play(score)
 	await $anim.animation_finished
@@ -121,8 +124,16 @@ func resetCombo() -> void:
 	combo = 0
 	$combo.text = str(combo)
 	$anim.play("Bad")
-	$GrooveGauge.value -= 2
+	if Global.gauge_level == 1:
+		$GrooveGauge.value -= 2
+	elif Global.gauge_level == 2:
+		$GrooveGauge.value -= 8
+	else:
+		$GrooveGauge.value -= 4
 	$GrooveGauge/Label.text = str($GrooveGauge.value) + " %"
+	if $GrooveGauge.value == 0 and Global.gauge_level == 2:
+		Global.failed = true
+		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 	await $anim.animation_finished
 	$anim.play("combo")
 	await $anim.animation_finished
@@ -139,10 +150,15 @@ func _ready() -> void:
 	var file_extension = json_data["AudioFile"].get_extension()
 	
 	noteArray = json_data["noteArray"]
+	Global.combo_max_top = getMaximumScore(noteArray)
 	
 	if Global.random:
 		randomize()
 		noteArray.shuffle()
+	
+	if Global.gauge_level == 2:
+		$GrooveGauge.value = 100
+		$GrooveGauge/Label.text = "100 %"
 	
 	if file_extension == "mp3":
 		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
@@ -198,6 +214,7 @@ func _process(_delta) -> void:
 		for i in $sublinecontainer.get_children(): i.free()
 		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
 		Global.combo_max = comboMax
+		Global.gauge_score = $GrooveGauge.value
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		set_process(false)
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
@@ -317,7 +334,10 @@ func updateInputState() -> void:
 			shouldPress[i] = false
 	
 	if Input.is_action_just_pressed("p1_meta"):
-		get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")
+		Global.failed = true
+		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
+		Global.combo_max = comboMax
+		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 func dequeue() -> void:
 	for i in range(0, Global.keys_mode):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):

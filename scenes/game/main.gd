@@ -140,6 +140,10 @@ func _ready() -> void:
 	
 	noteArray = json_data["noteArray"]
 	
+	if Global.random:
+		randomize()
+		noteArray.shuffle()
+	
 	if file_extension == "mp3":
 		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
 	elif file_extension == "ogg":

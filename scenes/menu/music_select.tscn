@@ -159,13 +159,6 @@ theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 24
 text = "PLAYER 1"
 
-[node name="P1Name" type="Label" parent="BottomBar/P1ColorRect/P1Label"]
-layout_mode = 2
-offset_left = 259.5
-offset_right = 342.5
-offset_bottom = 23.0
-text = "########"
-
 [node name="P2ColorRect" type="ColorRect" parent="BottomBar"]
 layout_mode = 1
 anchors_preset = 3
@@ -198,14 +191,6 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 24
 text = "PLAYER 2"
-
-[node name="P2Name" type="Label" parent="BottomBar/P2ColorRect/P2Label"]
-layout_mode = 2
-offset_left = -102.5
-offset_right = -19.5
-offset_bottom = 23.0
-text = "########"
-horizontal_alignment = 2
 
 [node name="Label" type="Label" parent="BottomBar"]
 layout_mode = 1
@@ -251,9 +236,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -21.5
-offset_top = -12.5
+offset_top = -10.5
 offset_right = 21.5
-offset_bottom = 12.5
+offset_bottom = 14.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
@@ -279,9 +264,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -21.5
-offset_top = -12.5
+offset_top = -10.5
 offset_right = 21.5
-offset_bottom = 12.5
+offset_bottom = 14.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
@@ -307,9 +292,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -21.5
-offset_top = -12.5
+offset_top = -10.5
 offset_right = 21.5
-offset_bottom = 12.5
+offset_bottom = 14.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
@@ -334,10 +319,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -12.5
-offset_right = 21.5
-offset_bottom = 12.5
+offset_left = -32.0
+offset_top = -10.5
+offset_right = 32.0
+offset_bottom = 14.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
@@ -345,6 +330,34 @@ theme_override_font_sizes/font_size = 24
 text = "5-KEYS"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect"]
+libraries = {
+"": SubResource("AnimationLibrary_j4c04")
+}
+
+[node name="randomColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/randomColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = -10.5
+offset_right = 37.0
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "RANDOM"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/randomColorRect"]
 libraries = {
 "": SubResource("AnimationLibrary_j4c04")
 }
@@ -430,6 +443,14 @@ offset_right = 246.0
 offset_bottom = 175.0
 text = "HARD"
 
+[node name="RandomLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 152.0
+offset_right = 170.0
+offset_bottom = 175.0
+text = "RANDOM"
+
 [node name="FiveKeysLabel" type="Label" parent="GameOptionSettings"]
 layout_mode = 0
 offset_left = 291.0
@@ -448,3 +469,4 @@ stream = ExtResource("11_uuciq")
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hardColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/randomColorRect" method="_on_game_option_settings_update"]

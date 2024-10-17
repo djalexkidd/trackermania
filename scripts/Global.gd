@@ -7,3 +7,7 @@ var gauge_level = 0
 var keys_mode = 7
 var hispeed = 1.0
 var auto_play = false
+var random = false
+
+var p1_name = ""
+var p2_name = ""

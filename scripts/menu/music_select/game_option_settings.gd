@@ -11,6 +11,9 @@ func _ready():
 	
 	if Global.hispeed != 1.0:
 		$HiSpeedLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
+	
+	if Global.random:
+		$RandomLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("p1_key1") and visible:
@@ -21,6 +24,15 @@ func _process(delta: float) -> void:
 		else:
 			$AutoPlayLabel.remove_theme_color_override("font_color")
 			emit_signal("update", "auto", false)
+	
+	if Input.is_action_just_pressed("p1_key2") and visible:
+		Global.random = !Global.random
+		if Global.random:
+			$RandomLabel.add_theme_color_override("font_color", Color(1, 0.5, 0))
+			emit_signal("update", "random", true)
+		else:
+			$RandomLabel.remove_theme_color_override("font_color")
+			emit_signal("update", "random", false)
 	
 	if Input.is_action_just_pressed("p1_key6") and visible:
 		if Global.keys_mode == 7:

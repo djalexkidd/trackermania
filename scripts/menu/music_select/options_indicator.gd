@@ -8,6 +8,9 @@ func _ready() -> void:
 	
 	if Global.hispeed != 1.0:
 		_on_game_option_settings_update("hispeed", Global.hispeed)
+	
+	if Global.random:
+		_on_game_option_settings_update("random", Global.random)
 
 func _on_game_option_settings_update(option, status) -> void:
 	if option in name and status:

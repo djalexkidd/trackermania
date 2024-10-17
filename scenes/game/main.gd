@@ -159,6 +159,8 @@ func _ready() -> void:
 	if Global.gauge_level == 2:
 		$GrooveGauge.value = 100
 		$GrooveGauge/Label.text = "100 %"
+		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
+		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
 	
 	if file_extension == "mp3":
 		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])

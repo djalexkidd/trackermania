@@ -143,7 +143,7 @@ func _ready() -> void:
 	if file_extension == "mp3":
 		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
 	elif file_extension == "ogg":
-		get_node(audio).stream = AudioStreamOggVorbis.load_from_file("user://songs/TestMusic/hardbass.ogg")
+		get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
 	
 	set_process(false)
 	if Global.keys_mode == 5:

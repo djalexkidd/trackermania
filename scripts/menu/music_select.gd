@@ -19,7 +19,10 @@ func _ready():
 	for file_path in json_files:
 		var json_data = load_json_file(file_path)
 		
-		print(json_data["Title"])
+		var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
+		$SongWheel/VBoxContainer.add_child(song_entry)
+		song_entry.name = str(json_data["MapId"])
+		song_entry.get_node("Label").text = json_data["Title"]
 
 # Analyse files recursively by extention
 func get_all_files(path: String, file_ext := "", files := []):

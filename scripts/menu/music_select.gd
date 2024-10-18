@@ -28,7 +28,7 @@ func load_and_add_songs(folder_path: String):
 		var json_data = Loader.load_json_file(file_path)
 		
 		var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
-		$SongWheel/VBoxContainer.add_child(song_entry)
+		$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
 		song_entry.get_node("Label").text = json_data["Title"]
 		song_entry.get_node("Label2").text = str(json_data["Difficulty"])
 		if json_data["DifficultyName"] == "Beginner":
@@ -40,6 +40,17 @@ func load_and_add_songs(folder_path: String):
 		if json_data["DifficultyName"] == "Another":
 			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(1, 0.3, 0.3))
 		song_entry.path = file_path
+		
+		if folder_path == "res://songs":
+			var copied_node=song_entry.duplicate()
+			$SongWheel/Categories/Official/MusicList.add_child(copied_node)
+		else:
+			var copied_node=song_entry.duplicate()
+			$SongWheel/Categories/Downloaded/MusicList.add_child(copied_node)
+		
+		var copied_node=song_entry.duplicate()
+		get_node("SongWheel/Categories/Level"+str(json_data["Difficulty"])).show()
+		get_node("SongWheel/Categories/Level"+str(json_data["Difficulty"])+"/MusicList").add_child(copied_node)
 
 func _process(delta):
 	# Check if the effector button is pressed

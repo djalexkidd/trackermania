@@ -1,15 +1,16 @@
 [gd_scene load_steps=3 format=3 uid="uid://c83yy376ibj36"]
 
-[ext_resource type="Texture2D" uid="uid://dbae6r7si4gea" path="res://assets/music_select/all_music.png" id="1_l4ltk"]
 [ext_resource type="FontFile" uid="uid://ddskiluk8ixlk" path="res://assets/font/digitalix.ttf" id="2_7snyh"]
+[ext_resource type="Script" path="res://scripts/menu/music_select/category.gd" id="2_kbnrc"]
 
-[node name="CategoryPurple" type="TextureButton"]
+[node name="Category" type="TextureButton"]
+texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture_normal = ExtResource("1_l4ltk")
+script = ExtResource("2_kbnrc")
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 0
@@ -22,4 +23,5 @@ theme_override_colors/font_outline_color = Color(0.101961, 0.156863, 0.34902, 1)
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("2_7snyh")
 theme_override_font_sizes/font_size = 31
-text = "ALL MUSIC"
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://dv67rp7a6aimn"]
+[gd_scene load_steps=22 format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
@@ -7,10 +7,13 @@
 [ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="2_e4d0k"]
 [ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
+[ext_resource type="Texture2D" uid="uid://dbae6r7si4gea" path="res://assets/music_select/all_music.png" id="7_iesjm"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
+[ext_resource type="Texture2D" uid="uid://cl00dgt34uhvh" path="res://assets/music_select/version.png" id="8_2ygyf"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/options_indicator.gd" id="8_7kb4w"]
 [ext_resource type="FontFile" uid="uid://bmqjsoyv3o27y" path="res://assets/font/tallpixelfont.ttf" id="8_qtw6o"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
+[ext_resource type="Texture2D" uid="uid://b23buntq635jn" path="res://assets/music_select/difficulty.png" id="9_g2fnn"]
 [ext_resource type="Texture2D" uid="uid://cht6hbw5e3txs" path="res://assets/music_select/keyboard.png" id="9_vpjg6"]
 [ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="10_rocpe"]
 [ext_resource type="AudioStream" uid="uid://csvkylr0deve0" path="res://assets/music_select/close.ogg" id="11_uuciq"]
@@ -112,12 +115,170 @@ follow_focus = true
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SongWheel"]
+[node name="Categories" type="VBoxContainer" parent="SongWheel"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="CategoryPurple" parent="SongWheel/VBoxContainer" instance=ExtResource("3_ojufb")]
+[node name="AllMusic" type="VBoxContainer" parent="SongWheel/Categories"]
 layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/AllMusic" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "ALL MUSIC"
+category_texture = ExtResource("7_iesjm")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/AllMusic"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Official" type="VBoxContainer" parent="SongWheel/Categories"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Official" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "OFFICIAL"
+category_texture = ExtResource("8_2ygyf")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Official"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Downloaded" type="VBoxContainer" parent="SongWheel/Categories"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Downloaded" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "DOWNLOADED"
+category_texture = ExtResource("8_2ygyf")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Downloaded"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level1" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level1" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 1"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level1"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level2" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level2" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 2"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level2"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level3" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level3" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 3"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level3"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level4" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level4" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 4"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level4"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level5" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level5" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 5"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level5"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level6" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level6" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 6"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level6"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level7" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level7" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 7"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level7"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Level8" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/Level8" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "LEVEL 8"
+category_texture = ExtResource("9_g2fnn")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level8"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
 
 [node name="BottomBar" type="ColorRect" parent="."]
 layout_mode = 1

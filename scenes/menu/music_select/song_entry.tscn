@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="4_uqyhv"]
 
 [node name="SongEntry" type="TextureButton"]
+texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

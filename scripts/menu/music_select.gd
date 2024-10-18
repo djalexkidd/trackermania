@@ -18,7 +18,6 @@ func _ready():
 		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
 	
 	# Analyse game and user folders for charts
-	load_and_add_songs("res://songs")
 	load_and_add_songs("user://songs")
 
 # Function to load and add song entries
@@ -41,7 +40,7 @@ func load_and_add_songs(folder_path: String):
 			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(1, 0.3, 0.3))
 		song_entry.path = file_path
 		
-		if folder_path == "res://songs":
+		if file_path.contains("official"):
 			var copied_node=song_entry.duplicate()
 			$SongWheel/Categories/Official/MusicList.add_child(copied_node)
 		else:

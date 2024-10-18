@@ -28,6 +28,7 @@ func load_and_add_songs(folder_path: String):
 		
 		var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
 		$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
+		song_entry.path = file_path
 		song_entry.get_node("Label").text = json_data["Title"]
 		song_entry.get_node("Label2").text = str(json_data["Difficulty"])
 		if json_data["DifficultyName"] == "Beginner":
@@ -38,18 +39,20 @@ func load_and_add_songs(folder_path: String):
 			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(1, 1, 0))
 		if json_data["DifficultyName"] == "Another":
 			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-		song_entry.path = file_path
-		
-		if file_path.contains("official"):
-			var copied_node=song_entry.duplicate()
-			$SongWheel/Categories/Official/MusicList.add_child(copied_node)
-		else:
-			var copied_node=song_entry.duplicate()
-			$SongWheel/Categories/Downloaded/MusicList.add_child(copied_node)
 		
 		var copied_node=song_entry.duplicate()
+		
+		if file_path.contains("official"):
+			$SongWheel/Categories/Official/MusicList.add_child(copied_node)
+			copied_node.path = file_path
+		else:
+			$SongWheel/Categories/Downloaded/MusicList.add_child(copied_node)
+			copied_node.path = file_path
+		
+		copied_node=song_entry.duplicate()
 		get_node("SongWheel/Categories/Level"+str(json_data["Difficulty"])).show()
 		get_node("SongWheel/Categories/Level"+str(json_data["Difficulty"])+"/MusicList").add_child(copied_node)
+		copied_node.path = file_path
 
 func _process(delta):
 	# Check if the effector button is pressed

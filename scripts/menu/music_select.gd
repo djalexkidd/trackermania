@@ -17,10 +17,13 @@ func _ready():
 		$BottomBar/P1ColorRect/P1DJPrefixLabel/P1NameLabel.text = Global.p1_name
 		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
 	
-	# Analyse user folder for charts
-	var json_files = Loader.get_all_files("user://songs", "json")
-	
-	# Loop through each JSON file
+	# Analyse game and user folders for charts
+	load_and_add_songs("res://songs")
+	load_and_add_songs("user://songs")
+
+# Function to load and add song entries
+func load_and_add_songs(folder_path: String):
+	var json_files = Loader.get_all_files(folder_path, "json")
 	for file_path in json_files:
 		var json_data = Loader.load_json_file(file_path)
 		

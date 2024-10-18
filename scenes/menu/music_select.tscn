@@ -509,5 +509,5 @@ stream = ExtResource("11_uuciq")
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hispeedColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/difficultyColorRect" method="_on_game_option_settings_update"]
-[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/randomColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]

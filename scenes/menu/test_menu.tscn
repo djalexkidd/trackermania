@@ -90,6 +90,19 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 64
 
+[node name="DemoModeButton" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="DemoModeTextureButton" type="TextureButton" parent="HBoxContainer/DemoModeButton"]
+layout_mode = 2
+texture_normal = ExtResource("5_mrtay")
+stretch_mode = 3
+
+[node name="Label" type="Label" parent="HBoxContainer/DemoModeButton"]
+layout_mode = 2
+text = "Demo Mode"
+
 [node name="MusicSelectButton" type="VBoxContainer" parent="HBoxContainer"]
 layout_mode = 2
 alignment = 1
@@ -142,6 +155,7 @@ stretch_mode = 3
 layout_mode = 2
 text = "Exit Game"
 
+[connection signal="pressed" from="HBoxContainer/DemoModeButton/DemoModeTextureButton" to="." method="_on_demo_mode_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/MusicSelectButton/MusicSelectTextureButton" to="." method="_on_music_select_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/ControllerSetupButton/ControllerSetupTextureButton" to="." method="_on_controller_setup_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/FullScreenButton/FullScreenTextureButton" to="." method="_on_full_screen_texture_button_pressed"]

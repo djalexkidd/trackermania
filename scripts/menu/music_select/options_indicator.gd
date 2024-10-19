@@ -3,6 +3,8 @@ extends ColorRect
 func _ready() -> void:
 	_on_game_option_settings_update("auto", Global.auto_play)
 	
+	_on_game_option_settings_update("ascratch", Global.auto_scratch)
+	
 	if Global.keys_mode == 5:
 		_on_game_option_settings_update("five", true)
 	

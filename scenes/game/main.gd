@@ -12,6 +12,7 @@ const ENDPOS_BIAS : float = +2.0
 const SUBLINE_LENGTH : float = 1.0
 # Autoplay flag
 var AUTOPLAY : bool = Global.auto_play
+var AUTOSCRATCH : bool = Global.auto_scratch
 # Key code for each of the 4 channels (can be added in the input map)
 @export var keycodes : PackedStringArray
 # Audio Player Node Path
@@ -266,6 +267,8 @@ func _process(_delta) -> void:
 		autoplay()
 		killGarbage()
 		return
+	if (AUTOSCRATCH):
+		autoscratch()
 	# Assign points to all notes in the queue
 	updateQueue()
 	# Input verification and [Failure while holding down long note] processing
@@ -274,6 +277,22 @@ func _process(_delta) -> void:
 	dequeue()
 	# Delete all notes that are outside the screen
 	killGarbage()
+
+func autoscratch():
+	if (queue[7] and queue[7][0] == null):
+		queue[7].pop_front()
+	if (queue[7] and queue[7][0].isLongnote == false):
+		if (queue[7][0].global_position.y >= PERFECT_YPOS):
+			queue[7][0].score = "Perfect"
+			addCombo(queue[7][0].score)
+			queue[7][0].free()
+			queue[7].pop_front()
+	elif (queue[7] and queue[7][0].isLongnote == true and queue[7][0].longnoteScore == ""):
+		if (queue[7][0].global_position.y >= PERFECT_YPOS):
+			queue[7][0].score = "Perfect"
+			shouldPress[7] = true
+			shouldPressEnd[7] = currentSongPos + queue[7][0].longnoteTime
+			queue[7][0].longnoteStart()
 
 func autoplay():
 	for i in range(0, 8):

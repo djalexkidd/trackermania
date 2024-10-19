@@ -43,7 +43,10 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 		$bar.color = Color(0, 0, 1)
 	# Color the note in red if in scratch lane
 	if channel == 8:
-		$bar.color = Color(1, 0, 0)
+		if !Global.auto_scratch:
+			$bar.color = Color(1, 0, 0)
+		else:
+			$bar.color = Color(0, 1, 0)
 		$bar.size.x = 132
 		$bar.position.x = -35
 

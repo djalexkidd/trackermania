@@ -537,6 +537,35 @@ libraries = {
 "": SubResource("AnimationLibrary_j4c04")
 }
 
+[node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/ascratchColorRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = -10.5
+offset_right = 37.0
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "A-SCR"
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/ascratchColorRect"]
+libraries = {
+"": SubResource("AnimationLibrary_j4c04")
+}
+
 [node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
@@ -654,6 +683,14 @@ offset_right = 170.0
 offset_bottom = 175.0
 text = "RANDOM"
 
+[node name="AutoScratchLabel" type="Label" parent="GameOptionSettings"]
+layout_mode = 0
+offset_left = 291.0
+offset_top = 130.0
+offset_right = 338.0
+offset_bottom = 153.0
+text = "AUTO SCRATCH"
+
 [node name="FiveKeysLabel" type="Label" parent="GameOptionSettings"]
 layout_mode = 0
 offset_left = 291.0
@@ -673,3 +710,4 @@ stream = ExtResource("11_uuciq")
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/difficultyColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/randomColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/ascratchColorRect" method="_on_game_option_settings_update"]

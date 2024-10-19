@@ -49,6 +49,8 @@ var comboMax       : int     = 0
 var currentScore   : float   = 0.0
 # Maximum points you can get
 var maximumScore   : float   = 0.0
+# Analog
+var previous_value := 0.0
 # Gets the end value of the note time information.
 func getEndPos(array : Array, sp : float, bias : float) -> float:
 	var result : float  = -1.0
@@ -325,6 +327,28 @@ func updateQueue() -> void:
 			elif (480 <= m and m < 520):
 				n.score = "Perfect"
 func updateInputState() -> void:
+	# Get the current analog value from the turntable
+	var current_value := Input.get_action_strength("p1_analog_turntable_fwd") - Input.get_action_strength("p1_analog_turntable_rew")
+	print(current_value)
+	# Check if the analog value has changed since the last frame
+	if current_value != previous_value:
+		# Calculate the rotation difference
+		var rotation_difference := (current_value - previous_value)
+		# Apply the rotation difference
+		pressed[7] = true
+		keyPressed(7)
+
+		# Update the previous value to the current one
+		previous_value = current_value
+	else:
+		pressed[7] = false
+	
+	if (Input.is_action_just_pressed("p1_digital_turntable_rew")):
+		pressed[7] = true
+		keyPressed(7)
+	if (Input.is_action_just_released("p1_digital_turntable_rew")):
+		pressed[7] = false
+	
 	for i in range(0, 8):
 		get_node("pressed" + str(i+1)).visible = pressed[i]
 		if (Input.is_action_just_pressed(keycodes[i])):

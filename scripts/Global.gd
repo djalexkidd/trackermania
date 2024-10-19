@@ -7,7 +7,7 @@ var failed = false
 var gauge_score = 0
 
 var gauge_level = 0
-var keys_mode = 8
+var keys_mode = 7
 var hispeed = 1.0
 var auto_play = false
 var random = false

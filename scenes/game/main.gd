@@ -91,7 +91,8 @@ func getMaximumScore(notearr : Array) -> float:
 	var result : float = 0.0
 	
 	if Global.keys_mode == 5:
-		noteArray.resize(5)
+		noteArray[5] = []
+		noteArray[6] = []
 	
 	for i in notearr:
 		for note in i:
@@ -171,10 +172,10 @@ func _ready() -> void:
 	if Global.keys_mode == 5:
 		$AutoPlay6.show()
 		$AutoPlay7.show()
-	for i in range(1, Global.keys_mode+1):
+	for i in range(1, 9):
 		get_node("pressed" + str(i)).visible = false
 	var noteStart : float = INF
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		if len(noteArray[i]) > 0:
 			if (noteStart > noteArray[i][0][0]):
 				noteStart = noteArray[i][0][0]
@@ -188,10 +189,10 @@ func _ready() -> void:
 		OS.alert("Please assign a AudioStreamPlayer node")
 	if (get_node(audio).stream == null):
 		OS.alert("Please assign a music")
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		noteArray[i] = getCorrectArr(noteArray[i], speed)
 	coordPerFrame = getCoordPerFrame(speed, PERFECT_YPOS)
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		if getEndPos(noteArray[i], speed, ENDPOS_BIAS) > endPos:
 			endPos = getEndPos(noteArray[i], speed, ENDPOS_BIAS)
 	if (get_node(audio).stream.get_length() < endPos):
@@ -221,13 +222,13 @@ func _process(_delta) -> void:
 		set_process(false)
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 	# Confirm completion of long note
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		if shouldPressEnd[i] != -1.0 and shouldPressEnd[i] <= currentSongPos:
 			shouldPress[i] = false
 			shouldPressEnd[i] = -1.0
 			queue[i].pop_front()
 	# Create a note
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
 			var note : Note = noteScene.duplicate()
 			var info : Array = noteArray[i].pop_front()
@@ -273,7 +274,7 @@ func _process(_delta) -> void:
 	killGarbage()
 
 func autoplay():
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		if (queue[i] and queue[i][0] == null):
 			queue[i].pop_front()
 		if (queue[i] and queue[i][0].isLongnote == false):
@@ -324,7 +325,7 @@ func updateQueue() -> void:
 			elif (480 <= m and m < 520):
 				n.score = "Perfect"
 func updateInputState() -> void:
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		get_node("pressed" + str(i+1)).visible = pressed[i]
 		if (Input.is_action_just_pressed(keycodes[i])):
 			pressed[i] = true
@@ -345,7 +346,7 @@ func updateInputState() -> void:
 		Global.combo_max = comboMax
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 func dequeue() -> void:
-	for i in range(0, Global.keys_mode):
+	for i in range(0, 8):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):
 			# If it's a long note
 			if (queue[i][0].isLongnote == true):
@@ -359,7 +360,7 @@ func dequeue() -> void:
 				queue[i].pop_front()
 				resetCombo()
 func killGarbage() -> void:
-	for i in range(1, 5):
+	for i in range(1, 9):
 		for n in get_node("container" + str(i)).get_children():
 			if (n.global_position.y - n.effect.size.y >= 600):
 				n.free()

@@ -352,8 +352,8 @@ color = Color(1, 1, 1, 0.223529)
 
 [node name="AutoPlay6" type="ColorRect" parent="."]
 visible = false
-offset_left = 601.0
-offset_right = 699.0
+offset_left = 665.0
+offset_right = 763.0
 offset_bottom = 520.0
 color = Color(0.194349, 0.194349, 0.194349, 1)
 
@@ -369,8 +369,8 @@ text = "AUTO PLAY LANE"
 
 [node name="AutoPlay7" type="ColorRect" parent="."]
 visible = false
-offset_left = 701.0
-offset_right = 799.0
+offset_left = 765.0
+offset_right = 863.0
 offset_bottom = 520.0
 color = Color(0.194349, 0.194349, 0.194349, 1)
 

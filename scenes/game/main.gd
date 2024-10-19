@@ -329,7 +329,6 @@ func updateQueue() -> void:
 func updateInputState() -> void:
 	# Get the current analog value from the turntable
 	var current_value := Input.get_action_strength("p1_analog_turntable_fwd") - Input.get_action_strength("p1_analog_turntable_rew")
-	print(current_value)
 	# Check if the analog value has changed since the last frame
 	if current_value != previous_value:
 		# Calculate the rotation difference

@@ -252,7 +252,7 @@ func _process(_delta) -> void:
 		subLineArray.pop_front()
 		var line : Line2D = Line2D.new()
 		line.width = 1
-		line.points = [Vector2(0, 0), Vector2(800, 0)]
+		line.points = [Vector2(-37, 0), Vector2(800, 0)]
 		$sublinecontainer.add_child(line)
 	# Move & Delete Auxiliary Lines
 	for line in $sublinecontainer.get_children():

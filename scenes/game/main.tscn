@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://dqo644576we4d"]
+[gd_scene load_steps=12 format=3 uid="uid://dqo644576we4d"]
 
 [ext_resource type="Script" path="res://scenes/game/main.gd" id="1_2b8v7"]
 [ext_resource type="Texture2D" uid="uid://bl0lp2l46fft0" path="res://assets/play/p1_frame.png" id="3_8tcdk"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="3_15r0s"]
 [ext_resource type="Texture2D" uid="uid://brngqnudhveoc" path="res://assets/play/groove_gauge.png" id="3_60hwu"]
 [ext_resource type="Texture2D" uid="uid://b1bki7qlmh0er" path="res://assets/play/progress.png" id="4_7g6co"]
+[ext_resource type="Texture2D" uid="uid://bmpwnexdg1yre" path="res://assets/play/p1_frame_scratch.png" id="4_emn2f"]
 
 [sub_resource type="Animation" id="Animation_ou11v"]
 resource_name = "Bad"
@@ -156,13 +157,14 @@ _data = {
 
 [node name="main" type="Node2D"]
 script = ExtResource("1_2b8v7")
-keycodes = PackedStringArray("p1_key1", "p1_key2", "p1_key3", "p1_key4", "p1_key5", "p1_key6", "p1_key7")
+keycodes = PackedStringArray("p1_key1", "p1_key2", "p1_key3", "p1_key4", "p1_key5", "p1_key6", "p1_key7", "p1_digital_turntable_fwd")
 audio = NodePath("audio")
 
 [node name="audio" type="AudioStreamPlayer" parent="."]
 volume_db = -2.0
 
 [node name="ui" type="Node2D" parent="."]
+position = Vector2(64, 0)
 
 [node name="1" type="Line2D" parent="ui"]
 points = PackedVector2Array(100, 0, 100, 520)
@@ -197,25 +199,37 @@ points = PackedVector2Array(800, 0, 800, 520)
 width = 2.0
 
 [node name="9" type="Line2D" parent="ui"]
+position = Vector2(-156.071, 0)
+scale = Vector2(1.1946, 1)
 points = PackedVector2Array(100, 500, 800, 500)
 width = 2.0
 
+[node name="10" type="Line2D" parent="ui"]
+position = Vector2(-136, 0)
+points = PackedVector2Array(100, 0, 100, 520)
+width = 2.0
+
+[node name="11" type="Line2D" parent="ui"]
+position = Vector2(-2, 0)
+points = PackedVector2Array(100, 0, 100, 520)
+width = 2.0
+
 [node name="400~440" type="ColorRect" parent="ui"]
-offset_left = 100.0
+offset_left = -35.0
 offset_top = 400.0
 offset_right = 800.0
 offset_bottom = 440.0
 color = Color(1, 0.341176, 0.227451, 0.156863)
 
 [node name="440~480" type="ColorRect" parent="ui"]
-offset_left = 100.0
+offset_left = -35.0
 offset_top = 440.0
 offset_right = 800.0
 offset_bottom = 480.0
 color = Color(0, 1, 0.45098, 0.117647)
 
 [node name="480~520" type="ColorRect" parent="ui"]
-offset_left = 100.0
+offset_left = -35.0
 offset_top = 480.0
 offset_right = 800.0
 offset_bottom = 520.0
@@ -233,6 +247,9 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="sublinecontainer" type="Node2D" parent="."]
+position = Vector2(64, 0)
+
+[node name="container8" type="Node2D" parent="."]
 
 [node name="container1" type="Node2D" parent="."]
 
@@ -261,9 +278,9 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="getready" type="Label" parent="."]
-offset_left = 250.0
+offset_left = 314.0
 offset_top = 340.0
-offset_right = 350.0
+offset_right = 662.0
 offset_bottom = 377.0
 pivot_offset = Vector2(50, 15)
 theme_override_colors/font_color = Color(0.148037, 0.508607, 1, 1)
@@ -275,9 +292,9 @@ vertical_alignment = 1
 
 [node name="isautoplay" type="Label" parent="."]
 visible = false
-offset_left = 859.0
+offset_left = 891.0
 offset_top = 34.0
-offset_right = 1235.0
+offset_right = 1267.0
 offset_bottom = 66.0
 theme_override_fonts/font = ExtResource("3_15r0s")
 theme_override_font_sizes/font_size = 32
@@ -286,44 +303,50 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="pressed1" type="ColorRect" parent="."]
-offset_left = 100.0
-offset_right = 200.0
+offset_left = 164.0
+offset_right = 264.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
 [node name="pressed2" type="ColorRect" parent="."]
-offset_left = 200.0
-offset_right = 300.0
+offset_left = 264.0
+offset_right = 364.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
 [node name="pressed3" type="ColorRect" parent="."]
-offset_left = 300.0
-offset_right = 400.0
+offset_left = 364.0
+offset_right = 464.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
 [node name="pressed4" type="ColorRect" parent="."]
-offset_left = 400.0
-offset_right = 500.0
+offset_left = 464.0
+offset_right = 564.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
 [node name="pressed5" type="ColorRect" parent="."]
-offset_left = 500.0
-offset_right = 600.0
+offset_left = 564.0
+offset_right = 664.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
 [node name="pressed6" type="ColorRect" parent="."]
-offset_left = 600.0
-offset_right = 700.0
+offset_left = 664.0
+offset_right = 764.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
 [node name="pressed7" type="ColorRect" parent="."]
-offset_left = 700.0
-offset_right = 800.0
+offset_left = 764.0
+offset_right = 864.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed8" type="ColorRect" parent="."]
+offset_left = 28.0
+offset_right = 161.0
 offset_bottom = 520.0
 color = Color(1, 1, 1, 0.223529)
 
@@ -362,27 +385,20 @@ theme_override_fonts/font = ExtResource("3_15r0s")
 text = "AUTO PLAY LANE"
 
 [node name="P1Frame" type="TextureRect" parent="."]
-offset_left = -152.0
-offset_top = -227.0
-offset_right = 805.0
+texture_filter = 1
+offset_left = 142.0
+offset_top = 499.0
+offset_right = 870.0
 offset_bottom = 629.0
 texture = ExtResource("3_8tcdk")
 
-[node name="TEMPColorRect" type="ColorRect" parent="P1Frame"]
+[node name="TextureRect" type="TextureRect" parent="P1Frame"]
+texture_filter = 1
 layout_mode = 0
-offset_left = -8.0
-offset_top = 299.0
-offset_right = 251.0
-offset_bottom = 859.0
-color = Color(0, 0, 0, 1)
-
-[node name="TEMPColorRect2" type="ColorRect" parent="P1Frame"]
-layout_mode = 0
-offset_left = -112.0
-offset_top = -261.0
-offset_right = 144.0
-offset_bottom = 299.0
-color = Color(0, 0, 0, 1)
+offset_left = -142.0
+offset_right = 2.0
+offset_bottom = 130.0
+texture = ExtResource("4_emn2f")
 
 [node name="Background" type="ColorRect" parent="."]
 offset_top = 629.0

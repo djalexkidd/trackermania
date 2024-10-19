@@ -5,8 +5,8 @@ import json
 import sys
 
 def convert_quaver_to_note_array(hit_objects):
-    # Initialize note arrays for 7 lanes
-    note_array = [[] for _ in range(7)]
+    # Initialize note arrays for 8 lanes
+    note_array = [[] for _ in range(8)]
 
     for hit_object in hit_objects:
         start_time = hit_object.get('StartTime', 0) / 1000.0 + 2.0  # Convert time into your desired scale
@@ -21,7 +21,7 @@ def convert_quaver_to_note_array(hit_objects):
             note = [round(start_time, 1)]  # Regular note with only start time
 
         # Append the note's start time to the corresponding lane's array
-        if 0 <= lane < 7:
+        if 0 <= lane < 8:
             note_array[lane].append(note)  # Round time to 1 decimal place
 
     return note_array

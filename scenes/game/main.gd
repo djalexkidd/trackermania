@@ -32,13 +32,13 @@ var coordPerFrame  : float
 var endPos         : float   = 0.0
 
 # 7 cues containing currently valid note scenes
-var queue          : Array   = [[], [], [], [], [], [], []]
+var queue          : Array   = [[], [], [], [], [], [], [], []]
 # Check the pressed state of each channel
-var pressed        : Array   = [false, false, false, false, false, false, false]
+var pressed        : Array   = [false, false, false, false, false, false, false, false]
 # Check if you should press and hold now
-var shouldPress    : Array   = [false, false, false, false, false, false, false]
+var shouldPress    : Array   = [false, false, false, false, false, false, false, false]
 # The time when the currently pressed long note ends
-var shouldPressEnd : Array   = [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
+var shouldPressEnd : Array   = [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
 # Flag to check if the game is over
 var done           : bool    = false
 # Current combo count
@@ -239,15 +239,19 @@ func _process(_delta) -> void:
 				note.setNote(i+1, speed, coordPerFrame, info[1])
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
-			container.get_child(container.get_child_count()-1).global_position.x = 100 * (i+1)
-			container.get_child(container.get_child_count()-1).global_position.y += coordPerFrame * (currentSongPos - info[0]) / 60
+			if i == 7:
+				container.get_child(container.get_child_count()-1).global_position.x = 64
+				container.get_child(container.get_child_count()-1).global_position.y += coordPerFrame * (currentSongPos - info[0]) / 60
+			else:
+				container.get_child(container.get_child_count()-1).global_position.x = 64+(100 * (i+1))
+				container.get_child(container.get_child_count()-1).global_position.y += coordPerFrame * (currentSongPos - info[0]) / 60
 			queue[i].append(container.get_child(container.get_child_count()-1))
 	# Create auxiliary line
 	if (subLineArray and subLineArray[0] <= currentSongPos):
 		subLineArray.pop_front()
 		var line : Line2D = Line2D.new()
 		line.width = 1
-		line.points = [Vector2(100, 0), Vector2(800, 0)]
+		line.points = [Vector2(0, 0), Vector2(800, 0)]
 		$sublinecontainer.add_child(line)
 	# Move & Delete Auxiliary Lines
 	for line in $sublinecontainer.get_children():

@@ -129,6 +129,19 @@ stretch_mode = 3
 layout_mode = 2
 text = "Download songs"
 
+[node name="CustomButton" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="CustomTextureButton" type="TextureButton" parent="HBoxContainer/CustomButton"]
+layout_mode = 2
+texture_normal = ExtResource("5_mrtay")
+stretch_mode = 3
+
+[node name="Label" type="Label" parent="HBoxContainer/CustomButton"]
+layout_mode = 2
+text = "Customization"
+
 [node name="FullScreenButton" type="VBoxContainer" parent="HBoxContainer"]
 layout_mode = 2
 alignment = 1
@@ -158,5 +171,6 @@ text = "Exit Game"
 [connection signal="pressed" from="HBoxContainer/MusicSelectButton/MusicSelectTextureButton" to="." method="_on_music_select_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/ControllerSetupButton/ControllerSetupTextureButton" to="." method="_on_controller_setup_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/DownloadButton/DownloadTextureButton" to="." method="_on_download_texture_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/CustomButton/CustomTextureButton" to="." method="_on_custom_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/FullScreenButton/FullScreenTextureButton" to="." method="_on_full_screen_texture_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/ExitButton/ExitTextureButton" to="." method="_on_exit_texture_button_pressed"]

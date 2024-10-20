@@ -68,7 +68,7 @@ func getCoordPerFrame(sp : float, perfectYpos : float) -> float:
 	if (sp != 1.0):
 		perfectYpos /= sp
 		sp          /= sp
-	perfectYpos /= 60.0
+	perfectYpos /= Engine.get_frames_per_second()
 	return perfectYpos
 # Subtract the speed value from all note time information.
 func getCorrectArr(array : Array, sp : float) -> Array:

@@ -33,7 +33,7 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 	if (_longnoteTime != -1.0):
 		isLongnote = true
 		longnoteTime = _longnoteTime
-		var size : float = float((60.0 * coordPerFrame) * longnoteTime)
+		var size : float = float((Engine.get_frames_per_second() * coordPerFrame) * longnoteTime)
 		$LN_Effect.position.y = -size
 		$LN_Effect.size.y = size
 		$LN_EffectEnd.position.y = -size

@@ -9,3 +9,9 @@ func _ready() -> void:
 
 func _on_pressed() -> void:
 	get_node("../MusicList").visible = !get_node("../MusicList").visible
+
+func _on_focus_entered() -> void:
+	$AnimationPlayer.play("open")
+
+func _on_focus_exited() -> void:
+	$AnimationPlayer.play("RESET")

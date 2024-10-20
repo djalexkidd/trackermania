@@ -6,6 +6,8 @@ extends Control
 # To track which effect is currently active (0 = off, 1 = chorus, 2 = phaser, 3 = reverb)
 var effect_state = 0
 
+var node_focused = ""
+
 func _ready():
 	# Ensure all effects are initially disabled
 	AudioServer.set_bus_effect_enabled(audio_bus, 0, false)  # Chorus
@@ -24,6 +26,8 @@ func _ready():
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
 	
 	$AudioStreamPlayer.play()
+	
+	$SongWheel/Categories/AllMusic/Category.grab_focus()
 
 # Function to load and add song entries
 func load_and_add_songs(folder_path: String):
@@ -66,14 +70,21 @@ func _process(delta):
 	
 	# Game Option Settings
 	if Input.is_action_just_pressed("p1_start"):
+		node_focused = get_viewport().gui_get_focus_owner()
 		$SongWheel.hide()
 		$GameOptionSettings.show()
 		$GameOptionSettings/OpenAudio.play()
 	
 	if Input.is_action_just_released("p1_start"):
+		node_focused.grab_focus()
 		$SongWheel.show()
 		$GameOptionSettings.hide()
 		$GameOptionSettings/CloseAudio.play()
+	
+	for key in ["p1_key1", "p1_key3", "p1_key5", "p1_key7"]:
+		if Input.is_action_just_pressed(key) and !$GameOptionSettings.visible:
+			get_viewport().gui_get_focus_owner()._on_pressed()
+			break
 	
 	# Exit button
 	for key in ["p1_key2", "p1_key4", "p1_key6"]:

@@ -1,13 +1,52 @@
-[gd_scene load_steps=3 format=3 uid="uid://c83yy376ibj36"]
+[gd_scene load_steps=6 format=3 uid="uid://c83yy376ibj36"]
 
 [ext_resource type="FontFile" uid="uid://ddskiluk8ixlk" path="res://assets/font/digitalix.ttf" id="2_7snyh"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/category.gd" id="2_kbnrc"]
+
+[sub_resource type="Animation" id="Animation_i6xme"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(32, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_uqb6r"]
+resource_name = "open"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(32, 0), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_a0dif"]
+_data = {
+"RESET": SubResource("Animation_i6xme"),
+"open": SubResource("Animation_uqb6r")
+}
 
 [node name="Category" type="TextureButton"]
 texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 32.0
+offset_right = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
@@ -25,4 +64,15 @@ theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("2_7snyh")
 theme_override_font_sizes/font_size = 31
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_a0dif")
+}
+autoplay = "RESET"
+
+[connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="focus_exited" from="." to="." method="_on_focus_exited"]
+[connection signal="mouse_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_focus_exited"]
 [connection signal="pressed" from="." to="." method="_on_pressed"]
+[connection signal="visibility_changed" from="." to="." method="_on_focus_exited"]

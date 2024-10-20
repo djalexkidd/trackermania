@@ -1,15 +1,54 @@
-[gd_scene load_steps=5 format=3 uid="uid://br2ctb78nps4r"]
+[gd_scene load_steps=8 format=3 uid="uid://br2ctb78nps4r"]
 
 [ext_resource type="Texture2D" uid="uid://cdw4v0k1ab154" path="res://assets/music_select/music.png" id="1_j0avn"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="2_3nd1l"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/song_entry.gd" id="2_7tuvw"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="4_uqyhv"]
 
+[sub_resource type="Animation" id="Animation_o81ut"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [32.0]
+}
+
+[sub_resource type="Animation" id="Animation_xxvh2"]
+resource_name = "open"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [32.0, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_yefhf"]
+_data = {
+"RESET": SubResource("Animation_o81ut"),
+"open": SubResource("Animation_xxvh2")
+}
+
 [node name="SongEntry" type="TextureButton"]
 texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 32.0
+offset_right = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
@@ -40,4 +79,15 @@ theme_override_font_sizes/font_size = 38
 text = "0"
 horizontal_alignment = 1
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_yefhf")
+}
+autoplay = "RESET"
+
+[connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="focus_exited" from="." to="." method="_on_focus_exited"]
+[connection signal="mouse_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_focus_exited"]
 [connection signal="pressed" from="." to="." method="_on_pressed"]
+[connection signal="visibility_changed" from="." to="." method="_on_focus_exited"]

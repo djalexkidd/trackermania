@@ -597,7 +597,6 @@ libraries = {
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_pgr8v")
 volume_db = -6.0
-autoplay = true
 parameters/looping = true
 
 [node name="GameOptionSettings" type="ColorRect" parent="."]
@@ -709,5 +708,5 @@ stream = ExtResource("11_uuciq")
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/difficultyColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/randomColorRect" method="_on_game_option_settings_update"]
-[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/ascratchColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]

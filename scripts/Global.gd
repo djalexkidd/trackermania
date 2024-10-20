@@ -15,3 +15,5 @@ var random = false
 
 var p1_name = ""
 var p2_name = ""
+
+var custom_music_select_bgm = ""

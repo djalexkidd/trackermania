@@ -19,6 +19,11 @@ func _ready():
 	
 	# Analyse game and user folders for charts
 	load_and_add_songs("user://songs")
+	
+	if Global.custom_music_select_bgm != "":
+		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
+	
+	$AudioStreamPlayer.play()
 
 # Function to load and add song entries
 func load_and_add_songs(folder_path: String):

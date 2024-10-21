@@ -1,0 +1,485 @@
+[gd_scene load_steps=14 format=3 uid="uid://di565y0qy1rff"]
+
+[ext_resource type="Script" path="res://scenes/game/main_netplay.gd" id="1_npdst"]
+[ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_2veam"]
+[ext_resource type="Texture2D" uid="uid://bl0lp2l46fft0" path="res://assets/play/p1_frame.png" id="3_posrd"]
+[ext_resource type="Texture2D" uid="uid://bmpwnexdg1yre" path="res://assets/play/p1_frame_scratch.png" id="4_vyb6g"]
+[ext_resource type="Texture2D" uid="uid://brngqnudhveoc" path="res://assets/play/groove_gauge.png" id="5_je7bo"]
+[ext_resource type="Texture2D" uid="uid://b1bki7qlmh0er" path="res://assets/play/progress.png" id="6_l0vw8"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_xc5x0"]
+radius = 48.0
+height = 128.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qf1yj"]
+size = Vector2(84, 84)
+
+[sub_resource type="Animation" id="Animation_ou11v"]
+resource_name = "Bad"
+length = 0.1
+step = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("score:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("score:text")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["Bad"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("score:theme_override_colors/font_color")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.882353, 0, 0.270588, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_q54hi"]
+resource_name = "Good"
+length = 0.1
+step = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("score:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("score:text")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["Good"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("score:theme_override_colors/font_color")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0, 1, 0.0980392, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_r63dx"]
+resource_name = "Perfect"
+length = 0.1
+step = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("score:theme_override_colors/font_color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.94902, 0, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("score:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("score:text")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["Perfect"]
+}
+
+[sub_resource type="Animation" id="Animation_krr70"]
+resource_name = "combo"
+length = 0.1
+step = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("combo:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(2, 26), Vector2(2, 18), Vector2(2, 26)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_n70hp"]
+_data = {
+"Bad": SubResource("Animation_ou11v"),
+"Good": SubResource("Animation_q54hi"),
+"Perfect": SubResource("Animation_r63dx"),
+"combo": SubResource("Animation_krr70")
+}
+
+[node name="main" type="Node2D"]
+script = ExtResource("1_npdst")
+keycodes = PackedStringArray("p1_key1", "p1_key2", "p1_key3", "p1_key4", "p1_key5", "p1_key6", "p1_key7", "p1_digital_turntable_rew")
+audio = NodePath("audio")
+
+[node name="audio" type="AudioStreamPlayer" parent="."]
+volume_db = -2.0
+
+[node name="ui" type="Node2D" parent="."]
+position = Vector2(64, 0)
+
+[node name="1" type="Line2D" parent="ui"]
+points = PackedVector2Array(100, 0, 100, 520)
+width = 2.0
+
+[node name="2" type="Line2D" parent="ui"]
+points = PackedVector2Array(200, 0, 200, 520)
+width = 2.0
+
+[node name="3" type="Line2D" parent="ui"]
+points = PackedVector2Array(300, 0, 300, 520)
+width = 2.0
+
+[node name="4" type="Line2D" parent="ui"]
+points = PackedVector2Array(400, 0, 400, 520)
+width = 2.0
+
+[node name="5" type="Line2D" parent="ui"]
+points = PackedVector2Array(500, 0, 500, 520)
+width = 2.0
+
+[node name="6" type="Line2D" parent="ui"]
+points = PackedVector2Array(600, 0, 600, 520)
+width = 2.0
+
+[node name="7" type="Line2D" parent="ui"]
+points = PackedVector2Array(700, 0, 700, 520)
+width = 2.0
+
+[node name="8" type="Line2D" parent="ui"]
+points = PackedVector2Array(800, 0, 800, 520)
+width = 2.0
+
+[node name="9" type="Line2D" parent="ui"]
+position = Vector2(-156.071, 0)
+scale = Vector2(1.1946, 1)
+points = PackedVector2Array(100, 500, 800, 500)
+width = 2.0
+
+[node name="10" type="Line2D" parent="ui"]
+position = Vector2(-136, 0)
+points = PackedVector2Array(100, 0, 100, 520)
+width = 2.0
+
+[node name="11" type="Line2D" parent="ui"]
+position = Vector2(-2, 0)
+points = PackedVector2Array(100, 0, 100, 520)
+width = 2.0
+
+[node name="400~440" type="ColorRect" parent="ui"]
+offset_left = -35.0
+offset_top = 400.0
+offset_right = 800.0
+offset_bottom = 440.0
+color = Color(1, 0.341176, 0.227451, 0.156863)
+
+[node name="440~480" type="ColorRect" parent="ui"]
+offset_left = -35.0
+offset_top = 440.0
+offset_right = 800.0
+offset_bottom = 480.0
+color = Color(0, 1, 0.45098, 0.117647)
+
+[node name="480~520" type="ColorRect" parent="ui"]
+offset_left = -35.0
+offset_top = 480.0
+offset_right = 800.0
+offset_bottom = 520.0
+color = Color(0.713726, 0.360784, 1, 0.207843)
+
+[node name="combo" type="Label" parent="."]
+offset_left = 2.0
+offset_top = 26.0
+offset_right = 96.0
+offset_bottom = 74.0
+theme_override_fonts/font = ExtResource("2_2veam")
+theme_override_font_sizes/font_size = 32
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="sublinecontainer" type="Node2D" parent="."]
+position = Vector2(64, 0)
+
+[node name="container8" type="Node2D" parent="."]
+
+[node name="container1" type="Node2D" parent="."]
+
+[node name="container2" type="Node2D" parent="."]
+
+[node name="container3" type="Node2D" parent="."]
+
+[node name="container4" type="Node2D" parent="."]
+
+[node name="container5" type="Node2D" parent="."]
+
+[node name="container6" type="Node2D" parent="."]
+
+[node name="container7" type="Node2D" parent="."]
+
+[node name="score" type="Label" parent="."]
+offset_left = 250.0
+offset_top = 340.0
+offset_right = 350.0
+offset_bottom = 377.0
+pivot_offset = Vector2(50, 15)
+theme_override_colors/font_color = Color(0.882353, 0, 0.270588, 1)
+theme_override_fonts/font = ExtResource("2_2veam")
+theme_override_font_sizes/font_size = 27
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="getready" type="Label" parent="."]
+offset_left = 314.0
+offset_top = 340.0
+offset_right = 662.0
+offset_bottom = 377.0
+pivot_offset = Vector2(50, 15)
+theme_override_colors/font_color = Color(0.148037, 0.508607, 1, 1)
+theme_override_fonts/font = ExtResource("2_2veam")
+theme_override_font_sizes/font_size = 27
+text = "Get Ready !"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="isautoplay" type="Label" parent="."]
+visible = false
+offset_left = 891.0
+offset_top = 34.0
+offset_right = 1267.0
+offset_bottom = 66.0
+theme_override_fonts/font = ExtResource("2_2veam")
+theme_override_font_sizes/font_size = 32
+text = "AUTO PLAY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayersContainer" type="VBoxContainer" parent="."]
+offset_left = 1152.0
+offset_right = 1280.0
+offset_bottom = 128.0
+
+[node name="pressed1" type="ColorRect" parent="."]
+offset_left = 164.0
+offset_right = 264.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed2" type="ColorRect" parent="."]
+offset_left = 264.0
+offset_right = 364.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed3" type="ColorRect" parent="."]
+offset_left = 364.0
+offset_right = 464.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed4" type="ColorRect" parent="."]
+offset_left = 464.0
+offset_right = 564.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed5" type="ColorRect" parent="."]
+offset_left = 564.0
+offset_right = 664.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed6" type="ColorRect" parent="."]
+offset_left = 664.0
+offset_right = 764.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed7" type="ColorRect" parent="."]
+offset_left = 764.0
+offset_right = 864.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="pressed8" type="ColorRect" parent="."]
+offset_left = 28.0
+offset_right = 161.0
+offset_bottom = 520.0
+color = Color(1, 1, 1, 0.223529)
+
+[node name="AutoPlay6" type="ColorRect" parent="."]
+visible = false
+offset_left = 665.0
+offset_right = 763.0
+offset_bottom = 520.0
+color = Color(0.194349, 0.194349, 0.194349, 1)
+
+[node name="Label" type="Label" parent="AutoPlay6"]
+layout_mode = 1
+offset_left = 59.0
+offset_top = 110.0
+offset_right = 347.0
+offset_bottom = 126.0
+rotation = 1.5708
+theme_override_fonts/font = ExtResource("2_2veam")
+text = "AUTO PLAY LANE"
+
+[node name="AutoPlay7" type="ColorRect" parent="."]
+visible = false
+offset_left = 765.0
+offset_right = 863.0
+offset_bottom = 520.0
+color = Color(0.194349, 0.194349, 0.194349, 1)
+
+[node name="Label" type="Label" parent="AutoPlay7"]
+layout_mode = 1
+offset_left = 59.0
+offset_top = 110.0
+offset_right = 347.0
+offset_bottom = 126.0
+rotation = 1.5708
+theme_override_fonts/font = ExtResource("2_2veam")
+text = "AUTO PLAY LANE"
+
+[node name="P1Frame" type="TextureRect" parent="."]
+texture_filter = 1
+offset_left = 142.0
+offset_top = 499.0
+offset_right = 870.0
+offset_bottom = 629.0
+texture = ExtResource("3_posrd")
+
+[node name="TextureRect" type="TextureRect" parent="P1Frame"]
+texture_filter = 1
+layout_mode = 0
+offset_left = -142.0
+offset_right = 2.0
+offset_bottom = 130.0
+texture = ExtResource("4_vyb6g")
+
+[node name="Key8" type="TouchScreenButton" parent="P1Frame/TextureRect"]
+position = Vector2(71, 74)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_xc5x0")
+action = "p1_digital_turntable_rew"
+
+[node name="Key1" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(76, 68)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key1"
+
+[node name="Key2" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(173, 61)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key2"
+
+[node name="Key3" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(274, 68)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key3"
+
+[node name="Key4" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(371, 60)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key4"
+
+[node name="Key5" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(472, 68)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key5"
+
+[node name="Key6" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(570, 59)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key6"
+
+[node name="Key7" type="TouchScreenButton" parent="P1Frame"]
+position = Vector2(671, 68)
+shape = SubResource("RectangleShape2D_qf1yj")
+action = "p1_key7"
+
+[node name="Background" type="ColorRect" parent="."]
+offset_top = 629.0
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0, 0, 0, 1)
+
+[node name="GrooveGauge" type="TextureProgressBar" parent="."]
+offset_left = 64.0
+offset_top = 656.0
+offset_right = 1126.0
+offset_bottom = 702.0
+value = 60.0
+texture_under = ExtResource("5_je7bo")
+texture_progress = ExtResource("6_l0vw8")
+
+[node name="Label" type="Label" parent="GrooveGauge"]
+layout_mode = 0
+offset_left = 896.0
+offset_top = -56.0
+offset_right = 1052.0
+offset_bottom = -24.0
+theme_override_fonts/font = ExtResource("2_2veam")
+theme_override_font_sizes/font_size = 32
+text = "60 %"
+horizontal_alignment = 2
+
+[node name="anim" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_n70hp")
+}

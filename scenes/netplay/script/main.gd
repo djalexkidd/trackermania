@@ -135,6 +135,14 @@ func music_selected():
 	_game.onTextSubmitted("Selected: " + Loader.load_json_file(Loader.file_path)["Title"])
 	_start_game_btn.show()
 
+func game_finished():
+	$Panel.show()
+	rpc("send_score", Global.score)
+
+@rpc("any_peer")
+func send_score(score):
+	_game.onTextSubmitted(str(score))
+
 func _on_start_game_pressed() -> void:
 	if multiplayer.is_server():
 		rpc("level_play", Loader.file_path)
@@ -143,4 +151,4 @@ func _on_start_game_pressed() -> void:
 func level_play(test):
 	Loader.file_path = test
 	$Panel.hide()
-	change_level.call_deferred(load("res://scenes/game/main.tscn"))
+	change_level.call_deferred(load("res://scenes/game/main_netplay.tscn"))

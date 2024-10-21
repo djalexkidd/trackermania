@@ -43,3 +43,12 @@ func _on_button_2_pressed() -> void:
 
 func _on_http_request_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	unzip("user://test_music.zip")
+
+func _on_button_4_pressed() -> void:
+	OS.shell_open(OS.get_user_data_dir())
+
+func _on_button_5_pressed() -> void:
+	$FileDialogFS.popup()
+
+func _on_file_dialog_user_file_selected(path: String) -> void:
+	unzip(path)

@@ -227,7 +227,7 @@ func _process(_delta) -> void:
 		done = true
 		for i in range(1, 5): get_node("pressed" + str(i)).visible = false
 		for i in $sublinecontainer.get_children(): i.free()
-		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
+		Global.score = currentScore
 		Global.combo_max = comboMax
 		Global.gauge_score = $GrooveGauge.value
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -386,12 +386,6 @@ func updateInputState() -> void:
 			queue[i].pop_front()
 			shouldPressEnd[i] = -1.0
 			shouldPress[i] = false
-	
-	if Input.is_action_just_pressed("p1_meta"):
-		Global.failed = true
-		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
-		Global.combo_max = comboMax
-		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 func dequeue() -> void:
 	for i in range(0, 8):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):

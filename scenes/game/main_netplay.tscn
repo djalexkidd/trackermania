@@ -310,8 +310,8 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PlayersContainer" type="VBoxContainer" parent="."]
-offset_left = 1152.0
-offset_right = 1280.0
+offset_left = 1088.0
+offset_right = 1216.0
 offset_bottom = 128.0
 
 [node name="pressed1" type="ColorRect" parent="."]

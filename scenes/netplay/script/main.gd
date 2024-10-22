@@ -8,6 +8,7 @@ var peer = null
 @onready var _host_btn = $Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Host
 @onready var _connect_btn = $Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Connect
 @onready var _disconnect_btn = $Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Disconnect
+@onready var _exit_btn = $Panel/VBoxContainer/HBoxContainer/ReturnToMenu
 @onready var _music_select_btn = $Panel/VBoxContainer/HBoxContainer2/HBoxContainer/MusicSelect
 @onready var _start_game_btn = $Panel/VBoxContainer/HBoxContainer2/HBoxContainer/StartGame
 @onready var _name_edit = $Panel/VBoxContainer/HBoxContainer/NameEdit
@@ -33,6 +34,7 @@ func _ready():
 
 func start_game():
 	_host_btn.disabled = true
+	_exit_btn.disabled = true
 	_name_edit.editable = false
 	_host_edit.editable = false
 	_game.senderName = _name_edit.text
@@ -44,6 +46,7 @@ func start_game():
 
 func stop_game():
 	_host_btn.disabled = false
+	_exit_btn.disabled = false
 	_name_edit.editable = true
 	_host_edit.editable = true
 	_disconnect_btn.hide()
@@ -134,3 +137,6 @@ func level_play(test):
 	Loader.file_path = test
 	$Panel.hide()
 	change_level.call_deferred(load("res://scenes/game/main_netplay.tscn"))
+
+func _on_return_to_menu_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")

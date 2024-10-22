@@ -29,10 +29,15 @@ offset_bottom = -20.0
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
 
+[node name="ReturnToMenu" type="Button" parent="Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Return to menu"
+
 [node name="Label" type="Label" parent="Panel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Name"
+horizontal_alignment = 2
 
 [node name="NameEdit" type="LineEdit" parent="Panel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -94,6 +99,7 @@ position = Vector2i(250, 250)
 size = Vector2i(158, 100)
 dialog_text = "Connection closed"
 
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/ReturnToMenu" to="." method="_on_return_to_menu_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Host" to="." method="_on_Host_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Connect" to="." method="_on_Connect_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Disconnect" to="." method="_on_Disconnect_pressed"]

@@ -1,6 +1,5 @@
 extends Control
 
-
 const _crown = preload("res://scenes/netplay/img/crown.png")
 
 var _players = []
@@ -16,7 +15,6 @@ func set_player_name(_name):
 	var sender = multiplayer.get_remote_sender_id()
 	rpc("update_player_name", sender, _name)
 
-
 @rpc("any_peer", "call_local") func update_player_name(player, _name):
 	var pos = _players.find(player)
 	if pos != -1:
@@ -25,18 +23,15 @@ func set_player_name(_name):
 	if get_multiplayer_authority() == pos:
 		_list.set_item_icon(0, _crown)
 
-
 func onTextSubmitted(_string: String):
 	if _string.length() <= 0:
 		return
 	$HBoxContainer/VBoxContainer/Chat.text = ""
 	sendText.rpc(senderName, _string)
 
-
 @rpc("any_peer", "call_local", "reliable")
 func sendText(user, _string):
 	_log(user, _string)
-
 
 @rpc("any_peer", "call_local") func del_player(id):
 	var pos = _players.find(id)
@@ -45,7 +40,6 @@ func sendText(user, _string):
 	_players.remove_at(pos)
 	_list.remove_item(pos)
 
-
 @rpc("any_peer", "call_local") func add_player(id, _name=""):
 	_players.append(id)
 	if _name == "":
@@ -53,23 +47,19 @@ func sendText(user, _string):
 	else:
 		_list.add_item(_name, null, false)
 
-
 func get_player_name(pos):
 	if pos < _list.get_item_count():
 		return _list.get_item_text(pos)
 	else:
 		return "Error!"
 
-
 func start():
 	_action.disabled = false
-
 
 func stop():
 	_players.clear()
 	_list.clear()
 	_action.disabled = true
-
 
 func on_peer_add(id):
 	if not multiplayer.is_server():
@@ -77,7 +67,6 @@ func on_peer_add(id):
 	for i in range(0, _players.size()):
 		rpc_id(id, "add_player", _players[i], get_player_name(i))
 	rpc("add_player", id)
-
 
 func on_peer_del(id):
 	if not multiplayer.is_server():
@@ -87,10 +76,8 @@ func on_peer_del(id):
 @rpc("any_peer", "call_local") func _log(username, message):
 	$HBoxContainer/RichTextLabel.append_text("%s: %s\n" % [username, message])
 
-
 func _on_Action_pressed():
 	onTextSubmitted($HBoxContainer/VBoxContainer/Chat.text)
-
 
 func _on_chat_text_submitted(new_text: String) -> void:
 	onTextSubmitted($HBoxContainer/VBoxContainer/Chat.text)

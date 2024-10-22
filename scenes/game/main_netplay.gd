@@ -159,12 +159,6 @@ func _ready() -> void:
 		randomize()
 		noteArray.shuffle()
 	
-	if Global.gauge_level == 2:
-		$GrooveGauge.value = 100
-		$GrooveGauge/Label.text = "100 %"
-		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
-		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
-	
 	if file_extension == "mp3":
 		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
 	elif file_extension == "ogg":
@@ -183,9 +177,6 @@ func _ready() -> void:
 		score_label.name = "score"
 	
 	set_process(false)
-	if Global.keys_mode == 5:
-		$AutoPlay6.show()
-		$AutoPlay7.show()
 	for i in range(1, 9):
 		get_node("pressed" + str(i)).visible = false
 	var noteStart : float = INF
@@ -227,12 +218,11 @@ func _process(_delta) -> void:
 		done = true
 		for i in range(1, 5): get_node("pressed" + str(i)).visible = false
 		for i in $sublinecontainer.get_children(): i.free()
-		Global.score = currentScore
 		Global.combo_max = comboMax
 		Global.gauge_score = $GrooveGauge.value
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		set_process(false)
-		get_node("..").game_finished()
+		get_node("..").game_finished(currentScore)
 		queue_free()
 	# Confirm completion of long note
 	for i in range(0, 8):

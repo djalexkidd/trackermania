@@ -1,6 +1,5 @@
 extends Control
 
-
 const DEF_PORT = 8080
 const PROTO_NAME = "ludus"
 
@@ -32,7 +31,6 @@ func _ready():
 		var desktop_path = OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP).replace("\\", "/").split("/")
 		_name_edit.text = desktop_path[desktop_path.size() - 2]
 
-
 func start_game():
 	_host_btn.disabled = true
 	_name_edit.editable = false
@@ -44,7 +42,6 @@ func start_game():
 		_music_select_btn.show()
 	_game.start()
 
-
 func stop_game():
 	_host_btn.disabled = false
 	_name_edit.editable = true
@@ -53,7 +50,6 @@ func stop_game():
 	_music_select_btn.hide()
 	_connect_btn.show()
 	_game.stop()
-
 
 func _close_network():
 	
@@ -64,24 +60,16 @@ func _close_network():
 	if multiplayer.is_connected("connected_to_server",Callable(self,"_connected")):
 		multiplayer.disconnect("connected_to_server",Callable(self,"_connected"))
 	
-	
-	
-	
-	
 	multiplayerPeer.close()
 	multiplayerPeer = ENetMultiplayerPeer.new()
-
-	
 
 	stop_game()
 	$AcceptDialog.show()
 	$AcceptDialog.get_ok_button().grab_focus()
 	
 
-
 func _connected():
 	_game.rpc("set_player_name", _name_edit.text)
-
 
 func _peer_connected(id):
 	_game.on_peer_add(id)
@@ -107,10 +95,8 @@ func _on_Host_pressed():
 	
 	start_game()
 
-
 func _on_Disconnect_pressed():
 	_close_network()
-
 
 func _on_Connect_pressed():
 	var txt=$Panel/VBoxContainer/HBoxContainer2/Hostname.text
@@ -135,12 +121,8 @@ func music_selected():
 	_game.onTextSubmitted("Selected: " + Loader.load_json_file(Loader.file_path)["Title"])
 	_start_game_btn.show()
 
-func game_finished():
+func game_finished(score):
 	$Panel.show()
-	rpc("send_score", Global.score)
-
-@rpc("any_peer")
-func send_score(score):
 	_game.onTextSubmitted(str(score))
 
 func _on_start_game_pressed() -> void:

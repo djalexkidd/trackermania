@@ -31,12 +31,21 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_2gbuf")
 
+[node name="Logo" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 80.0
+offset_bottom = 80.0
+texture = ExtResource("5_mrtay")
+
 [node name="Title2" type="Label" parent="."]
 layout_mode = 1
-offset_left = 13.0
-offset_top = 19.0
-offset_right = 1009.0
-offset_bottom = 63.0
+offset_left = 93.0
+offset_top = 35.0
+offset_right = 1089.0
+offset_bottom = 79.0
 theme_override_colors/font_color = Color(100, 0, 0, 1)
 theme_override_fonts/font = ExtResource("4_66lkn")
 theme_override_font_sizes/font_size = 32
@@ -44,23 +53,13 @@ text = "trackermania"
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 1
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 512.0
-offset_bottom = 48.0
+offset_left = 96.0
+offset_top = 32.0
+offset_right = 1092.0
+offset_bottom = 76.0
 theme_override_fonts/font = ExtResource("4_66lkn")
 theme_override_font_sizes/font_size = 32
 text = "trackermania"
-
-[node name="TestLabel" type="Label" parent="."]
-layout_mode = 1
-offset_left = 16.0
-offset_top = 64.0
-offset_right = 309.0
-offset_bottom = 124.0
-theme_override_fonts/font = ExtResource("4_vxrwm")
-theme_override_font_sizes/font_size = 64
-text = "test menu"
 
 [node name="EngineLabel" type="Label" parent="."]
 layout_mode = 1
@@ -109,6 +108,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="MusicSelectTextureButton" type="TextureButton" parent="HBoxContainer/MusicSelectButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
@@ -122,6 +122,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="ControllerSetupTextureButton" type="TextureButton" parent="HBoxContainer/ControllerSetupButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
@@ -135,6 +136,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="DownloadTextureButton" type="TextureButton" parent="HBoxContainer/DownloadButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
@@ -148,6 +150,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="CustomTextureButton" type="TextureButton" parent="HBoxContainer/CustomButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
@@ -161,6 +164,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="NetplayTextureButton" type="TextureButton" parent="HBoxContainer/NetplayButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
@@ -174,6 +178,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="FullScreenTextureButton" type="TextureButton" parent="HBoxContainer/FullScreenButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
@@ -187,6 +192,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="ExitTextureButton" type="TextureButton" parent="HBoxContainer/ExitButton"]
+texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3

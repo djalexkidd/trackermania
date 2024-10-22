@@ -4,8 +4,8 @@
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="1_vfluu"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_r16qi"]
 [ext_resource type="PackedScene" uid="uid://dadevgawscx88" path="res://scenes/menu/controller_test/p1_texture.tscn" id="3_hys6r"]
-[ext_resource type="Texture2D" uid="uid://ojq4ejib6mii" path="res://assets/controller_test/controller_p2.png" id="4_rgrp1"]
 [ext_resource type="Script" path="res://scripts/menu/controller_test/remap_keys.gd" id="5_161sk"]
+[ext_resource type="PackedScene" uid="uid://d1sqhrx03pndw" path="res://scenes/menu/controller_test/p2_texture.tscn" id="5_hj330"]
 
 [node name="TestController" type="Control"]
 layout_mode = 3
@@ -83,6 +83,10 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("1_vfluu")
 theme_override_font_sizes/font_size = 48
 
+[node name="P1RemapKeysButton" type="Button" parent="P1Container"]
+layout_mode = 2
+text = "Redefine P1 Keys"
+
 [node name="P2Container" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 6
@@ -97,6 +101,11 @@ offset_bottom = 113.5
 grow_horizontal = 0
 grow_vertical = 2
 
+[node name="LineEdit" type="LineEdit" parent="P2Container"]
+layout_mode = 2
+placeholder_text = "Player Name"
+max_length = 6
+
 [node name="P2Text" type="Label" parent="P2Container"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.156863, 0, 1)
@@ -105,14 +114,17 @@ theme_override_font_sizes/font_size = 32
 text = "player 2"
 horizontal_alignment = 2
 
-[node name="P2Texture" type="TextureRect" parent="P2Container"]
+[node name="P2Texture" parent="P2Container" instance=ExtResource("5_hj330")]
 layout_mode = 2
-texture = ExtResource("4_rgrp1")
 
 [node name="P2AnalogValues" type="Label" parent="P2Container"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("1_vfluu")
 theme_override_font_sizes/font_size = 48
+
+[node name="P2RemapKeysButton" type="Button" parent="P2Container"]
+layout_mode = 2
+text = "Redefine P2 Keys"
 
 [node name="P1RemapKeys" type="GridContainer" parent="."]
 visible = false
@@ -244,20 +256,137 @@ layout_mode = 2
 script = ExtResource("5_161sk")
 action = "p1_meta"
 
-[node name="P1RemapKeysButton" type="Button" parent="."]
+[node name="P2RemapKeys" type="GridContainer" parent="."]
+visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
+anchors_preset = 6
+anchor_left = 1.0
 anchor_top = 0.5
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = 136.0
-offset_right = -265.0
-offset_bottom = 167.0
-grow_horizontal = 2
+offset_left = -87.0
+offset_top = -173.5
+offset_bottom = 173.5
+grow_horizontal = 0
 grow_vertical = 2
-text = "Redefine P1 Keys"
+columns = 2
+
+[node name="Label" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 1 :"
+
+[node name="Button" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key1"
+
+[node name="Label2" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 2 :"
+
+[node name="Button2" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key2"
+
+[node name="Label3" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 3 :"
+
+[node name="Button3" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key3"
+
+[node name="Label4" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 4 :"
+
+[node name="Button4" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key4"
+
+[node name="Label5" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 5 :"
+
+[node name="Button5" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key5"
+
+[node name="Label6" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 6 :"
+
+[node name="Button6" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key6"
+
+[node name="Label7" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Key 7 :"
+
+[node name="Button7" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_key7"
+
+[node name="Label8" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Scratch+ :"
+
+[node name="Button8" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_digital_turntable_fwd"
+
+[node name="Label9" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Scratch- :"
+
+[node name="Button9" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_digital_turntable_rew"
+
+[node name="Label10" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Start :"
+
+[node name="Button10" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_start"
+
+[node name="Label11" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Effect :"
+
+[node name="Button11" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_effect"
+
+[node name="Label12" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "VEFX :"
+
+[node name="Button12" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_vefx"
+
+[node name="Label13" type="Label" parent="P2RemapKeys"]
+layout_mode = 2
+text = "Meta :"
+
+[node name="Button13" type="Button" parent="P2RemapKeys"]
+layout_mode = 2
+script = ExtResource("5_161sk")
+action = "p2_meta"
 
 [node name="P1RemapFinish" type="Button" parent="."]
 visible = false
@@ -275,6 +404,25 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "Save changes"
 
+[node name="P2RemapFinish" type="Button" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 484.0
+offset_top = 255.0
+offset_right = 596.0
+offset_bottom = 286.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Save changes"
+
 [connection signal="text_changed" from="P1Container/LineEdit" to="." method="_on_line_edit_text_changed"]
-[connection signal="pressed" from="P1RemapKeysButton" to="." method="_on_remap_keys_button_pressed"]
+[connection signal="pressed" from="P1Container/P1RemapKeysButton" to="." method="_on_remap_keys_button_pressed"]
+[connection signal="text_changed" from="P2Container/LineEdit" to="." method="_on_line_edit_p2_text_changed"]
+[connection signal="pressed" from="P2Container/P2RemapKeysButton" to="." method="_on_p_2_remap_keys_button_pressed"]
 [connection signal="pressed" from="P1RemapFinish" to="." method="_on_p_1_remap_finish_pressed"]
+[connection signal="pressed" from="P2RemapFinish" to="." method="_on_p_2_remap_finish_pressed"]

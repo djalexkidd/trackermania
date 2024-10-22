@@ -21,6 +21,9 @@ func set_player_name(_name):
 	var pos = _players.find(player)
 	if pos != -1:
 		_list.set_item_text(pos, _name)
+	
+	if get_multiplayer_authority() == pos:
+		_list.set_item_icon(0, _crown)
 
 
 func onTextSubmitted(_string: String):
@@ -80,7 +83,6 @@ func on_peer_del(id):
 	if not multiplayer.is_server():
 		return
 	rpc("del_player", id)
-
 
 @rpc("any_peer", "call_local") func _log(username, message):
 	$HBoxContainer/RichTextLabel.append_text("%s: %s\n" % [username, message])

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://dy7tc5rr6pqun"]
+[gd_scene load_steps=5 format=3 uid="uid://dy7tc5rr6pqun"]
 
 [ext_resource type="Script" path="res://scripts/result/result_screen.gd" id="1_dixgu"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_pbvqx"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="3_7klfs"]
+[ext_resource type="FontFile" uid="uid://clutrvk1m4u8m" path="res://assets/font/ABSTRACT.TTF" id="4_m6u04"]
 
 [node name="ResultScreen" type="Control"]
 layout_mode = 3
@@ -97,5 +98,30 @@ offset_bottom = 143.5
 grow_horizontal = 2
 grow_vertical = 2
 text = "Return to menu"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 48.0
+offset_top = -24.5
+offset_right = 180.0
+offset_bottom = 24.5
+grow_vertical = 2
+
+[node name="RankLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_7klfs")
+theme_override_font_sizes/font_size = 32
+text = "Rank"
+horizontal_alignment = 1
+
+[node name="RankLabelValue" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_m6u04")
+theme_override_font_sizes/font_size = 32
+text = "F"
+horizontal_alignment = 1
 
 [connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

@@ -4,6 +4,21 @@ func _ready() -> void:
 	$ScoreLabel.text = "Accuracy: " + str(Global.score) + "%"
 	$ComboLabel.text = "Max combo: " + str(Global.combo_max)
 	
+	if Global.score >= 88.89:
+		$VBoxContainer/RankLabelValue.text = "AAA"
+	elif Global.score >= 77.78:
+		$VBoxContainer/RankLabelValue.text = "AA"
+	elif Global.score >= 66.67:
+		$VBoxContainer/RankLabelValue.text = "A"
+	elif Global.score >= 55.56:
+		$VBoxContainer/RankLabelValue.text = "B"
+	elif Global.score >= 44.44:
+		$VBoxContainer/RankLabelValue.text = "C"
+	elif Global.score >= 33.33:
+		$VBoxContainer/RankLabelValue.text = "D"
+	elif Global.score >= 22.22:
+		$VBoxContainer/RankLabelValue.text = "E"
+	
 	if Global.gauge_score < 80 and Global.gauge_level < 2 or Global.failed:
 		$ClearLabel.text = "FAILED"
 		$ClearLabel.add_theme_color_override("font_color", Color(1, 0.1, 0))

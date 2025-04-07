@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dshobxo4yfqhj"]
 
-[ext_resource type="Script" path="res://scripts/download/download.gd" id="1_i3nlt"]
+[ext_resource type="Script" uid="uid://dfqgd3qaheo4a" path="res://scripts/download/download.gd" id="1_i3nlt"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="2_wdk81"]
 
 [node name="Download" type="Control"]

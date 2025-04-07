@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://cdw4v0k1ab154" path="res://assets/music_select/music.png" id="1_j0avn"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="2_3nd1l"]
-[ext_resource type="Script" path="res://scripts/menu/music_select/song_entry.gd" id="2_7tuvw"]
+[ext_resource type="Script" uid="uid://trm6rxw3d5jg" path="res://scripts/menu/music_select/song_entry.gd" id="2_7tuvw"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="4_uqyhv"]
 
 [sub_resource type="Animation" id="Animation_o81ut"]
@@ -38,8 +38,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_yefhf"]
 _data = {
-"RESET": SubResource("Animation_o81ut"),
-"open": SubResource("Animation_xxvh2")
+&"RESET": SubResource("Animation_o81ut"),
+&"open": SubResource("Animation_xxvh2")
 }
 
 [node name="SongEntry" type="TextureButton"]

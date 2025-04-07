@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://d1sqhrx03pndw"]
 
 [ext_resource type="Texture2D" uid="uid://ojq4ejib6mii" path="res://assets/controller_test/controller_p2.png" id="1_0gmr0"]
-[ext_resource type="Script" path="res://scripts/menu/controller_test/p2_texture.gd" id="2_5bbwf"]
+[ext_resource type="Script" uid="uid://c7qr8w46hdi28" path="res://scripts/menu/controller_test/p2_texture.gd" id="2_5bbwf"]
 
 [node name="P2Texture" type="TextureRect"]
 texture_filter = 1

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://boaqwcx48evj4"]
 
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="1_rnr7k"]
-[ext_resource type="Script" path="res://scripts/menu/customization_menu.gd" id="1_u13ab"]
+[ext_resource type="Script" uid="uid://bxxlyqed61f" path="res://scripts/menu/customization_menu.gd" id="1_u13ab"]
 
 [node name="CustomizationMenu" type="Control"]
 layout_mode = 3

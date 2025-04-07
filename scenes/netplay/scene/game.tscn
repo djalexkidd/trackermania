@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ctuw5kv4q21qp"]
 
-[ext_resource type="Script" path="res://scenes/netplay/script/game.gd" id="1"]
+[ext_resource type="Script" uid="uid://bjouvnd6vani3" path="res://scenes/netplay/script/game.gd" id="1"]
 
 [node name="Game" type="Control"]
 layout_mode = 3

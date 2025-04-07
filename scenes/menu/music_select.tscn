@@ -1,18 +1,18 @@
 [gd_scene load_steps=22 format=3 uid="uid://dv67rp7a6aimn"]
 
-[ext_resource type="Script" path="res://scripts/menu/music_select.gd" id="1_8an63"]
+[ext_resource type="Script" uid="uid://dirg25neoj332" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
 [ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="1_u0514"]
-[ext_resource type="Shader" path="res://assets/shaders/scroll.gdshader" id="1_y1sfi"]
+[ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="1_y1sfi"]
 [ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="2_e4d0k"]
 [ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
 [ext_resource type="Texture2D" uid="uid://dbae6r7si4gea" path="res://assets/music_select/all_music.png" id="7_iesjm"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
 [ext_resource type="Texture2D" uid="uid://cl00dgt34uhvh" path="res://assets/music_select/version.png" id="8_2ygyf"]
-[ext_resource type="Script" path="res://scripts/menu/music_select/options_indicator.gd" id="8_7kb4w"]
+[ext_resource type="Script" uid="uid://tn6jh5t5wfgq" path="res://scripts/menu/music_select/options_indicator.gd" id="8_7kb4w"]
 [ext_resource type="FontFile" uid="uid://bmqjsoyv3o27y" path="res://assets/font/tallpixelfont.ttf" id="8_qtw6o"]
-[ext_resource type="Script" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
+[ext_resource type="Script" uid="uid://mmou6ix3nudg" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
 [ext_resource type="Texture2D" uid="uid://b23buntq635jn" path="res://assets/music_select/difficulty.png" id="9_g2fnn"]
 [ext_resource type="Texture2D" uid="uid://cht6hbw5e3txs" path="res://assets/music_select/keyboard.png" id="9_vpjg6"]
 [ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="10_rocpe"]
@@ -55,8 +55,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_j4c04"]
 _data = {
-"RESET": SubResource("Animation_rejju"),
-"auto": SubResource("Animation_3eb5n")
+&"RESET": SubResource("Animation_rejju"),
+&"auto": SubResource("Animation_3eb5n")
 }
 
 [node name="MusicSelect" type="Control"]
@@ -450,7 +450,7 @@ text = "HI-S"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/hispeedColorRect"]
 libraries = {
-"": SubResource("AnimationLibrary_j4c04")
+&"": SubResource("AnimationLibrary_j4c04")
 }
 
 [node name="autoColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
@@ -478,7 +478,7 @@ text = "AUTO"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/autoColorRect"]
 libraries = {
-"": SubResource("AnimationLibrary_j4c04")
+&"": SubResource("AnimationLibrary_j4c04")
 }
 
 [node name="difficultyColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
@@ -506,7 +506,7 @@ text = "EASY"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/difficultyColorRect"]
 libraries = {
-"": SubResource("AnimationLibrary_j4c04")
+&"": SubResource("AnimationLibrary_j4c04")
 }
 
 [node name="randomColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
@@ -534,7 +534,7 @@ text = "RANDOM"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/randomColorRect"]
 libraries = {
-"": SubResource("AnimationLibrary_j4c04")
+&"": SubResource("AnimationLibrary_j4c04")
 }
 
 [node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
@@ -563,7 +563,7 @@ horizontal_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/ascratchColorRect"]
 libraries = {
-"": SubResource("AnimationLibrary_j4c04")
+&"": SubResource("AnimationLibrary_j4c04")
 }
 
 [node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
@@ -591,7 +591,7 @@ text = "5-KEYS"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect"]
 libraries = {
-"": SubResource("AnimationLibrary_j4c04")
+&"": SubResource("AnimationLibrary_j4c04")
 }
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]

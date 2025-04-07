@@ -34,12 +34,14 @@ func load_and_add_songs(folder_path: String):
 	var json_files = Loader.get_all_files(folder_path, "json")
 	for file_path in json_files:
 		var json_data = Loader.load_json_file(file_path)
+		# Float to Int fix for Godot 4.4
+		var difficulty = int(json_data["Difficulty"])
 		
 		var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
 		$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
 		song_entry.path = file_path
 		song_entry.get_node("Label").text = json_data["Title"]
-		song_entry.get_node("Label2").text = str(json_data["Difficulty"])
+		song_entry.get_node("Label2").text = str(difficulty)
 		if json_data["DifficultyName"] == "Beginner":
 			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(0.3, 1, 0.3))
 		if json_data["DifficultyName"] == "Normal":
@@ -59,8 +61,8 @@ func load_and_add_songs(folder_path: String):
 			copied_node.path = file_path
 		
 		copied_node=song_entry.duplicate()
-		get_node("SongWheel/Categories/Level"+str(json_data["Difficulty"])).show()
-		get_node("SongWheel/Categories/Level"+str(json_data["Difficulty"])+"/MusicList").add_child(copied_node)
+		get_node("SongWheel/Categories/Level"+str(difficulty)).show()
+		get_node("SongWheel/Categories/Level"+str(difficulty)+"/MusicList").add_child(copied_node)
 		copied_node.path = file_path
 
 func _process(delta):

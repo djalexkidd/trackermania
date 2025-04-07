@@ -1,10 +1,10 @@
 [gd_scene load_steps=7 format=3 uid="uid://c0me54qvehuvi"]
 
-[ext_resource type="Script" path="res://scripts/menu/controller_test/test_controller.gd" id="1_nh7a8"]
+[ext_resource type="Script" uid="uid://cqgbgaib1ooyk" path="res://scripts/menu/controller_test/test_controller.gd" id="1_nh7a8"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="1_vfluu"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_r16qi"]
 [ext_resource type="PackedScene" uid="uid://dadevgawscx88" path="res://scenes/menu/controller_test/p1_texture.tscn" id="3_hys6r"]
-[ext_resource type="Script" path="res://scripts/menu/controller_test/remap_keys.gd" id="5_161sk"]
+[ext_resource type="Script" uid="uid://pnuxvxetniwd" path="res://scripts/menu/controller_test/remap_keys.gd" id="5_161sk"]
 [ext_resource type="PackedScene" uid="uid://d1sqhrx03pndw" path="res://scenes/menu/controller_test/p2_texture.tscn" id="5_hj330"]
 
 [node name="TestController" type="Control"]

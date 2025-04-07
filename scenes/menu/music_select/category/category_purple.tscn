@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://c83yy376ibj36"]
 
 [ext_resource type="FontFile" uid="uid://ddskiluk8ixlk" path="res://assets/font/digitalix.ttf" id="2_7snyh"]
-[ext_resource type="Script" path="res://scripts/menu/music_select/category.gd" id="2_kbnrc"]
+[ext_resource type="Script" uid="uid://bwjj6rernrx53" path="res://scripts/menu/music_select/category.gd" id="2_kbnrc"]
 
 [sub_resource type="Animation" id="Animation_i6xme"]
 length = 0.001
@@ -36,8 +36,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_a0dif"]
 _data = {
-"RESET": SubResource("Animation_i6xme"),
-"open": SubResource("Animation_uqb6r")
+&"RESET": SubResource("Animation_i6xme"),
+&"open": SubResource("Animation_uqb6r")
 }
 
 [node name="Category" type="TextureButton"]

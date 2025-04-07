@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://di565y0qy1rff"]
 
-[ext_resource type="Script" path="res://scenes/game/main_netplay.gd" id="1_npdst"]
+[ext_resource type="Script" uid="uid://bfaavbk8mqq3w" path="res://scenes/game/main_netplay.gd" id="1_npdst"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="2_2veam"]
 [ext_resource type="Texture2D" uid="uid://bl0lp2l46fft0" path="res://assets/play/p1_frame.png" id="3_posrd"]
 [ext_resource type="Texture2D" uid="uid://bmpwnexdg1yre" path="res://assets/play/p1_frame_scratch.png" id="4_vyb6g"]
@@ -156,10 +156,10 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_n70hp"]
 _data = {
-"Bad": SubResource("Animation_ou11v"),
-"Good": SubResource("Animation_q54hi"),
-"Perfect": SubResource("Animation_r63dx"),
-"combo": SubResource("Animation_krr70")
+&"Bad": SubResource("Animation_ou11v"),
+&"Good": SubResource("Animation_q54hi"),
+&"Perfect": SubResource("Animation_r63dx"),
+&"combo": SubResource("Animation_krr70")
 }
 
 [node name="main" type="Node2D"]

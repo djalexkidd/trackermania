@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://1ucivj345p8y"]
 
-[ext_resource type="Script" path="res://scenes/netplay/script/main.gd" id="1"]
+[ext_resource type="Script" uid="uid://3lh2ppygrtrj" path="res://scenes/netplay/script/main.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://ctuw5kv4q21qp" path="res://scenes/netplay/scene/game.tscn" id="2"]
 
 [node name="Main" type="Control"]

@@ -28,6 +28,18 @@ func _ready():
 	$AudioStreamPlayer.play()
 	
 	$SongWheel/Categories/AllMusic/Category.grab_focus()
+	
+	# Slide animation for song wheel
+	var screen_size = get_viewport().size
+	var target_position = $SongWheel.position
+
+	# Slide container to right
+	$SongWheel.position.x = screen_size.x + 50
+
+	var tween = create_tween()
+	tween.tween_property($SongWheel, "position", target_position, 0.6)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_OUT)
 
 # Function to load and add song entries
 func load_and_add_songs(folder_path: String):

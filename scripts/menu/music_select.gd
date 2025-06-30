@@ -46,48 +46,48 @@ func load_and_add_songs(folder_path: String):
 	var json_files = Loader.get_all_files(folder_path, "json")
 	for file_path in json_files:
 		var json_data = Loader.load_json_file(file_path)
-		# Float to Int fix for Godot 4.4
 		var difficulty = int(json_data["Difficulty"])
-		
+		var difficulty_name = json_data["DifficultyName"]
+		var title = json_data["Title"]
+		var artist = json_data["Artist"]
+
 		var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
-		$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
 		song_entry.path = file_path
-		song_entry.song_name = json_data["Title"]
-		song_entry.creator = json_data["Artist"]
-		song_entry.difficulty_name = json_data["DifficultyName"]
-		song_entry.get_node("Label").text = json_data["Title"]
+		song_entry.song_name = title
+		song_entry.creator = artist
+		song_entry.difficulty_name = difficulty_name
+		song_entry.get_node("Label").text = title
 		song_entry.get_node("Label2").text = str(difficulty)
-		if json_data["DifficultyName"] == "Beginner":
-			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(0.3, 1, 0.3))
-		if json_data["DifficultyName"] == "Normal":
-			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(0.5, 0.5, 1))
-		if json_data["DifficultyName"] == "Hyper":
-			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(1, 1, 0))
-		if json_data["DifficultyName"] == "Another":
-			song_entry.get_node("Label2").add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-		
-		var copied_node=song_entry.duplicate()
-		
-		if file_path.contains("official"):
-			$SongWheel/Categories/Official/MusicList.add_child(copied_node)
-			copied_node.path = file_path
-			copied_node.song_name = json_data["Title"]
-			copied_node.creator = json_data["Artist"]
-			copied_node.difficulty_name = json_data["DifficultyName"]
-		else:
-			$SongWheel/Categories/Downloaded/MusicList.add_child(copied_node)
-			copied_node.path = file_path
-			copied_node.song_name = json_data["Title"]
-			copied_node.creator = json_data["Artist"]
-			copied_node.difficulty_name = json_data["DifficultyName"]
-		
-		copied_node=song_entry.duplicate()
-		get_node("SongWheel/Categories/Level"+str(difficulty)).show()
-		get_node("SongWheel/Categories/Level"+str(difficulty)+"/MusicList").add_child(copied_node)
+
+		var label2 = song_entry.get_node("Label2")
+		var color_map = {
+			"Beginner": Color(0.3, 1, 0.3),
+			"Normal": Color(0.5, 0.5, 1),
+			"Hyper": Color(1, 1, 0),
+			"Another": Color(1, 0.3, 0.3),
+		}
+		if difficulty_name in color_map:
+			label2.add_theme_color_override("font_color", color_map[difficulty_name])
+
+		$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
+
+		for category in ["Official", "Downloaded"]:
+			if (category == "Official" and file_path.contains("official")) or (category == "Downloaded" and not file_path.contains("official")):
+				var copied_node = song_entry.duplicate()
+				copied_node.path = file_path
+				copied_node.song_name = title
+				copied_node.creator = artist
+				copied_node.difficulty_name = difficulty_name
+				$SongWheel.get_node("Categories/" + category + "/MusicList").add_child(copied_node)
+
+		var level_path = "SongWheel/Categories/Level" + str(difficulty)
+		get_node(level_path).show()
+		var copied_node = song_entry.duplicate()
 		copied_node.path = file_path
-		copied_node.song_name = json_data["Title"]
-		copied_node.creator = json_data["Artist"]
-		copied_node.difficulty_name = json_data["DifficultyName"]
+		copied_node.song_name = title
+		copied_node.creator = artist
+		copied_node.difficulty_name = difficulty_name
+		get_node(level_path + "/MusicList").add_child(copied_node)
 
 func _process(delta):
 	# Check if the effector button is pressed

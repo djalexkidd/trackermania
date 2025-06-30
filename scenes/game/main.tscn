@@ -476,5 +476,5 @@ horizontal_alignment = 2
 
 [node name="anim" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_n70hp")
+&"": SubResource("AnimationLibrary_n70hp")
 }

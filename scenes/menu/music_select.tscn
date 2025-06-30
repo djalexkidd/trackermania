@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://dv67rp7a6aimn"]
+[gd_scene load_steps=23 format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" uid="uid://dirg25neoj332" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="2_e4d0k"]
 [ext_resource type="PackedScene" uid="uid://c83yy376ibj36" path="res://scenes/menu/music_select/category/category_purple.tscn" id="3_ojufb"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="5_pgr8v"]
+[ext_resource type="FontFile" uid="uid://bggd18styexhu" path="res://assets/font/monofonto.otf" id="6_me461"]
 [ext_resource type="Texture2D" uid="uid://dbae6r7si4gea" path="res://assets/music_select/all_music.png" id="7_iesjm"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
 [ext_resource type="Texture2D" uid="uid://cl00dgt34uhvh" path="res://assets/music_select/version.png" id="8_2ygyf"]
@@ -100,6 +101,36 @@ offset_bottom = 48.0
 theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 32
 text = "music select"
+
+[node name="SongInfo" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = 120.0
+offset_right = 627.0
+offset_bottom = -96.0
+grow_vertical = 2
+
+[node name="SongName" type="Label" parent="SongInfo"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("6_me461")
+theme_override_font_sizes/font_size = 96
+horizontal_alignment = 2
+text_overrun_behavior = 2
+
+[node name="ArtistName" type="Label" parent="SongInfo"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("6_me461")
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 2
+
+[node name="DifficultyName" type="Label" parent="SongInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 1, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 2
+uppercase = true
 
 [node name="SongWheel" type="ScrollContainer" parent="."]
 layout_mode = 1

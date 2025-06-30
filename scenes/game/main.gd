@@ -114,11 +114,11 @@ func addCombo(score : String) -> void:
 	elif (score == "Good"):
 		currentScore += 0.7
 	$combo.text = str(combo)
-	if combo % 50 == 0 and Global.gauge_level == 2:
+	if combo % 2 == 0 and combo >= 50 and Global.gauge_level == 2:
 		$GrooveGauge.value += 2
 	if combo % 2 == 0 and Global.gauge_level < 2:
 		$GrooveGauge.value += 2
-	$GrooveGauge/Label.text = str($GrooveGauge.value) + " %"
+	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
 	$anim.play(score)
 	await $anim.animation_finished
 	$anim.play("combo")
@@ -134,7 +134,7 @@ func resetCombo() -> void:
 		$GrooveGauge.value -= 8
 	else:
 		$GrooveGauge.value -= 4
-	$GrooveGauge/Label.text = str($GrooveGauge.value) + " %"
+	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
 	if $GrooveGauge.value == 0 and Global.gauge_level == 2:
 		Global.failed = true
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")

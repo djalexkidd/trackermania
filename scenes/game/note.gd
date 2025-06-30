@@ -41,6 +41,7 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 	# Color the note in blue if it's on the upper keys like in beatmania.
 	if channel in [2, 4, 6]:
 		$bar.color = Color(0, 0, 1)
+		$LN_EffectEnd.color = Color(0, 0, 1)
 	# Color the note in red if in scratch lane
 	if channel == 8:
 		if !Global.auto_scratch:

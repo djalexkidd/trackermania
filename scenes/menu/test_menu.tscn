@@ -86,7 +86,7 @@ offset_bottom = -48.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("4_vxrwm")
 theme_override_font_sizes/font_size = 32
-text = "2024 - djalexkidd"
+text = "2024-2025 - djalexkidd"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1

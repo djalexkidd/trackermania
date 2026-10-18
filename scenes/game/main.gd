@@ -6,6 +6,12 @@ extends Node2D
 const PERFECT_YPOS : float = 500
 # Y-axis end of the Gear UI
 const GEAR_END : float = 520
+# 2P side: horizontal shift of the keys, the scratch lane goes to their right
+const KEYS_SHIFT_2P : float = -142
+# 2P side: axis used to mirror the scratch lane (P1 scratch lane 28~164 becomes 722~858)
+const SCRATCH_AXIS_2P : float = 886
+# Width of the playfield, the HUD is mirrored around it on the 2P side
+const PLAYFIELD_WIDTH : float = 870
 # After the last note is finished, wait for this margin and then the game ends.
 const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing (sec)
@@ -21,6 +27,8 @@ var AUTOPLAY : bool
 var AUTOSCRATCH : bool
 # Input action prefix of this player
 var prefix : String
+# 2P side layout like in IIDX (scratch lane on the right)
+var mirrored : bool
 # Key code for each of the 4 channels (can be added in the input map)
 @export var keycodes : PackedStringArray
 # Audio Player Node Path
@@ -165,8 +173,14 @@ func _ready() -> void:
 	AUTOSCRATCH = opt("auto_scratch")
 	speed = opt("hispeed")
 	prefix = "p%d_" % player
+	mirrored = player == 2
+	# Touch buttons follow this player's actions
+	for button in $P1Frame.find_children("*", "TouchScreenButton"):
+		button.action = button.action.replace("p1_", prefix)
 	if versus:
 		setupVersusLayout()
+	if mirrored:
+		setupMirroredLayout()
 	
 	var json_data = Loader.load_json_file(Loader.file_path)
 	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
@@ -250,6 +264,7 @@ func _process(_delta) -> void:
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
 			var note : Note = noteScene.duplicate()
 			note.autoScratch = AUTOSCRATCH
+			note.scratchOnRight = mirrored
 			var info : Array = noteArray[i].pop_front()
 			if (len(info) == 1):
 				# Create a general note
@@ -259,12 +274,8 @@ func _process(_delta) -> void:
 				note.setNote(i+1, speed, coordPerFrame, info[1])
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
-			if i == 7:
-				container.get_child(container.get_child_count()-1).position.x = 64
-				container.get_child(container.get_child_count()-1).position.y += coordPerFrame * (currentSongPos - info[0]) / 60
-			else:
-				container.get_child(container.get_child_count()-1).position.x = 64+(100 * (i+1))
-				container.get_child(container.get_child_count()-1).position.y += coordPerFrame * (currentSongPos - info[0]) / 60
+			container.get_child(container.get_child_count()-1).position.x = laneX(i)
+			container.get_child(container.get_child_count()-1).position.y += coordPerFrame * (currentSongPos - info[0]) / 60
 			queue[i].append(container.get_child(container.get_child_count()-1))
 	# Create auxiliary line
 	if (subLineArray and subLineArray[0] <= currentSongPos):
@@ -278,6 +289,10 @@ func _process(_delta) -> void:
 		if line.position.y >= PERFECT_YPOS:
 			line.queue_free()
 		line.position.y += coordPerFrame
+	# Give up (works in auto play too)
+	if Input.is_action_just_pressed(prefix + "meta"):
+		finish(true)
+		return
 	# Check auto play
 	if (AUTOPLAY):
 		autoplay()
@@ -397,9 +412,6 @@ func updateInputState() -> void:
 			queue[i].pop_front()
 			shouldPressEnd[i] = -1.0
 			shouldPress[i] = false
-	
-	if Input.is_action_just_pressed(prefix + "meta"):
-		finish(true)
 func dequeue() -> void:
 	for i in range(0, 8):
 		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].position.y >= GEAR_END):
@@ -445,9 +457,13 @@ func finish(failed : bool) -> void:
 	else:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
+# X position of the notes of a lane (0~6 keys, 7 scratch)
+func laneX(i : int) -> float:
+	if i == 7:
+		return SCRATCH_AXIS_2P - 164 if mirrored else 64
+	return 64 + 100 * (i+1) + (KEYS_SHIFT_2P if mirrored else 0)
 # Fit the HUD inside the playfield width so two playfields can stand side by side
 func setupVersusLayout() -> void:
-	const PLAYFIELD_WIDTH : float = 870
 	$GrooveGauge.nine_patch_stretch = true
 	$GrooveGauge.size.x = PLAYFIELD_WIDTH - $GrooveGauge.position.x * 2
 	# Gauge percentage goes under the gauge instead of beside it
@@ -456,6 +472,40 @@ func setupVersusLayout() -> void:
 	$isautoplay.move_to_front()
 	# The background must still hide long notes below the frame, down to the bottom of the screen
 	$Background.size = Vector2(PLAYFIELD_WIDTH, 1000)
-	# Touch buttons follow this player's actions
-	for button in $P1Frame.find_children("*", "TouchScreenButton"):
-		button.action = button.action.replace("p1_", prefix)
+# 2P side like in IIDX: keys on the left, scratch lane on the right, HUD mirrored
+func setupMirroredLayout() -> void:
+	# Keys
+	for i in range(1, 9):
+		get_node("ui/" + str(i)).position.x += KEYS_SHIFT_2P
+	for i in range(1, 8):
+		get_node("pressed" + str(i)).position.x += KEYS_SHIFT_2P
+	for node in [$AutoPlay6, $AutoPlay7, $P1Frame, $getready, $score]:
+		node.position.x += KEYS_SHIFT_2P
+	# Scratch lane
+	for line in [$"ui/10", $"ui/11"]:
+		var x : float = $ui.position.x + line.position.x + line.points[0].x
+		line.position.x += SCRATCH_AXIS_2P - 2 * x
+	$pressed8.position.x = SCRATCH_AXIS_2P - $pressed8.position.x - $pressed8.size.x
+	var turntable : TextureRect = $P1Frame/TextureRect
+	turntable.flip_h = true
+	turntable.position.x = PLAYFIELD_WIDTH - turntable.size.x - $P1Frame.position.x
+	$P1Frame/TextureRect/Key8.position.x = turntable.size.x - $P1Frame/TextureRect/Key8.position.x
+	# Lines and judgement areas across the whole playfield (29~864 on 1P side, 22~857 on 2P side)
+	for node in [$"ui/9", $"ui/400~440", $"ui/440~480", $"ui/480~520", $sublinecontainer]:
+		node.position.x -= 7
+	# HUD, the combo grows towards the left edge instead of going out of the screen
+	$combo.size.x = 220
+	$combo.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	for node in [$combo, $isautoplay, $GrooveGauge, $Background]:
+		node.position.x = PLAYFIELD_WIDTH - node.position.x - node.size.x
+	$GrooveGauge/Label.position.x = $GrooveGauge.size.x - $GrooveGauge/Label.position.x - $GrooveGauge/Label.size.x
+	$GrooveGauge/Label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	# The combo bounce animation must keep the mirrored x position
+	var library : AnimationLibrary = $anim.get_animation_library("").duplicate(true)
+	var combo_anim : Animation = library.get_animation("combo")
+	var track : int = combo_anim.find_track(NodePath("combo:position"), Animation.TYPE_VALUE)
+	for k in combo_anim.track_get_key_count(track):
+		var value : Vector2 = combo_anim.track_get_key_value(track, k)
+		combo_anim.track_set_key_value(track, k, Vector2($combo.position.x, value.y))
+	$anim.remove_animation_library("")
+	$anim.add_animation_library("", library)

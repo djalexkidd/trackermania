@@ -20,7 +20,7 @@ Le jeu est en cours de développement, mais vous pouvez y jouer en Accès Antici
 - [x] Gameplay de base
 - [x] Mutateurs de jeu et options d'assistance (HI-SPEED, RANDOM, AUTO-SCRATCH...)
 - [ ] Sauvegarde des scores
-- [ ] Multijoueur local
+- [x] Multijoueur local
 - [x] Multijoueur en ligne
 - [ ] Classements en ligne
 - [ ] Éditeur de niveaux

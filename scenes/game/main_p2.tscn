@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://dqo644576we4d" path="res://scenes/game/main.tscn" id="1_main"]
+
+[node name="main" instance=ExtResource("1_main")]
+position = Vector2(410, 0)
+keycodes = PackedStringArray("p2_key1", "p2_key2", "p2_key3", "p2_key4", "p2_key5", "p2_key6", "p2_key7", "p2_digital_turntable_fwd")
+player = 2

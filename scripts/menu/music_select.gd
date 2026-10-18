@@ -8,7 +8,7 @@ var effect_state = 0
 
 var node_focused = ""
 
-# Player 2 can't join when the music select is opened from netplay
+# Players can't join or leave when the music select is opened from netplay
 var netplay = false
 
 func _ready():
@@ -23,8 +23,9 @@ func _ready():
 		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
 	
 	netplay = get_tree().current_scene != self
-	if Global.two_players and not netplay:
-		join_p2()
+	if not netplay:
+		update_joined(1)
+		update_joined(2)
 	
 	# Analyse game and user folders for charts
 	load_and_add_songs("user://songs")
@@ -97,52 +98,86 @@ func load_and_add_songs(folder_path: String):
 		get_node(level_path + "/MusicList").add_child(copied_node)
 
 func _process(delta):
-	# Check if the effector button is pressed
-	if Input.is_action_just_pressed("p1_effect") or (Global.two_players and Input.is_action_just_pressed("p2_effect")):
-		_cycle_audio_effects()
+	# Check if the effector button is pressed (shared by both players)
+	for player in joined_players():
+		if Input.is_action_just_pressed("p%d_effect" % player):
+			_cycle_audio_effects()
+			break
 	
-	# Player 2 joins with the start button, then holds it for its own game options
-	if Input.is_action_just_pressed("p2_start") and not netplay:
-		if not Global.two_players:
-			join_p2()
-		else:
-			$SongInfo.hide()
-			$GameOptionSettingsP2.show()
-			$GameOptionSettingsP2/OpenAudio.play()
+	# START joins, then hold it for the game options. META leaves.
+	for player in [1, 2]:
+		if netplay and player == 2:
+			continue
+		var prefix = "p%d_" % player
+		if Input.is_action_just_pressed(prefix + "start"):
+			if not is_joined(player):
+				set_joined(player, true)
+			else:
+				open_game_options(player)
+		
+		if Input.is_action_just_released(prefix + "start") and game_options(player).visible:
+			close_game_options(player)
+		
+		if Input.is_action_just_pressed(prefix + "meta") and is_joined(player) and not netplay:
+			if game_options(player).visible:
+				close_game_options(player)
+			set_joined(player, false)
+			return
 	
-	if Input.is_action_just_released("p2_start") and $GameOptionSettingsP2.visible:
-		$SongInfo.show()
-		$GameOptionSettingsP2.hide()
-		$GameOptionSettingsP2/CloseAudio.play()
-	
-	# Game Option Settings
-	if Input.is_action_just_pressed("p1_start"):
+	for player in joined_players():
+		if game_options(player).visible:
+			continue
+		
+		for key in ["key1", "key3", "key5", "key7"]:
+			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
+				get_viewport().gui_get_focus_owner()._on_pressed()
+				return
+		
+		# Exit button
+		for key in ["key2", "key4", "key6"]:
+			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
+				get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+				return
+
+func is_joined(player: int) -> bool:
+	return Global.get("p%d_joined" % player)
+
+func joined_players() -> Array:
+	return [1, 2].filter(is_joined)
+
+func set_joined(player: int, joined: bool) -> void:
+	Global.set("p%d_joined" % player, joined)
+	update_joined(player)
+	# Nobody left, back to the title menu
+	if joined_players().is_empty():
+		get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+
+# Show the player's game options bar, or "PRESS START BUTTON" when the player is out
+func update_joined(player: int) -> void:
+	get_node("BottomBar/P%dGameOptions" % player).visible = is_joined(player)
+	get_node("BottomBar/P%dPressStart" % player).visible = not is_joined(player)
+
+# P1 options panel goes over the song wheel, P2 options panel over the song info
+func game_options(player: int) -> Control:
+	return $GameOptionSettings if player == 1 else $GameOptionSettingsP2
+
+func open_game_options(player: int) -> void:
+	if player == 1:
 		node_focused = get_viewport().gui_get_focus_owner()
 		$SongWheel.hide()
-		$GameOptionSettings.show()
-		$GameOptionSettings/OpenAudio.play()
-	
-	if Input.is_action_just_released("p1_start"):
+	else:
+		$SongInfo.hide()
+	game_options(player).show()
+	game_options(player).get_node("OpenAudio").play()
+
+func close_game_options(player: int) -> void:
+	if player == 1:
 		node_focused.grab_focus()
 		$SongWheel.show()
-		$GameOptionSettings.hide()
-		$GameOptionSettings/CloseAudio.play()
-	
-	for key in ["p1_key1", "p1_key3", "p1_key5", "p1_key7"]:
-		if Input.is_action_just_pressed(key) and !$GameOptionSettings.visible:
-			get_viewport().gui_get_focus_owner()._on_pressed()
-			break
-	
-	# Exit button
-	for key in ["p1_key2", "p1_key4", "p1_key6"]:
-		if Input.is_action_just_pressed(key) and !$GameOptionSettings.visible:
-			get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
-			break
-
-func join_p2():
-	Global.two_players = true
-	$BottomBar/P2PressStart.hide()
-	$BottomBar/P2GameOptions.show()
+	else:
+		$SongInfo.show()
+	game_options(player).hide()
+	game_options(player).get_node("CloseAudio").play()
 
 func _cycle_audio_effects():
 	# Disable all effects before cycling to the next one

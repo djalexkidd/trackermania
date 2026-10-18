@@ -18,6 +18,8 @@ func _ready() -> void:
 	Global.p2_failed = false
 
 func _on_button_pressed() -> void:
+	Global.score = 0
+	Global.combo_max = 0
 	Global.p2_score = 0
 	Global.p2_combo_max = 0
-	super()
+	get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")

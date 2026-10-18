@@ -1,15 +1,18 @@
 extends Control
 
+# Player shown on this screen, player 2 when playing alone
+var player = 1 if Global.p1_joined else 2
+
 func _ready() -> void:
-	$ScoreLabel.text = "Accuracy: " + str(Global.score) + "%"
-	$ComboLabel.text = "Max combo: " + str(Global.combo_max)
-	$VBoxContainer/RankLabelValue.text = get_rank(1)
+	$ScoreLabel.text = "Accuracy: " + str(Global.get_player_var(player, "score")) + "%"
+	$ComboLabel.text = "Max combo: " + str(Global.get_player_var(player, "combo_max"))
+	$VBoxContainer/RankLabelValue.text = get_rank(player)
 	
-	var clear = get_clear(1)
+	var clear = get_clear(player)
 	$ClearLabel.text = clear[0]
 	$ClearLabel.add_theme_color_override("font_color", clear[1])
 	
-	Global.failed = false
+	Global.set_player_var(player, "failed", false)
 
 # Rank letter of a player's score
 func get_rank(player: int) -> String:
@@ -54,6 +57,6 @@ func get_clear(player: int) -> Array:
 	return clear
 
 func _on_button_pressed() -> void:
-	Global.score = 0
-	Global.combo_max = 0
+	Global.set_player_var(player, "score", 0)
+	Global.set_player_var(player, "combo_max", 0)
 	get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")

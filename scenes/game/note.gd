@@ -19,6 +19,8 @@ var speed : float
 var effect : Object
 # Scratch notes are shown in green when auto scratch is on
 var autoScratch : bool = Global.auto_scratch
+# 2P side: the scratch lane is on the right of the keys
+var scratchOnRight : bool = false
 
 # Score when long note is pressed
 var longnoteScore : String = ""
@@ -51,7 +53,7 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 		else:
 			$bar.color = Color(0, 1, 0)
 		$bar.size.x = 132
-		$bar.position.x = -35
+		$bar.position.x = 3 if scratchOnRight else -35
 
 func longnoteStart():
 	longnoteScore = score

@@ -2,8 +2,9 @@ extends Control
 
 func _ready() -> void:
 	$EngineLabel.text = "Godot Engine " + str(Engine.get_version_info().string)
-	# Player 2 has to press start again in the music select
-	Global.two_players = false
+	# Back to the default: player 1 only, player 2 has to press start in the music select
+	Global.p1_joined = true
+	Global.p2_joined = false
 
 # Music Select
 func _on_music_select_texture_button_pressed() -> void:

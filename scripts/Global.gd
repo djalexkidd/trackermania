@@ -13,8 +13,9 @@ var auto_play = false
 var auto_scratch = false
 var random = false
 
-# Local versus (two players on the same machine)
-var two_players = false
+# Players in game on this machine (START joins, META leaves in the music select)
+var p1_joined = true
+var p2_joined = false
 
 var p2_score = 0
 var p2_combo_max = 0

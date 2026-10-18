@@ -54,48 +54,59 @@ func load_and_add_songs(folder_path: String):
 	var json_files = Loader.get_all_files(folder_path, "json")
 	for file_path in json_files:
 		var json_data = Loader.load_json_file(file_path)
-		var difficulty = int(json_data["Difficulty"])
-		var difficulty_name = json_data["DifficultyName"]
-		var title = json_data["Title"]
-		var artist = json_data["Artist"]
+		add_song_entry(file_path, json_data["Title"], json_data["Artist"], int(json_data["Difficulty"]), json_data["DifficultyName"])
+	
+	# Amiga modules are charts too, one entry per generated difficulty (not in netplay)
+	if netplay:
+		return
+	var mod_files = Loader.get_all_files(folder_path, "mod") + Loader.get_all_files(folder_path, "MOD")
+	for file_path in mod_files:
+		var module = ModModule.load_file(file_path)
+		if module == null:
+			continue
+		var title = module.title if module.title != "" else file_path.get_file().get_basename()
+		for difficulty_name in ModChart.DIFFICULTIES:
+			var chart = ModChart.new(module, difficulty_name)
+			add_song_entry(file_path, title, "Amiga module", chart.level, difficulty_name)
 
-		var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
-		song_entry.path = file_path
-		song_entry.song_name = title
-		song_entry.creator = artist
-		song_entry.difficulty_name = difficulty_name
-		song_entry.get_node("Label").text = title
-		song_entry.get_node("Label2").text = str(difficulty)
+func add_song_entry(file_path: String, title: String, artist: String, difficulty: int, difficulty_name: String):
+	var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
+	song_entry.path = file_path
+	song_entry.song_name = title
+	song_entry.creator = artist
+	song_entry.difficulty_name = difficulty_name
+	song_entry.get_node("Label").text = title
+	song_entry.get_node("Label2").text = str(difficulty)
 
-		var label2 = song_entry.get_node("Label2")
-		var color_map = {
-			"Beginner": Color(0.3, 1, 0.3),
-			"Normal": Color(0.5, 0.5, 1),
-			"Hyper": Color(1, 1, 0),
-			"Another": Color(1, 0.3, 0.3),
-		}
-		if difficulty_name in color_map:
-			label2.add_theme_color_override("font_color", color_map[difficulty_name])
+	var label2 = song_entry.get_node("Label2")
+	var color_map = {
+		"Beginner": Color(0.3, 1, 0.3),
+		"Normal": Color(0.5, 0.5, 1),
+		"Hyper": Color(1, 1, 0),
+		"Another": Color(1, 0.3, 0.3),
+	}
+	if difficulty_name in color_map:
+		label2.add_theme_color_override("font_color", color_map[difficulty_name])
 
-		$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
+	$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
 
-		for category in ["Official", "Downloaded"]:
-			if (category == "Official" and file_path.contains("official")) or (category == "Downloaded" and not file_path.contains("official")):
-				var copied_node = song_entry.duplicate()
-				copied_node.path = file_path
-				copied_node.song_name = title
-				copied_node.creator = artist
-				copied_node.difficulty_name = difficulty_name
-				$SongWheel.get_node("Categories/" + category + "/MusicList").add_child(copied_node)
+	for category in ["Official", "Downloaded"]:
+		if (category == "Official" and file_path.contains("official")) or (category == "Downloaded" and not file_path.contains("official")):
+			var copied_node = song_entry.duplicate()
+			copied_node.path = file_path
+			copied_node.song_name = title
+			copied_node.creator = artist
+			copied_node.difficulty_name = difficulty_name
+			$SongWheel.get_node("Categories/" + category + "/MusicList").add_child(copied_node)
 
-		var level_path = "SongWheel/Categories/Level" + str(difficulty)
-		get_node(level_path).show()
-		var copied_node = song_entry.duplicate()
-		copied_node.path = file_path
-		copied_node.song_name = title
-		copied_node.creator = artist
-		copied_node.difficulty_name = difficulty_name
-		get_node(level_path + "/MusicList").add_child(copied_node)
+	var level_path = "SongWheel/Categories/Level" + str(difficulty)
+	get_node(level_path).show()
+	var copied_node = song_entry.duplicate()
+	copied_node.path = file_path
+	copied_node.song_name = title
+	copied_node.creator = artist
+	copied_node.difficulty_name = difficulty_name
+	get_node(level_path + "/MusicList").add_child(copied_node)
 
 func _process(delta):
 	# Check if the effector button is pressed (shared by both players)

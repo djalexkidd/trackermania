@@ -15,6 +15,7 @@ var color_map = {
 
 func _on_pressed() -> void:
 	Loader.file_path = path
+	Loader.chart_difficulty = difficulty_name
 	if get_node("../../../../../..").name == "Main":
 		get_node("../../../../../..").music_selected()
 		get_node("../../../../..").queue_free()

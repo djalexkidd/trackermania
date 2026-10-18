@@ -39,6 +39,12 @@ var mirrored : bool
 var speed : float
 # Note information corresponding to 7 channels
 var noteArray      : Array = []
+# Keysound of each note of noteArray (Amiga modules only)
+var keysoundArray  : Array   = [[], [], [], [], [], [], [], []]
+# Keysound of the last note created in each lane
+var lastKeysound   : Array   = [-1, -1, -1, -1, -1, -1, -1, -1]
+# Module player shared by the playfields when the chart is an Amiga module
+var modPlayer      : ModPlayer
 # Auxiliary line information
 var subLineArray   : Array = []
 # Current audio playback time (seconds)
@@ -112,6 +118,8 @@ func getMaximumScore(notearr : Array) -> float:
 	if opt("keys_mode") == 5:
 		noteArray[5] = []
 		noteArray[6] = []
+		keysoundArray[5] = []
+		keysoundArray[6] = []
 	
 	for i in notearr:
 		for note in i:
@@ -182,29 +190,27 @@ func _ready() -> void:
 	if mirrored:
 		setupMirroredLayout()
 	
-	var json_data = Loader.load_json_file(Loader.file_path)
-	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
-	var file_extension = json_data["AudioFile"].get_extension()
-	
-	noteArray = json_data["noteArray"]
+	if Loader.file_path.get_extension().to_lower() == "mod":
+		if not loadModule():
+			set_process(false)
+			return
+	else:
+		loadJsonChart()
 	Global.set_player_var(player, "combo_max_top", getMaximumScore(noteArray))
 	
 	if opt("random"):
 		randomize()
-		noteArray.shuffle()
+		# The keysounds follow their lane
+		var lanes : Array = range(8)
+		lanes.shuffle()
+		noteArray = lanes.map(func(i): return noteArray[i])
+		keysoundArray = lanes.map(func(i): return keysoundArray[i])
 	
 	if opt("gauge_level") == 2:
 		$GrooveGauge.value = 100
 		$GrooveGauge/Label.text = "100 %"
 		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
 		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
-	
-	# In local versus both playfields share the same audio player, only load it once
-	if get_node(audio).stream == null:
-		if file_extension == "mp3":
-			get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
-		elif file_extension == "ogg":
-			get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
 	
 	set_process(false)
 	if opt("keys_mode") == 5:
@@ -225,7 +231,7 @@ func _ready() -> void:
 			break
 	if (audio == null):
 		OS.alert("Please assign a AudioStreamPlayer node")
-	if (get_node(audio).stream == null):
+	if (modPlayer == null and get_node(audio).stream == null):
 		OS.alert("Please assign a music")
 	for i in range(0, 8):
 		noteArray[i] = getCorrectArr(noteArray[i], speed)
@@ -233,21 +239,67 @@ func _ready() -> void:
 	for i in range(0, 8):
 		if getEndPos(noteArray[i], speed, ENDPOS_BIAS) > endPos:
 			endPos = getEndPos(noteArray[i], speed, ENDPOS_BIAS)
-	if (get_node(audio).stream.get_length() < endPos):
+	if modPlayer:
+		# The background music goes on after the last note
+		endPos = maxf(endPos, modPlayer.length + ENDPOS_BIAS)
+	elif (get_node(audio).stream.get_length() < endPos):
 		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
 	subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
 	maximumScore = getMaximumScore(noteArray)
+	if modPlayer:
+		# Auto played notes are played on time by the background music
+		for i in range(0, 8):
+			if not AUTOPLAY and not (AUTOSCRATCH and i == 7):
+				modPlayer.claim([keysoundArray[i]])
 	if (AUTOPLAY):
 		$isautoplay.visible = true
 	await get_tree().create_timer(1.0).timeout
 	$getready.hide()
-	if not get_node(audio).playing:
+	if modPlayer:
+		if not modPlayer.playing:
+			modPlayer.play()
+	elif not get_node(audio).playing:
 		get_node(audio).play()
 	set_process(true)
 
+# Load the notes and the music of a TrackerMania chart
+func loadJsonChart() -> void:
+	var json_data = Loader.load_json_file(Loader.file_path)
+	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
+	var file_extension = json_data["AudioFile"].get_extension()
+	noteArray = json_data["noteArray"]
+	# In local versus both playfields share the same audio player, only load it once
+	if get_node(audio).stream == null:
+		if file_extension == "mp3":
+			get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
+		elif file_extension == "ogg":
+			get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
+
+# Generate the chart of an Amiga module, its notes are the keysounds
+func loadModule() -> bool:
+	# In local versus both playfields share the same module player, only load it once
+	modPlayer = get_node(audio).get_node_or_null("ModPlayer")
+	if modPlayer == null:
+		var module : ModModule = ModModule.load_file(Loader.file_path)
+		if module == null:
+			OS.alert("Invalid Amiga module: " + Loader.file_path)
+			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
+			return false
+		modPlayer = ModPlayer.new(module)
+		modPlayer.name = "ModPlayer"
+		get_node(audio).add_child(modPlayer)
+	var chart : ModChart = ModChart.new(modPlayer.module, Loader.chart_difficulty, opt("keys_mode"))
+	noteArray = chart.noteArray
+	keysoundArray = chart.keysoundArray
+	return true
+
+# Current time of the song (seconds)
+func songPosition() -> float:
+	return modPlayer.get_playback_position() if modPlayer else get_node(audio).get_playback_position()
+
 func _process(_delta) -> void:
 	# Get current audio playback time
-	currentSongPos = get_node(audio).get_playback_position()
+	currentSongPos = songPosition()
 	currentSongPos -= AudioServer.get_output_latency()
 	# Confirm game end
 	if (currentSongPos >= endPos):
@@ -265,6 +317,9 @@ func _process(_delta) -> void:
 			var note : Note = noteScene.duplicate()
 			note.autoScratch = AUTOSCRATCH
 			note.scratchOnRight = mirrored
+			if keysoundArray[i]:
+				note.keysound = keysoundArray[i].pop_front()
+				lastKeysound[i] = note.keysound
 			var info : Array = noteArray[i].pop_front()
 			if (len(info) == 1):
 				# Create a general note
@@ -341,10 +396,13 @@ func autoplay():
 				shouldPress[i] = true
 				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
 				queue[i][0].longnoteStart()
-# Called when the i-th channel key is pressed
-func keyPressed(i : int) -> void:
+# Called when the i-th channel key is pressed, returns false if there was no note to hit
+func keyPressed(i : int) -> bool:
 	# If the first note in that channel is scored
 	if len(queue[i]) != 0 and queue[i][0].score != "Default":
+		# The keysound plays even for a bad timing like in IIDX
+		if modPlayer:
+			modPlayer.hit(queue[i][0].keysound)
 		if queue[i][0].score == "Bad":
 			resetCombo()
 			if queue[i][0].isLongnote == false:
@@ -365,6 +423,17 @@ func keyPressed(i : int) -> void:
 				shouldPress[i] = true
 				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
 				queue[i][0].longnoteStart()
+		return true
+	return false
+# Play the keysound of the next note of a lane when its key is pressed without a note to hit
+func previewKeysound(i : int) -> void:
+	if modPlayer == null:
+		return
+	for n in queue[i]:
+		if n != null:
+			modPlayer.preview(n.keysound)
+			return
+	modPlayer.preview(keysoundArray[i][0] if keysoundArray[i] else lastKeysound[i])
 func updateQueue() -> void:
 	for q in queue:
 		for n in q:
@@ -394,7 +463,8 @@ func updateInputState() -> void:
 	
 	if (Input.is_action_just_pressed(prefix + "digital_turntable_rew")):
 		pressed[7] = true
-		keyPressed(7)
+		if not keyPressed(7):
+			previewKeysound(7)
 	if (Input.is_action_just_released(prefix + "digital_turntable_rew")):
 		pressed[7] = false
 	
@@ -402,7 +472,8 @@ func updateInputState() -> void:
 		get_node("pressed" + str(i+1)).visible = pressed[i]
 		if (Input.is_action_just_pressed(keycodes[i])):
 			pressed[i] = true
-			keyPressed(i)
+			if not keyPressed(i):
+				previewKeysound(i)
 		if (Input.is_action_just_released(keycodes[i])):
 			pressed[i] = false
 		if (pressed[i] == false and shouldPress[i]):

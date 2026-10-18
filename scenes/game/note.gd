@@ -21,6 +21,8 @@ var effect : Object
 var autoScratch : bool = Global.auto_scratch
 # 2P side: the scratch lane is on the right of the keys
 var scratchOnRight : bool = false
+# Keysound played when the note is hit (Amiga modules only)
+var keysound : int = -1
 
 # Score when long note is pressed
 var longnoteScore : String = ""

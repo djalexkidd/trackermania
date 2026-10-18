@@ -1,6 +1,8 @@
 extends Node
 
 var file_path = ""
+# Difficulty of the chart generated from an Amiga module
+var chart_difficulty = ""
 
 # Analyse files recursively by extention
 func get_all_files(path: String, file_ext := "", files := []):

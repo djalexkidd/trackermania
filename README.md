@@ -27,6 +27,7 @@ Le jeu est en cours de développement, mais vous pouvez y jouer en Accès Antici
 - [ ] Téléchargement de contenu crée par la communauté
 - [x] Importation de beatmaps Quaver
 - [ ] Importation de BMS
+- [x] Modules Amiga jouables directement avec keysounds
 
 ## Crédits
 Ce jeu contient du code source de ces projets :

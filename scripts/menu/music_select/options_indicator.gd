@@ -1,20 +1,23 @@
 extends ColorRect
 
+# Player whose game options are shown (1 or 2)
+@export var player : int = 1
+
 func _ready() -> void:
-	_on_game_option_settings_update("auto", Global.auto_play)
+	_on_game_option_settings_update("auto", Global.get_player_var(player, "auto_play"))
 	
-	_on_game_option_settings_update("ascratch", Global.auto_scratch)
+	_on_game_option_settings_update("ascratch", Global.get_player_var(player, "auto_scratch"))
 	
-	if Global.keys_mode == 5:
+	if Global.get_player_var(player, "keys_mode") == 5:
 		_on_game_option_settings_update("five", true)
 	
-	if Global.hispeed != 1.0:
-		_on_game_option_settings_update("hispeed", Global.hispeed)
+	if Global.get_player_var(player, "hispeed") != 1.0:
+		_on_game_option_settings_update("hispeed", Global.get_player_var(player, "hispeed"))
 	
-	_on_game_option_settings_update("random", Global.random)
+	_on_game_option_settings_update("random", Global.get_player_var(player, "random"))
 	
-	if Global.gauge_level != 0:
-		_on_game_option_settings_update("difficulty", Global.gauge_level)
+	if Global.get_player_var(player, "gauge_level") != 0:
+		_on_game_option_settings_update("difficulty", Global.get_player_var(player, "gauge_level"))
 
 func _on_game_option_settings_update(option, status) -> void:
 	if option in name and status:
@@ -23,14 +26,14 @@ func _on_game_option_settings_update(option, status) -> void:
 		$AnimationPlayer.play("RESET")
 	
 	if name == "hispeedColorRect":
-		if Global.hispeed == 1.0:
+		if Global.get_player_var(player, "hispeed") == 1.0:
 			$AnimationPlayer.play("RESET")
-		$Label.text = str("HI-S   " + str(Global.hispeed))
+		$Label.text = str("HI-S   " + str(Global.get_player_var(player, "hispeed")))
 	
 	if name == "difficultyColorRect":
-		if Global.gauge_level < 2:
+		if Global.get_player_var(player, "gauge_level") < 2:
 			$Label.text = "EASY"
-		elif Global.gauge_level == 2:
+		elif Global.get_player_var(player, "gauge_level") == 2:
 			$Label.text = "HARD"
 	
 	$AnimationPlayer.seek(0)

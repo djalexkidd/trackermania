@@ -10,9 +10,17 @@ const GEAR_END : float = 520
 const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing (sec)
 const SUBLINE_LENGTH : float = 1.0
+# Emitted in local versus when this player is done (song ended, failed or gave up)
+signal finished
+# Player number, picks the game options and the input actions (p1_* or p2_*)
+@export var player : int = 1
+# Local versus flag (two playfields side by side, shared audio)
+@export var versus : bool = false
 # Autoplay flag
-var AUTOPLAY : bool = Global.auto_play
-var AUTOSCRATCH : bool = Global.auto_scratch
+var AUTOPLAY : bool
+var AUTOSCRATCH : bool
+# Input action prefix of this player
+var prefix : String
 # Key code for each of the 4 channels (can be added in the input map)
 @export var keycodes : PackedStringArray
 # Audio Player Node Path
@@ -20,7 +28,7 @@ var AUTOSCRATCH : bool = Global.auto_scratch
 # Preload note scene
 @onready var noteScene : Note = preload("res://scenes/game/note.tscn").instantiate()
 # The time it takes for a note to descend from (y=0) to (y=PERFECT_YPOS)
-var speed : float = Global.hispeed
+var speed : float
 # Note information corresponding to 7 channels
 var noteArray      : Array = []
 # Auxiliary line information
@@ -93,7 +101,7 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 func getMaximumScore(notearr : Array) -> float:
 	var result : float = 0.0
 	
-	if Global.keys_mode == 5:
+	if opt("keys_mode") == 5:
 		noteArray[5] = []
 		noteArray[6] = []
 	
@@ -114,9 +122,9 @@ func addCombo(score : String) -> void:
 	elif (score == "Good"):
 		currentScore += 0.7
 	$combo.text = str(combo)
-	if combo % 2 == 0 and combo >= 50 and Global.gauge_level == 2:
+	if combo % 2 == 0 and combo >= 50 and opt("gauge_level") == 2:
 		$GrooveGauge.value += 2
-	if combo % 2 == 0 and Global.gauge_level < 2:
+	if combo % 2 == 0 and opt("gauge_level") < 2:
 		$GrooveGauge.value += 2
 	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
 	$anim.play(score)
@@ -128,19 +136,23 @@ func resetCombo() -> void:
 	combo = 0
 	$combo.text = str(combo)
 	$anim.play("Bad")
-	if Global.gauge_level == 1:
+	if opt("gauge_level") == 1:
 		$GrooveGauge.value -= 2
-	elif Global.gauge_level == 2:
+	elif opt("gauge_level") == 2:
 		$GrooveGauge.value -= 8
 	else:
 		$GrooveGauge.value -= 4
 	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
-	if $GrooveGauge.value == 0 and Global.gauge_level == 2:
-		Global.failed = true
-		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
+	if $GrooveGauge.value == 0 and opt("gauge_level") == 2:
+		# Deferred because the note queues are still being iterated
+		finish.call_deferred(true)
 	await $anim.animation_finished
 	$anim.play("combo")
 	await $anim.animation_finished
+
+# Get a game option of this player
+func opt(option : String):
+	return Global.get_player_var(player, option)
 
 func load_mp3(path):
 	var file = FileAccess.open(path, FileAccess.READ)
@@ -149,30 +161,39 @@ func load_mp3(path):
 	return sound
 
 func _ready() -> void:
+	AUTOPLAY = opt("auto_play")
+	AUTOSCRATCH = opt("auto_scratch")
+	speed = opt("hispeed")
+	prefix = "p%d_" % player
+	if versus:
+		setupVersusLayout()
+	
 	var json_data = Loader.load_json_file(Loader.file_path)
 	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
 	var file_extension = json_data["AudioFile"].get_extension()
 	
 	noteArray = json_data["noteArray"]
-	Global.combo_max_top = getMaximumScore(noteArray)
+	Global.set_player_var(player, "combo_max_top", getMaximumScore(noteArray))
 	
-	if Global.random:
+	if opt("random"):
 		randomize()
 		noteArray.shuffle()
 	
-	if Global.gauge_level == 2:
+	if opt("gauge_level") == 2:
 		$GrooveGauge.value = 100
 		$GrooveGauge/Label.text = "100 %"
 		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
 		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
 	
-	if file_extension == "mp3":
-		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
-	elif file_extension == "ogg":
-		get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
+	# In local versus both playfields share the same audio player, only load it once
+	if get_node(audio).stream == null:
+		if file_extension == "mp3":
+			get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
+		elif file_extension == "ogg":
+			get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
 	
 	set_process(false)
-	if Global.keys_mode == 5:
+	if opt("keys_mode") == 5:
 		$AutoPlay6.show()
 		$AutoPlay7.show()
 	for i in range(1, 9):
@@ -206,7 +227,8 @@ func _ready() -> void:
 		$isautoplay.visible = true
 	await get_tree().create_timer(1.0).timeout
 	$getready.hide()
-	get_node(audio).play()
+	if not get_node(audio).playing:
+		get_node(audio).play()
 	set_process(true)
 
 func _process(_delta) -> void:
@@ -215,15 +237,8 @@ func _process(_delta) -> void:
 	currentSongPos -= AudioServer.get_output_latency()
 	# Confirm game end
 	if (currentSongPos >= endPos):
-		done = true
-		for i in range(1, 5): get_node("pressed" + str(i)).visible = false
-		for i in $sublinecontainer.get_children(): i.free()
-		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
-		Global.combo_max = comboMax
-		Global.gauge_score = $GrooveGauge.value
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		set_process(false)
-		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
+		finish(false)
+		return
 	# Confirm completion of long note
 	for i in range(0, 8):
 		if shouldPressEnd[i] != -1.0 and shouldPressEnd[i] <= currentSongPos:
@@ -234,6 +249,7 @@ func _process(_delta) -> void:
 	for i in range(0, 8):
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
 			var note : Note = noteScene.duplicate()
+			note.autoScratch = AUTOSCRATCH
 			var info : Array = noteArray[i].pop_front()
 			if (len(info) == 1):
 				# Create a general note
@@ -244,11 +260,11 @@ func _process(_delta) -> void:
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
 			if i == 7:
-				container.get_child(container.get_child_count()-1).global_position.x = 64
-				container.get_child(container.get_child_count()-1).global_position.y += coordPerFrame * (currentSongPos - info[0]) / 60
+				container.get_child(container.get_child_count()-1).position.x = 64
+				container.get_child(container.get_child_count()-1).position.y += coordPerFrame * (currentSongPos - info[0]) / 60
 			else:
-				container.get_child(container.get_child_count()-1).global_position.x = 64+(100 * (i+1))
-				container.get_child(container.get_child_count()-1).global_position.y += coordPerFrame * (currentSongPos - info[0]) / 60
+				container.get_child(container.get_child_count()-1).position.x = 64+(100 * (i+1))
+				container.get_child(container.get_child_count()-1).position.y += coordPerFrame * (currentSongPos - info[0]) / 60
 			queue[i].append(container.get_child(container.get_child_count()-1))
 	# Create auxiliary line
 	if (subLineArray and subLineArray[0] <= currentSongPos):
@@ -282,13 +298,13 @@ func autoscratch():
 	if (queue[7] and queue[7][0] == null):
 		queue[7].pop_front()
 	if (queue[7] and queue[7][0].isLongnote == false):
-		if (queue[7][0].global_position.y >= PERFECT_YPOS):
+		if (queue[7][0].position.y >= PERFECT_YPOS):
 			queue[7][0].score = "Perfect"
 			addCombo(queue[7][0].score)
 			queue[7][0].free()
 			queue[7].pop_front()
 	elif (queue[7] and queue[7][0].isLongnote == true and queue[7][0].longnoteScore == ""):
-		if (queue[7][0].global_position.y >= PERFECT_YPOS):
+		if (queue[7][0].position.y >= PERFECT_YPOS):
 			queue[7][0].score = "Perfect"
 			shouldPress[7] = true
 			shouldPressEnd[7] = currentSongPos + queue[7][0].longnoteTime
@@ -299,13 +315,13 @@ func autoplay():
 		if (queue[i] and queue[i][0] == null):
 			queue[i].pop_front()
 		if (queue[i] and queue[i][0].isLongnote == false):
-			if (queue[i][0].global_position.y >= PERFECT_YPOS):
+			if (queue[i][0].position.y >= PERFECT_YPOS):
 				queue[i][0].score = "Perfect"
 				addCombo(queue[i][0].score)
 				queue[i][0].free()
 				queue[i].pop_front()
 		elif (queue[i] and queue[i][0].isLongnote == true and queue[i][0].longnoteScore == ""):
-			if (queue[i][0].global_position.y >= PERFECT_YPOS):
+			if (queue[i][0].position.y >= PERFECT_YPOS):
 				queue[i][0].score = "Perfect"
 				shouldPress[i] = true
 				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
@@ -337,7 +353,7 @@ func keyPressed(i : int) -> void:
 func updateQueue() -> void:
 	for q in queue:
 		for n in q:
-			var m = n.global_position.y
+			var m = n.position.y
 			if (m < 400): continue
 			if (400 <= m and m < 440): 
 				n.score = "Bad"
@@ -347,7 +363,7 @@ func updateQueue() -> void:
 				n.score = "Perfect"
 func updateInputState() -> void:
 	# Get the current analog value from the turntable
-	var current_value := Input.get_action_strength("p1_analog_turntable_fwd") - Input.get_action_strength("p1_analog_turntable_rew")
+	var current_value := Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
 	# Check if the analog value has changed since the last frame
 	if current_value != previous_value:
 		# Calculate the rotation difference
@@ -361,10 +377,10 @@ func updateInputState() -> void:
 	else:
 		pressed[7] = false
 	
-	if (Input.is_action_just_pressed("p1_digital_turntable_rew")):
+	if (Input.is_action_just_pressed(prefix + "digital_turntable_rew")):
 		pressed[7] = true
 		keyPressed(7)
-	if (Input.is_action_just_released("p1_digital_turntable_rew")):
+	if (Input.is_action_just_released(prefix + "digital_turntable_rew")):
 		pressed[7] = false
 	
 	for i in range(0, 8):
@@ -382,14 +398,11 @@ func updateInputState() -> void:
 			shouldPressEnd[i] = -1.0
 			shouldPress[i] = false
 	
-	if Input.is_action_just_pressed("p1_meta"):
-		Global.failed = true
-		Global.score = snapped(currentScore / maximumScore * 100.0, 0.1)
-		Global.combo_max = comboMax
-		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
+	if Input.is_action_just_pressed(prefix + "meta"):
+		finish(true)
 func dequeue() -> void:
 	for i in range(0, 8):
-		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].global_position.y >= GEAR_END):
+		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].position.y >= GEAR_END):
 			# If it's a long note
 			if (queue[i][0].isLongnote == true):
 				# If you didn't press it in the first place
@@ -404,5 +417,45 @@ func dequeue() -> void:
 func killGarbage() -> void:
 	for i in range(1, 9):
 		for n in get_node("container" + str(i)).get_children():
-			if (n.global_position.y - n.effect.size.y >= 600):
+			if (n.position.y - n.effect.size.y >= 600):
 				n.free()
+# Store this player's results, then show them (or wait for the other player in versus)
+func finish(failed : bool) -> void:
+	if done:
+		return
+	done = true
+	set_process(false)
+	for i in range(1, 9): get_node("pressed" + str(i)).visible = false
+	for i in $sublinecontainer.get_children(): i.free()
+	for i in range(1, 9):
+		for n in get_node("container" + str(i)).get_children():
+			n.queue_free()
+	queue = [[], [], [], [], [], [], [], []]
+	Global.set_player_var(player, "failed", failed)
+	Global.set_player_var(player, "score", snapped(currentScore / maximumScore * 100.0, 0.1))
+	Global.set_player_var(player, "combo_max", comboMax)
+	Global.set_player_var(player, "gauge_score", $GrooveGauge.value)
+	if versus:
+		$score.hide()
+		if failed:
+			$getready.text = "Failed"
+			$getready.add_theme_color_override("font_color", Color(1, 0.1, 0))
+			$getready.show()
+		finished.emit()
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
+# Fit the HUD inside the playfield width so two playfields can stand side by side
+func setupVersusLayout() -> void:
+	const PLAYFIELD_WIDTH : float = 870
+	$GrooveGauge.nine_patch_stretch = true
+	$GrooveGauge.size.x = PLAYFIELD_WIDTH - $GrooveGauge.position.x * 2
+	# Gauge percentage goes under the gauge instead of beside it
+	$GrooveGauge/Label.position = Vector2($GrooveGauge.size.x - $GrooveGauge/Label.size.x, $GrooveGauge.size.y + 8)
+	$isautoplay.position.x = PLAYFIELD_WIDTH - $isautoplay.size.x
+	$isautoplay.move_to_front()
+	# The background must still hide long notes below the frame, down to the bottom of the screen
+	$Background.size = Vector2(PLAYFIELD_WIDTH, 1000)
+	# Touch buttons follow this player's actions
+	for button in $P1Frame.find_children("*", "TouchScreenButton"):
+		button.action = button.action.replace("p1_", prefix)

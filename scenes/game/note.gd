@@ -17,6 +17,8 @@ var longnoteTime : float = -1.0
 var speed : float
 # Long note effect node
 var effect : Object
+# Scratch notes are shown in green when auto scratch is on
+var autoScratch : bool = Global.auto_scratch
 
 # Score when long note is pressed
 var longnoteScore : String = ""
@@ -24,7 +26,7 @@ var longnoteScore : String = ""
 var longnoteComboQueue : Array = []
 
 func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTime : float = -1.0) -> void:
-	self.global_position.y = 0.0
+	self.position.y = 0.0
 	channel = _channel
 	speed = _speed
 	coordPerFrame = _coordPerFrame
@@ -44,7 +46,7 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 		$LN_EffectEnd.color = Color(0, 0, 1)
 	# Color the note in red if in scratch lane
 	if channel == 8:
-		if !Global.auto_scratch:
+		if !autoScratch:
 			$bar.color = Color(1, 0, 0)
 		else:
 			$bar.color = Color(0, 1, 0)
@@ -53,7 +55,7 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 
 func longnoteStart():
 	longnoteScore = score
-	var longnoteStartPos = global_position.y
+	var longnoteStartPos = position.y
 	var step = 10 / speed
 	var index = snapped(longnoteStartPos, 1)
 	var tempComboQueue = []
@@ -73,9 +75,9 @@ func longnoteFailed():
 	$LN_Effect.color = Color("d38b8e")
 
 func _process(_delta):
-	self.global_position.y += coordPerFrame
+	self.position.y += coordPerFrame
 	# If it is a long note and the combo queue is not empty, add the combo.
 	if (isLongnote and longnoteComboQueue != []):
-		if (global_position.y >= longnoteComboQueue[0]):
+		if (position.y >= longnoteComboQueue[0]):
 			longnoteComboQueue.pop_front()
 			get_parent().get_parent().addCombo(longnoteScore)

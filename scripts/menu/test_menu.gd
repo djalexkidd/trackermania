@@ -2,6 +2,8 @@ extends Control
 
 func _ready() -> void:
 	$EngineLabel.text = "Godot Engine " + str(Engine.get_version_info().string)
+	# Player 2 has to press start again in the music select
+	Global.two_players = false
 
 # Music Select
 func _on_music_select_texture_button_pressed() -> void:

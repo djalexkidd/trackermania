@@ -651,6 +651,185 @@ text = "5-KEYS"
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect" unique_id=258213168]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
+[node name="P2GameOptions" type="HBoxContainer" parent="BottomBar" unique_id=1779547854]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -503.0
+offset_top = -40.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+alignment = 2
+
+[node name="hispeedColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=424721014]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/hispeedColorRect" unique_id=1463350184]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -10.5
+offset_right = 21.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "HI-S"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/hispeedColorRect" unique_id=1154559949]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="autoColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=2001893729]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/autoColorRect" unique_id=1460797887]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -10.5
+offset_right = 21.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "AUTO"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/autoColorRect" unique_id=1764941271]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="difficultyColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=773986544]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/difficultyColorRect" unique_id=1349282092]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.5
+offset_top = -10.5
+offset_right = 21.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "EASY"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/difficultyColorRect" unique_id=1983754599]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="randomColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=500554491]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/randomColorRect" unique_id=996797971]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = -10.5
+offset_right = 37.0
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "RANDOM"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/randomColorRect" unique_id=218619501]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=1924745098]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/ascratchColorRect" unique_id=2086483553]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = -10.5
+offset_right = 37.0
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "A-SCR"
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/ascratchColorRect" unique_id=846005305]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=1466640367]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/fivekeysColorRect" unique_id=1447451981]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -10.5
+offset_right = 32.0
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "5-KEYS"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/fivekeysColorRect" unique_id=221283477]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
 [node name="P2PressStart" type="Label" parent="BottomBar" unique_id=1608144566]
 layout_mode = 1
 anchors_preset = 3
@@ -782,9 +961,118 @@ stream = ExtResource("10_rocpe")
 [node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings" unique_id=979744107]
 stream = ExtResource("11_uuciq")
 
+[node name="GameOptionSettingsP2" type="ColorRect" parent="." unique_id=1381928601]
+visible = false
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = 112.0
+offset_right = 448.0
+offset_bottom = -80.0
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+script = ExtResource("9_fxi4t")
+player = 2
+
+[node name="TextureRect" type="TextureRect" parent="GameOptionSettingsP2" unique_id=794561802]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -164.0
+offset_top = -82.0
+offset_right = 164.0
+offset_bottom = 82.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("9_vpjg6")
+
+[node name="GameOptionLabel" type="Label" parent="GameOptionSettingsP2" unique_id=2010096810]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -119.0
+offset_top = 32.0
+offset_right = 119.0
+offset_bottom = 55.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("1_mbwtn")
+text = "2P GAME OPTIONS"
+
+[node name="AutoPlayLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1628815285]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 352.0
+offset_right = 112.0
+offset_bottom = 375.0
+text = "AUTO"
+
+[node name="HiSpeedLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1755159374]
+layout_mode = 0
+offset_left = 324.0
+offset_top = 352.0
+offset_right = 395.0
+offset_bottom = 375.0
+text = "HI-SPEED"
+
+[node name="EasyGaugeLabel" type="Label" parent="GameOptionSettingsP2" unique_id=693589031]
+layout_mode = 0
+offset_left = 204.0
+offset_top = 130.0
+offset_right = 244.0
+offset_bottom = 153.0
+text = "EASY"
+
+[node name="HardGaugeLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1622496134]
+layout_mode = 0
+offset_left = 201.0
+offset_top = 152.0
+offset_right = 246.0
+offset_bottom = 175.0
+text = "HARD"
+
+[node name="RandomLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1766581195]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 152.0
+offset_right = 170.0
+offset_bottom = 175.0
+text = "RANDOM"
+
+[node name="AutoScratchLabel" type="Label" parent="GameOptionSettingsP2" unique_id=533364720]
+layout_mode = 0
+offset_left = 291.0
+offset_top = 130.0
+offset_right = 338.0
+offset_bottom = 153.0
+text = "AUTO SCRATCH"
+
+[node name="FiveKeysLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1432731081]
+layout_mode = 0
+offset_left = 291.0
+offset_top = 152.0
+offset_right = 338.0
+offset_bottom = 175.0
+text = "5KEYS"
+
+[node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettingsP2" unique_id=265986722]
+stream = ExtResource("10_rocpe")
+
+[node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettingsP2" unique_id=2018123190]
+stream = ExtResource("11_uuciq")
+
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hispeedColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/difficultyColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/randomColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/ascratchColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/hispeedColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/autoColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/difficultyColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/randomColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/ascratchColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]

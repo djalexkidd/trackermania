@@ -8,6 +8,9 @@ var effect_state = 0
 
 var node_focused = ""
 
+# Player 2 can't join when the music select is opened from netplay
+var netplay = false
+
 func _ready():
 	# Ensure all effects are initially disabled
 	AudioServer.set_bus_effect_enabled(audio_bus, 0, false)  # Chorus
@@ -18,6 +21,10 @@ func _ready():
 		$BottomBar/P1ColorRect/P1Label.hide()
 		$BottomBar/P1ColorRect/P1DJPrefixLabel/P1NameLabel.text = Global.p1_name
 		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
+	
+	netplay = get_tree().current_scene != self
+	if Global.two_players and not netplay:
+		join_p2()
 	
 	# Analyse game and user folders for charts
 	load_and_add_songs("user://songs")
@@ -91,8 +98,22 @@ func load_and_add_songs(folder_path: String):
 
 func _process(delta):
 	# Check if the effector button is pressed
-	if Input.is_action_just_pressed("p1_effect"):
+	if Input.is_action_just_pressed("p1_effect") or (Global.two_players and Input.is_action_just_pressed("p2_effect")):
 		_cycle_audio_effects()
+	
+	# Player 2 joins with the start button, then holds it for its own game options
+	if Input.is_action_just_pressed("p2_start") and not netplay:
+		if not Global.two_players:
+			join_p2()
+		else:
+			$SongInfo.hide()
+			$GameOptionSettingsP2.show()
+			$GameOptionSettingsP2/OpenAudio.play()
+	
+	if Input.is_action_just_released("p2_start") and $GameOptionSettingsP2.visible:
+		$SongInfo.show()
+		$GameOptionSettingsP2.hide()
+		$GameOptionSettingsP2/CloseAudio.play()
 	
 	# Game Option Settings
 	if Input.is_action_just_pressed("p1_start"):
@@ -117,6 +138,11 @@ func _process(delta):
 		if Input.is_action_just_pressed(key) and !$GameOptionSettings.visible:
 			get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
 			break
+
+func join_p2():
+	Global.two_players = true
+	$BottomBar/P2PressStart.hide()
+	$BottomBar/P2GameOptions.show()
 
 func _cycle_audio_effects():
 	# Disable all effects before cycling to the next one

@@ -3,43 +3,55 @@ extends Control
 func _ready() -> void:
 	$ScoreLabel.text = "Accuracy: " + str(Global.score) + "%"
 	$ComboLabel.text = "Max combo: " + str(Global.combo_max)
+	$VBoxContainer/RankLabelValue.text = get_rank(1)
 	
-	if Global.score >= 88.89:
-		$VBoxContainer/RankLabelValue.text = "AAA"
-	elif Global.score >= 77.78:
-		$VBoxContainer/RankLabelValue.text = "AA"
-	elif Global.score >= 66.67:
-		$VBoxContainer/RankLabelValue.text = "A"
-	elif Global.score >= 55.56:
-		$VBoxContainer/RankLabelValue.text = "B"
-	elif Global.score >= 44.44:
-		$VBoxContainer/RankLabelValue.text = "C"
-	elif Global.score >= 33.33:
-		$VBoxContainer/RankLabelValue.text = "D"
-	elif Global.score >= 22.22:
-		$VBoxContainer/RankLabelValue.text = "E"
-	
-	if Global.gauge_score < 80 and Global.gauge_level < 2 or Global.failed:
-		$ClearLabel.text = "FAILED"
-		$ClearLabel.add_theme_color_override("font_color", Color(1, 0.1, 0))
-	else:
-		if Global.gauge_level == 1:
-			$ClearLabel.text = "EASY CLEAR"
-			$ClearLabel.add_theme_color_override("font_color", Color(0.3, 1, 0.3))
-	
-		if Global.gauge_level == 2:
-			$ClearLabel.text = "HARD CLEAR"
-			$ClearLabel.add_theme_color_override("font_color", Color(1, 0.3, 0))
-		
-		if Global.combo_max == Global.combo_max_top:
-			$ClearLabel.text = "FULL COMBO"
-			$ClearLabel.add_theme_color_override("font_color", Color(1, 1, 0))
-		
-		if Global.score == 100:
-			$ClearLabel.text = "PERFECT"
-			$ClearLabel.add_theme_color_override("font_color", Color(1, 1, 1))
+	var clear = get_clear(1)
+	$ClearLabel.text = clear[0]
+	$ClearLabel.add_theme_color_override("font_color", clear[1])
 	
 	Global.failed = false
+
+# Rank letter of a player's score
+func get_rank(player: int) -> String:
+	var score = Global.get_player_var(player, "score")
+	if score >= 88.89:
+		return "AAA"
+	elif score >= 77.78:
+		return "AA"
+	elif score >= 66.67:
+		return "A"
+	elif score >= 55.56:
+		return "B"
+	elif score >= 44.44:
+		return "C"
+	elif score >= 33.33:
+		return "D"
+	elif score >= 22.22:
+		return "E"
+	return "F"
+
+# Clear lamp of a player as [text, color]
+func get_clear(player: int) -> Array:
+	var score = Global.get_player_var(player, "score")
+	var gauge_level = Global.get_player_var(player, "gauge_level")
+	var clear = ["CLEAR", Color(0, 0.735801, 1)]
+	
+	if Global.get_player_var(player, "gauge_score") < 80 and gauge_level < 2 or Global.get_player_var(player, "failed"):
+		return ["FAILED", Color(1, 0.1, 0)]
+	
+	if gauge_level == 1:
+		clear = ["EASY CLEAR", Color(0.3, 1, 0.3)]
+	
+	if gauge_level == 2:
+		clear = ["HARD CLEAR", Color(1, 0.3, 0)]
+	
+	if Global.get_player_var(player, "combo_max") == Global.get_player_var(player, "combo_max_top"):
+		clear = ["FULL COMBO", Color(1, 1, 0)]
+	
+	if score == 100:
+		clear = ["PERFECT", Color(1, 1, 1)]
+	
+	return clear
 
 func _on_button_pressed() -> void:
 	Global.score = 0

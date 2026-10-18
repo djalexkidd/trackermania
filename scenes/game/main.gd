@@ -114,13 +114,6 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 # Get the maximum number of points you can get.
 func getMaximumScore(notearr : Array) -> float:
 	var result : float = 0.0
-	
-	if opt("keys_mode") == 5:
-		noteArray[5] = []
-		noteArray[6] = []
-		keysoundArray[5] = []
-		keysoundArray[6] = []
-	
 	for i in notearr:
 		for note in i:
 			if (len(note) == 1):
@@ -196,15 +189,29 @@ func _ready() -> void:
 			return
 	else:
 		loadJsonChart()
+	# Key lanes shuffled by RANDOM, the scratch lane never moves like in IIDX
+	var lanes : Array = range(7)
+	# The 6th and 7th keys are not played in 5 keys mode
+	if opt("keys_mode") == 5:
+		noteArray[5] = []
+		noteArray[6] = []
+		keysoundArray[5] = []
+		keysoundArray[6] = []
+		lanes = range(5)
 	Global.set_player_var(player, "combo_max_top", getMaximumScore(noteArray))
 	
 	if opt("random"):
 		randomize()
 		# The keysounds follow their lane
-		var lanes : Array = range(8)
-		lanes.shuffle()
-		noteArray = lanes.map(func(i): return noteArray[i])
-		keysoundArray = lanes.map(func(i): return keysoundArray[i])
+		var shuffled : Array = lanes.duplicate()
+		shuffled.shuffle()
+		var shuffledNotes : Array = noteArray.duplicate()
+		var shuffledKeysounds : Array = keysoundArray.duplicate()
+		for i in lanes.size():
+			shuffledNotes[lanes[i]] = noteArray[shuffled[i]]
+			shuffledKeysounds[lanes[i]] = keysoundArray[shuffled[i]]
+		noteArray = shuffledNotes
+		keysoundArray = shuffledKeysounds
 	
 	if opt("gauge_level") == 2:
 		$GrooveGauge.value = 100

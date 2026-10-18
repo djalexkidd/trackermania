@@ -35,6 +35,35 @@ var p2_name = ""
 
 var custom_music_select_bgm = ""
 
+const KEY_MAPPING_PATH = "user://mappings.cfg"
+
+func _ready():
+	load_key_mappings()
+
+# Apply the remapped keys saved by the Controller Setup menu
+func load_key_mappings():
+	var config_file = ConfigFile.new()
+	if config_file.load(KEY_MAPPING_PATH) != OK or not config_file.has_section("input"):
+		return
+	for action in config_file.get_section_keys("input"):
+		var saved_key = config_file.get_value("input", action, "")
+		if saved_key == "" or not InputMap.has_action(action):
+			continue
+		# Try to load the event either as a key or as a gamepad button
+		var input_event
+		if saved_key.begins_with("Button"):
+			# Handle gamepad button input
+			input_event = InputEventJoypadButton.new()
+			input_event.button_index = int(saved_key.substr(saved_key.find(":") + 1)) # Parse button index from saved string
+		else:
+			# Handle keyboard input
+			input_event = InputEventKey.new()
+			input_event.keycode = OS.find_keycode_from_string(saved_key)
+
+		# Erase existing action events and add the loaded event
+		InputMap.action_erase_events(action)
+		InputMap.action_add_event(action, input_event)
+
 # Per-player variables: "hispeed" belongs to player 1, "p2_hispeed" to player 2
 func get_player_var(player: int, var_name: String):
 	return get(var_name if player == 1 else "p2_" + var_name)

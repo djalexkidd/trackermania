@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://v686ud358780"]
+[gd_scene format=3 uid="uid://v686ud358780"]
 
 [ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="1_2gbuf"]
 [ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="1_qeoaq"]
@@ -11,7 +11,7 @@
 shader = ExtResource("1_qeoaq")
 shader_parameter/speed = 0.1
 
-[node name="TestMenu" type="Control"]
+[node name="TestMenu" type="Control" unique_id=507500698]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_vq0ip")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=419397791]
 texture_repeat = 2
 material = SubResource("ShaderMaterial_u27s5")
 layout_mode = 1
@@ -31,7 +31,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_2gbuf")
 
-[node name="Logo" type="TextureRect" parent="."]
+[node name="Logo" type="TextureRect" parent="." unique_id=1185051860]
 texture_filter = 1
 layout_mode = 0
 offset_left = 16.0
@@ -40,7 +40,7 @@ offset_right = 80.0
 offset_bottom = 80.0
 texture = ExtResource("5_mrtay")
 
-[node name="Title2" type="Label" parent="."]
+[node name="Title2" type="Label" parent="." unique_id=668218425]
 layout_mode = 1
 offset_left = 93.0
 offset_top = 35.0
@@ -51,7 +51,7 @@ theme_override_fonts/font = ExtResource("4_66lkn")
 theme_override_font_sizes/font_size = 32
 text = "trackermania"
 
-[node name="Title" type="Label" parent="."]
+[node name="Title" type="Label" parent="." unique_id=720004581]
 layout_mode = 1
 offset_left = 96.0
 offset_top = 32.0
@@ -61,7 +61,7 @@ theme_override_fonts/font = ExtResource("4_66lkn")
 theme_override_font_sizes/font_size = 32
 text = "trackermania"
 
-[node name="EngineLabel" type="Label" parent="."]
+[node name="EngineLabel" type="Label" parent="." unique_id=1007914954]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -74,7 +74,7 @@ grow_vertical = 0
 theme_override_fonts/font = ExtResource("4_vxrwm")
 theme_override_font_sizes/font_size = 32
 
-[node name="AuthorLabel" type="Label" parent="."]
+[node name="AuthorLabel" type="Label" parent="." unique_id=1966697815]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -86,9 +86,9 @@ offset_bottom = -48.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("4_vxrwm")
 theme_override_font_sizes/font_size = 32
-text = "2024-2025 - djalexkidd"
+text = "2024-2026 - djalexkidd"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=6636602]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -103,101 +103,101 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 64
 
-[node name="MusicSelectButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="MusicSelectButton" type="VBoxContainer" parent="HBoxContainer" unique_id=644742613]
 layout_mode = 2
 alignment = 1
 
-[node name="MusicSelectTextureButton" type="TextureButton" parent="HBoxContainer/MusicSelectButton"]
+[node name="MusicSelectTextureButton" type="TextureButton" parent="HBoxContainer/MusicSelectButton" unique_id=1402207914]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/MusicSelectButton"]
+[node name="Label" type="Label" parent="HBoxContainer/MusicSelectButton" unique_id=672845853]
 layout_mode = 2
 text = "Music Select"
 
-[node name="ControllerSetupButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="ControllerSetupButton" type="VBoxContainer" parent="HBoxContainer" unique_id=959695808]
 layout_mode = 2
 alignment = 1
 
-[node name="ControllerSetupTextureButton" type="TextureButton" parent="HBoxContainer/ControllerSetupButton"]
+[node name="ControllerSetupTextureButton" type="TextureButton" parent="HBoxContainer/ControllerSetupButton" unique_id=1497917435]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/ControllerSetupButton"]
+[node name="Label" type="Label" parent="HBoxContainer/ControllerSetupButton" unique_id=1283475775]
 layout_mode = 2
 text = "Controller Setup"
 
-[node name="DownloadButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="DownloadButton" type="VBoxContainer" parent="HBoxContainer" unique_id=620053865]
 layout_mode = 2
 alignment = 1
 
-[node name="DownloadTextureButton" type="TextureButton" parent="HBoxContainer/DownloadButton"]
+[node name="DownloadTextureButton" type="TextureButton" parent="HBoxContainer/DownloadButton" unique_id=2065846413]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/DownloadButton"]
+[node name="Label" type="Label" parent="HBoxContainer/DownloadButton" unique_id=993679121]
 layout_mode = 2
 text = "Download songs"
 
-[node name="CustomButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="CustomButton" type="VBoxContainer" parent="HBoxContainer" unique_id=853383840]
 layout_mode = 2
 alignment = 1
 
-[node name="CustomTextureButton" type="TextureButton" parent="HBoxContainer/CustomButton"]
+[node name="CustomTextureButton" type="TextureButton" parent="HBoxContainer/CustomButton" unique_id=1172526921]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/CustomButton"]
+[node name="Label" type="Label" parent="HBoxContainer/CustomButton" unique_id=1611451929]
 layout_mode = 2
 text = "Customization"
 
-[node name="NetplayButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="NetplayButton" type="VBoxContainer" parent="HBoxContainer" unique_id=259475162]
 layout_mode = 2
 alignment = 1
 
-[node name="NetplayTextureButton" type="TextureButton" parent="HBoxContainer/NetplayButton"]
+[node name="NetplayTextureButton" type="TextureButton" parent="HBoxContainer/NetplayButton" unique_id=1802724261]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/NetplayButton"]
+[node name="Label" type="Label" parent="HBoxContainer/NetplayButton" unique_id=785002880]
 layout_mode = 2
 text = "Netplay"
 
-[node name="FullScreenButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="FullScreenButton" type="VBoxContainer" parent="HBoxContainer" unique_id=469982222]
 layout_mode = 2
 alignment = 1
 
-[node name="FullScreenTextureButton" type="TextureButton" parent="HBoxContainer/FullScreenButton"]
+[node name="FullScreenTextureButton" type="TextureButton" parent="HBoxContainer/FullScreenButton" unique_id=1808871922]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/FullScreenButton"]
+[node name="Label" type="Label" parent="HBoxContainer/FullScreenButton" unique_id=2088889884]
 layout_mode = 2
 text = "Full Screen"
 
-[node name="ExitButton" type="VBoxContainer" parent="HBoxContainer"]
+[node name="ExitButton" type="VBoxContainer" parent="HBoxContainer" unique_id=1801353100]
 layout_mode = 2
 alignment = 1
 
-[node name="ExitTextureButton" type="TextureButton" parent="HBoxContainer/ExitButton"]
+[node name="ExitTextureButton" type="TextureButton" parent="HBoxContainer/ExitButton" unique_id=502283391]
 texture_filter = 1
 layout_mode = 2
 texture_normal = ExtResource("5_mrtay")
 stretch_mode = 3
 
-[node name="Label" type="Label" parent="HBoxContainer/ExitButton"]
+[node name="Label" type="Label" parent="HBoxContainer/ExitButton" unique_id=1852595943]
 layout_mode = 2
 text = "Exit Game"
 

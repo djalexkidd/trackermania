@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dv67rp7a6aimn"]
+[gd_scene format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" uid="uid://dirg25neoj332" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
@@ -60,7 +60,45 @@ _data = {
 &"auto": SubResource("Animation_3eb5n")
 }
 
-[node name="MusicSelect" type="Control"]
+[sub_resource type="Animation" id="Animation_me461"]
+resource_name = "Fade"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BottomBar/P2PressStart:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_fw40s"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BottomBar/P2PressStart:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_nu377"]
+_data = {
+&"Fade": SubResource("Animation_me461"),
+&"RESET": SubResource("Animation_fw40s")
+}
+
+[node name="MusicSelect" type="Control" unique_id=368646113]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -69,7 +107,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_8an63")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1112605652]
 texture_repeat = 2
 material = SubResource("ShaderMaterial_i76ow")
 layout_mode = 1
@@ -80,7 +118,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_e4d0k")
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1004644262]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 1
@@ -92,7 +130,7 @@ offset_bottom = 113.0
 grow_horizontal = 0
 texture = ExtResource("1_u0514")
 
-[node name="MusicSelectLabel" type="Label" parent="."]
+[node name="MusicSelectLabel" type="Label" parent="." unique_id=1764057837]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
@@ -102,7 +140,7 @@ theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 32
 text = "music select"
 
-[node name="SongInfo" type="VBoxContainer" parent="."]
+[node name="SongInfo" type="VBoxContainer" parent="." unique_id=33032067]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -111,20 +149,20 @@ offset_right = 627.0
 offset_bottom = -96.0
 grow_vertical = 2
 
-[node name="SongName" type="Label" parent="SongInfo"]
+[node name="SongName" type="Label" parent="SongInfo" unique_id=153584467]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_me461")
 theme_override_font_sizes/font_size = 96
 horizontal_alignment = 2
 text_overrun_behavior = 2
 
-[node name="ArtistName" type="Label" parent="SongInfo"]
+[node name="ArtistName" type="Label" parent="SongInfo" unique_id=1189516203]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_me461")
 theme_override_font_sizes/font_size = 48
 horizontal_alignment = 2
 
-[node name="DifficultyName" type="Label" parent="SongInfo"]
+[node name="DifficultyName" type="Label" parent="SongInfo" unique_id=1924513875]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 1, 1)
 theme_override_fonts/font = ExtResource("1_mbwtn")
@@ -132,7 +170,7 @@ theme_override_font_sizes/font_size = 48
 horizontal_alignment = 2
 uppercase = true
 
-[node name="SongWheel" type="ScrollContainer" parent="."]
+[node name="SongWheel" type="ScrollContainer" parent="." unique_id=148367591]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -146,173 +184,173 @@ grow_vertical = 2
 follow_focus = true
 horizontal_scroll_mode = 0
 
-[node name="Categories" type="VBoxContainer" parent="SongWheel"]
+[node name="Categories" type="VBoxContainer" parent="SongWheel" unique_id=847710013]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="AllMusic" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="AllMusic" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1568755540]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/AllMusic" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/AllMusic" unique_id=398975475 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "ALL MUSIC"
 category_texture = ExtResource("7_iesjm")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/AllMusic"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/AllMusic" unique_id=522676359]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Official" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Official" type="VBoxContainer" parent="SongWheel/Categories" unique_id=124139581]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Official" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Official" unique_id=389589432 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "OFFICIAL"
 category_texture = ExtResource("8_2ygyf")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Official"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Official" unique_id=2103322282]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Downloaded" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Downloaded" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1686717313]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Downloaded" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Downloaded" unique_id=764328861 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "DOWNLOADED"
 category_texture = ExtResource("8_2ygyf")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Downloaded"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Downloaded" unique_id=1207149470]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level1" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level1" type="VBoxContainer" parent="SongWheel/Categories" unique_id=213704395]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level1" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level1" unique_id=78695217 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 1"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level1"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level1" unique_id=425813737]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level2" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level2" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1860912033]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level2" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level2" unique_id=2078254216 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 2"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level2"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level2" unique_id=205422343]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level3" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level3" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1511949159]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level3" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level3" unique_id=417194225 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 3"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level3"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level3" unique_id=1126747843]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level4" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level4" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1015147875]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level4" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level4" unique_id=457770231 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 4"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level4"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level4" unique_id=977782340]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level5" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level5" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1067010648]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level5" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level5" unique_id=1935835298 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 5"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level5"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level5" unique_id=480039923]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level6" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level6" type="VBoxContainer" parent="SongWheel/Categories" unique_id=81643465]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level6" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level6" unique_id=259062559 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 6"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level6"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level6" unique_id=973786913]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level7" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level7" type="VBoxContainer" parent="SongWheel/Categories" unique_id=331840977]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level7" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level7" unique_id=674897690 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 7"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level7"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level7" unique_id=1736875193]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Level8" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="Level8" type="VBoxContainer" parent="SongWheel/Categories" unique_id=2078999476]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/Level8" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/Level8" unique_id=1182025603 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "LEVEL 8"
 category_texture = ExtResource("9_g2fnn")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level8"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Level8" unique_id=1897170236]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="BottomBar" type="ColorRect" parent="."]
+[node name="BottomBar" type="ColorRect" parent="." unique_id=533358567]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -323,7 +361,7 @@ grow_horizontal = 2
 grow_vertical = 0
 color = Color(0, 0, 0, 1)
 
-[node name="P1ColorRect" type="ColorRect" parent="BottomBar"]
+[node name="P1ColorRect" type="ColorRect" parent="BottomBar" unique_id=1009123919]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -335,7 +373,7 @@ offset_bottom = -40.0
 grow_vertical = 0
 color = Color(0, 0.686275, 1, 1)
 
-[node name="P1Label" type="Label" parent="BottomBar/P1ColorRect"]
+[node name="P1Label" type="Label" parent="BottomBar/P1ColorRect" unique_id=619475131]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -354,7 +392,7 @@ theme_override_font_sizes/font_size = 24
 text = "PLAYER 1"
 horizontal_alignment = 1
 
-[node name="P1DJPrefixLabel" type="Label" parent="BottomBar/P1ColorRect"]
+[node name="P1DJPrefixLabel" type="Label" parent="BottomBar/P1ColorRect" unique_id=1354842196]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -374,7 +412,7 @@ theme_override_font_sizes/font_size = 16
 text = "DJ"
 horizontal_alignment = 1
 
-[node name="P1NameLabel" type="Label" parent="BottomBar/P1ColorRect/P1DJPrefixLabel"]
+[node name="P1NameLabel" type="Label" parent="BottomBar/P1ColorRect/P1DJPrefixLabel" unique_id=1129360196]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -392,7 +430,7 @@ theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 20
 text = "######"
 
-[node name="P2ColorRect" type="ColorRect" parent="BottomBar"]
+[node name="P2ColorRect" type="ColorRect" parent="BottomBar" unique_id=2006511774]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -407,7 +445,7 @@ grow_horizontal = 0
 grow_vertical = 0
 color = Color(1, 0.156863, 0, 1)
 
-[node name="P2Label" type="Label" parent="BottomBar/P2ColorRect"]
+[node name="P2Label" type="Label" parent="BottomBar/P2ColorRect" unique_id=773397539]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -426,7 +464,7 @@ theme_override_font_sizes/font_size = 24
 text = "PLAYER 2"
 horizontal_alignment = 1
 
-[node name="Label" type="Label" parent="BottomBar"]
+[node name="Label" type="Label" parent="BottomBar" unique_id=1525794827]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -445,7 +483,7 @@ text = "effector off"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="P1GameOptions" type="HBoxContainer" parent="BottomBar"]
+[node name="P1GameOptions" type="HBoxContainer" parent="BottomBar" unique_id=514202121]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -456,13 +494,13 @@ offset_right = 108.0
 offset_bottom = -8.0
 grow_vertical = 0
 
-[node name="hispeedColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+[node name="hispeedColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=325386097]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
-[node name="Label" type="Label" parent="BottomBar/P1GameOptions/hispeedColorRect"]
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/hispeedColorRect" unique_id=1686061806]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -479,18 +517,16 @@ theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "HI-S"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/hispeedColorRect"]
-libraries = {
-&"": SubResource("AnimationLibrary_j4c04")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/hispeedColorRect" unique_id=1935400442]
+libraries/ = SubResource("AnimationLibrary_j4c04")
 
-[node name="autoColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+[node name="autoColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=700348686]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
-[node name="Label" type="Label" parent="BottomBar/P1GameOptions/autoColorRect"]
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/autoColorRect" unique_id=591508899]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -507,18 +543,16 @@ theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "AUTO"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/autoColorRect"]
-libraries = {
-&"": SubResource("AnimationLibrary_j4c04")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/autoColorRect" unique_id=608936931]
+libraries/ = SubResource("AnimationLibrary_j4c04")
 
-[node name="difficultyColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+[node name="difficultyColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=527961295]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
-[node name="Label" type="Label" parent="BottomBar/P1GameOptions/difficultyColorRect"]
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/difficultyColorRect" unique_id=198664472]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -535,18 +569,16 @@ theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "EASY"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/difficultyColorRect"]
-libraries = {
-&"": SubResource("AnimationLibrary_j4c04")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/difficultyColorRect" unique_id=2110514507]
+libraries/ = SubResource("AnimationLibrary_j4c04")
 
-[node name="randomColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+[node name="randomColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=592504437]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
-[node name="Label" type="Label" parent="BottomBar/P1GameOptions/randomColorRect"]
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/randomColorRect" unique_id=340710729]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -563,18 +595,16 @@ theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "RANDOM"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/randomColorRect"]
-libraries = {
-&"": SubResource("AnimationLibrary_j4c04")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/randomColorRect" unique_id=1650252467]
+libraries/ = SubResource("AnimationLibrary_j4c04")
 
-[node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+[node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=1129258422]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
-[node name="Label" type="Label" parent="BottomBar/P1GameOptions/ascratchColorRect"]
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/ascratchColorRect" unique_id=1569651003]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -592,18 +622,16 @@ theme_override_font_sizes/font_size = 24
 text = "A-SCR"
 horizontal_alignment = 1
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/ascratchColorRect"]
-libraries = {
-&"": SubResource("AnimationLibrary_j4c04")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/ascratchColorRect" unique_id=708042409]
+libraries/ = SubResource("AnimationLibrary_j4c04")
 
-[node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P1GameOptions"]
+[node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=291126484]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
-[node name="Label" type="Label" parent="BottomBar/P1GameOptions/fivekeysColorRect"]
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/fivekeysColorRect" unique_id=793049988]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -620,17 +648,36 @@ theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "5-KEYS"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect"]
-libraries = {
-&"": SubResource("AnimationLibrary_j4c04")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect" unique_id=258213168]
+libraries/ = SubResource("AnimationLibrary_j4c04")
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+[node name="P2PressStart" type="Label" parent="BottomBar" unique_id=1608144566]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -265.0
+offset_top = -35.0
+offset_right = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 34
+text = "PRESS START BUTTON"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2PressStart" unique_id=1281162993]
+root_node = NodePath("../../..")
+libraries/ = SubResource("AnimationLibrary_nu377")
+autoplay = &"Fade"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=2086807202]
 stream = ExtResource("5_pgr8v")
 volume_db = -6.0
 parameters/looping = true
 
-[node name="GameOptionSettings" type="ColorRect" parent="."]
+[node name="GameOptionSettings" type="ColorRect" parent="." unique_id=271449536]
 visible = false
 layout_mode = 1
 anchors_preset = 11
@@ -645,7 +692,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
 script = ExtResource("9_fxi4t")
 
-[node name="TextureRect" type="TextureRect" parent="GameOptionSettings"]
+[node name="TextureRect" type="TextureRect" parent="GameOptionSettings" unique_id=1516365588]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -660,7 +707,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("9_vpjg6")
 
-[node name="GameOptionLabel" type="Label" parent="GameOptionSettings"]
+[node name="GameOptionLabel" type="Label" parent="GameOptionSettings" unique_id=573192895]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -673,7 +720,7 @@ grow_horizontal = 2
 theme_override_fonts/font = ExtResource("1_mbwtn")
 text = "GAME OPTIONS"
 
-[node name="AutoPlayLabel" type="Label" parent="GameOptionSettings"]
+[node name="AutoPlayLabel" type="Label" parent="GameOptionSettings" unique_id=1770259871]
 layout_mode = 0
 offset_left = 67.0
 offset_top = 352.0
@@ -681,7 +728,7 @@ offset_right = 112.0
 offset_bottom = 375.0
 text = "AUTO"
 
-[node name="HiSpeedLabel" type="Label" parent="GameOptionSettings"]
+[node name="HiSpeedLabel" type="Label" parent="GameOptionSettings" unique_id=658123070]
 layout_mode = 0
 offset_left = 324.0
 offset_top = 352.0
@@ -689,7 +736,7 @@ offset_right = 395.0
 offset_bottom = 375.0
 text = "HI-SPEED"
 
-[node name="EasyGaugeLabel" type="Label" parent="GameOptionSettings"]
+[node name="EasyGaugeLabel" type="Label" parent="GameOptionSettings" unique_id=594642792]
 layout_mode = 0
 offset_left = 204.0
 offset_top = 130.0
@@ -697,7 +744,7 @@ offset_right = 244.0
 offset_bottom = 153.0
 text = "EASY"
 
-[node name="HardGaugeLabel" type="Label" parent="GameOptionSettings"]
+[node name="HardGaugeLabel" type="Label" parent="GameOptionSettings" unique_id=1564379859]
 layout_mode = 0
 offset_left = 201.0
 offset_top = 152.0
@@ -705,7 +752,7 @@ offset_right = 246.0
 offset_bottom = 175.0
 text = "HARD"
 
-[node name="RandomLabel" type="Label" parent="GameOptionSettings"]
+[node name="RandomLabel" type="Label" parent="GameOptionSettings" unique_id=443717854]
 layout_mode = 0
 offset_left = 97.0
 offset_top = 152.0
@@ -713,7 +760,7 @@ offset_right = 170.0
 offset_bottom = 175.0
 text = "RANDOM"
 
-[node name="AutoScratchLabel" type="Label" parent="GameOptionSettings"]
+[node name="AutoScratchLabel" type="Label" parent="GameOptionSettings" unique_id=1283345434]
 layout_mode = 0
 offset_left = 291.0
 offset_top = 130.0
@@ -721,7 +768,7 @@ offset_right = 338.0
 offset_bottom = 153.0
 text = "AUTO SCRATCH"
 
-[node name="FiveKeysLabel" type="Label" parent="GameOptionSettings"]
+[node name="FiveKeysLabel" type="Label" parent="GameOptionSettings" unique_id=1481267818]
 layout_mode = 0
 offset_left = 291.0
 offset_top = 152.0
@@ -729,10 +776,10 @@ offset_right = 338.0
 offset_bottom = 175.0
 text = "5KEYS"
 
-[node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
+[node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettings" unique_id=855704338]
 stream = ExtResource("10_rocpe")
 
-[node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
+[node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings" unique_id=979744107]
 stream = ExtResource("11_uuciq")
 
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/hispeedColorRect" method="_on_game_option_settings_update"]

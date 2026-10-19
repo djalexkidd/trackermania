@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" uid="uid://dirg25neoj332" path="res://scripts/menu/music_select.gd" id="1_8an63"]
+[ext_resource type="Script" path="res://scripts/menu/music_select/song_wheel.gd" id="20_wheel"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
 [ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="1_u0514"]
 [ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="1_y1sfi"]
@@ -212,7 +213,8 @@ theme_override_font_sizes/font_size = 48
 horizontal_alignment = 2
 uppercase = true
 
-[node name="SongWheel" type="ScrollContainer" parent="." unique_id=148367591]
+[node name="SongWheel" type="Control" parent="." unique_id=148367591]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -223,8 +225,19 @@ offset_top = 113.0
 offset_bottom = -88.0
 grow_horizontal = 0
 grow_vertical = 2
-follow_focus = true
-horizontal_scroll_mode = 0
+focus_mode = 2
+script = ExtResource("20_wheel")
+
+[node name="PositionBar" type="VScrollBar" parent="SongWheel"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -20.0
+grow_horizontal = 0
+grow_vertical = 2
+focus_mode = 0
+step = 1.0
 
 [node name="Categories" type="VBoxContainer" parent="SongWheel" unique_id=847710013]
 layout_mode = 2

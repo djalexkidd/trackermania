@@ -28,11 +28,15 @@ func _on_pressed() -> void:
 
 func _on_focus_entered() -> void:
 	$AnimationPlayer.play("open")
-	get_node("/root/MusicSelect/SongInfo/SongName").text = song_name
-	get_node("/root/MusicSelect/SongInfo/ArtistName").text = creator
-	get_node("/root/MusicSelect/SongInfo/DifficultyName").text = difficulty_name
+	update_song_info()
+
+func update_song_info() -> void:
+	var song_info = get_node("../../../../../SongInfo")
+	song_info.get_node("SongName").text = song_name
+	song_info.get_node("ArtistName").text = creator
+	song_info.get_node("DifficultyName").text = difficulty_name
 	if difficulty_name in color_map:
-		get_node("/root/MusicSelect/SongInfo/DifficultyName").add_theme_color_override("font_color", color_map[difficulty_name])
+		song_info.get_node("DifficultyName").add_theme_color_override("font_color", color_map[difficulty_name])
 
 func _on_focus_exited() -> void:
 	$AnimationPlayer.play("RESET")

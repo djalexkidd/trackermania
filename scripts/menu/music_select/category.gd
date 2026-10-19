@@ -8,7 +8,7 @@ func _ready() -> void:
 	texture_normal = category_texture
 
 func _on_pressed() -> void:
-	get_node("../MusicList").visible = !get_node("../MusicList").visible
+	get_node("../../..").toggle_category(get_parent())
 
 func _on_focus_entered() -> void:
 	$AnimationPlayer.play("open")

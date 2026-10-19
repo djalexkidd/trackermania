@@ -8,8 +8,6 @@ const player_colors = [Color(0.305, 0.305, 0.305, 1.0), Color(0.0, 0.686, 1.0), 
 # To track which effect is currently active (0 = off, 1 = chorus, 2 = phaser, 3 = reverb)
 var effect_state = 0
 
-var node_focused = ""
-
 # Players can't join or leave when the music select is opened from netplay
 var netplay = false
 
@@ -37,7 +35,7 @@ func _ready():
 	
 	$AudioStreamPlayer.play()
 	
-	$SongWheel/Categories/AllMusic/Category.grab_focus()
+	$SongWheel.setup()
 	
 	# Slide animation for song wheel
 	var screen_size = get_viewport().size
@@ -137,18 +135,21 @@ func _process(delta):
 			set_joined(player, false)
 			return
 	
-	for player in joined_players():
-		if game_options(player).visible:
-			continue
-		
+	var navigating_players = joined_players().filter(func(player): return not game_options(player).visible)
+	# P1's panel covers the wheel and temporarily suspends navigation for both players.
+	$SongWheel.poll_navigation(delta, navigating_players if $SongWheel.visible else [])
+	for player in navigating_players:
 		for key in ["key1", "key3", "key5", "key7"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
-				get_viewport().gui_get_focus_owner()._on_pressed()
+				if $SongWheel.visible:
+					$SongWheel._on_pressed()
 				return
 		
-		# Exit button
+		# Black keys first return to the categories, then leave music select.
 		for key in ["key2", "key4", "key6"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
+				if not $SongWheel.visible or $SongWheel.close_category():
+					return
 				get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
 				return
 
@@ -180,7 +181,6 @@ func game_options(player: int) -> Control:
 
 func open_game_options(player: int) -> void:
 	if player == 1:
-		node_focused = get_viewport().gui_get_focus_owner()
 		$SongWheel.hide()
 	else:
 		$SongInfo.hide()
@@ -189,8 +189,8 @@ func open_game_options(player: int) -> void:
 
 func close_game_options(player: int) -> void:
 	if player == 1:
-		node_focused.grab_focus()
 		$SongWheel.show()
+		$SongWheel.grab_focus()
 	else:
 		$SongInfo.show()
 	game_options(player).hide()

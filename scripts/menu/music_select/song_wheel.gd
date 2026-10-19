@@ -3,6 +3,8 @@ extends Control
 const ANALOG_STEP = 0.08
 const SCROLL_DURATION = 0.16
 const CATEGORY_DURATION = 0.22
+const RANDOM_PREVIEW_INTERVAL = 0.06
+const RANDOM_TITLE_SPEED = 80.0
 
 var categories: Array[Control] = []
 var entries: Array[Control] = []
@@ -18,6 +20,11 @@ var scroll_offset = 0.0
 var scroll_tween: Tween
 var category_tween: Tween
 var rows_layer: Control
+var info_entry: Control
+var preview_songs: Array[Node] = []
+var preview_index = 0
+var preview_time = 0.0
+var title_scroll = 0.0
 
 @onready var scrollbar: VScrollBar = $PositionBar
 
@@ -112,6 +119,47 @@ func _on_pressed() -> void:
 	if not entries.is_empty():
 		entries[selected_index]._on_pressed()
 
+func play_random_song(entry: Control) -> void:
+	var songs = entry.get_parent().get_children().filter(func(song): return not song.is_random)
+	if songs.is_empty():
+		return
+	var song = songs.pick_random()
+	song._on_pressed()
+
+func _update_song_info() -> void:
+	var selected = entries[selected_index] if opened_category != null and selected_index > 0 else null
+	if selected == info_entry:
+		return
+	info_entry = selected
+	preview_songs.clear()
+	preview_time = 0.0
+	preview_index = 0
+	if selected == null:
+		return
+	if selected.is_random:
+		preview_songs.assign(selected.get_parent().get_children().filter(func(song): return not song.is_random))
+		preview_songs.shuffle()
+		if not preview_songs.is_empty():
+			preview_songs[0].update_song_info()
+			return
+	selected.update_song_info()
+
+func _process(delta: float) -> void:
+	if not is_visible_in_tree():
+		return
+	title_scroll += delta * RANDOM_TITLE_SPEED
+	for row in rows:
+		var title = row.get_node_or_null("RandomTitle")
+		if row.visible and title != null:
+			title.scroll_title(title_scroll)
+	if preview_songs.is_empty():
+		return
+	preview_time += delta
+	if preview_time >= RANDOM_PREVIEW_INTERVAL:
+		preview_index = (preview_index + int(preview_time / RANDOM_PREVIEW_INTERVAL)) % preview_songs.size()
+		preview_time = fmod(preview_time, RANDOM_PREVIEW_INTERVAL)
+		preview_songs[preview_index].update_song_info()
+
 func _gui_input(event: InputEvent) -> void:
 	# Pad actions are polled by music select; avoid also triggering Godot's UI actions.
 	for player in get_parent().joined_players():
@@ -174,8 +222,7 @@ func poll_navigation(delta: float, players: Array) -> void:
 func _render() -> void:
 	if entries.is_empty():
 		return
-	if opened_category != null and selected_index > 0:
-		entries[selected_index].update_song_info()
+	_update_song_info()
 	var category_height = entries[0].texture_normal.get_height()
 	var half_count = int(ceil(size.y / category_height / 2.0)) + int(ceil(absf(scroll_offset) / category_height)) + 1
 	var row_count = half_count * 2 + 1
@@ -208,14 +255,14 @@ func _render() -> void:
 		row_y += row.size.y
 		var brightness = lerpf(0.8, 1.0, emphasis)
 		row.modulate = Color(brightness, brightness, brightness)
-		# Animation frames only move rows; rebuild labels when their source changes.
+		# Animation frames only move rows; rebuild contents when their source changes.
 		if not row.has_meta("source") or row.get_meta("source") != source:
 			row.set_meta("source", source)
 			for child in row.get_children():
 				row.remove_child(child)
 				child.queue_free()
 			for child in source.get_children():
-				if child is Label:
+				if child is Control:
 					row.add_child(child.duplicate())
 	updating_scrollbar = true
 	scrollbar.max_value = entries.size()

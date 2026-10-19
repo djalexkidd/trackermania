@@ -31,6 +31,7 @@ func _ready():
 	# Analyse game and user folders for charts
 	load_and_add_songs("user://songs")
 	sort_alphabet_categories()
+	add_random_entries()
 	
 	if Global.custom_music_select_bgm != "":
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
@@ -131,6 +132,18 @@ func sort_alphabet_categories() -> void:
 		songs.sort_custom(func(a, b): return a.song_name.nocasecmp_to(b.song_name) < 0)
 		for index in songs.size():
 			music_list.move_child(songs[index], index)
+
+func add_random_entries() -> void:
+	for category in $SongWheel/Categories.get_children():
+		var music_list = category.get_node("MusicList")
+		var entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
+		entry.is_random = true
+		entry.song_name = "Musique aléatoire"
+		entry.difficulty_name = "?"
+		entry.get_node("Label2").text = "?"
+		music_list.add_child(entry)
+		music_list.move_child(entry, 0)
+		entry.setup_random_title()
 
 func _process(delta):
 	# Check if the effector button is pressed (shared by both players)

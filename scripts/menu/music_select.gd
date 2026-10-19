@@ -1,6 +1,7 @@
 extends Control
 
 const player_colors = [Color(0.305, 0.305, 0.305, 1.0), Color(0.0, 0.686, 1.0), Color(1.0, 0.157, 0.0)]
+const ALPHABET_CATEGORIES = ["ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWXYZ", "OTHERS"]
 
 # Audio stream player node to apply effects
 @onready var audio_bus = AudioServer.get_bus_index("Master")  # Replace with your bus name
@@ -29,6 +30,7 @@ func _ready():
 	
 	# Analyse game and user folders for charts
 	load_and_add_songs("user://songs")
+	sort_alphabet_categories()
 	
 	if Global.custom_music_select_bgm != "":
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
@@ -107,6 +109,28 @@ func add_song_entry(file_path: String, title: String, artist: String, difficulty
 	copied_node.creator = artist
 	copied_node.difficulty_name = difficulty_name
 	get_node(level_path + "/MusicList").add_child(copied_node)
+
+	var alphabet_entry = song_entry.duplicate()
+	alphabet_entry.path = file_path
+	alphabet_entry.song_name = title
+	alphabet_entry.creator = artist
+	alphabet_entry.difficulty_name = difficulty_name
+	$SongWheel.get_node("Categories/" + alphabet_category(title) + "/MusicList").add_child(alphabet_entry)
+
+func alphabet_category(title: String) -> String:
+	var initial = title.left(1).to_upper()
+	for category in ALPHABET_CATEGORIES:
+		if category != "OTHERS" and initial != "" and category.contains(initial):
+			return category
+	return "OTHERS"
+
+func sort_alphabet_categories() -> void:
+	for category in ALPHABET_CATEGORIES:
+		var music_list = $SongWheel.get_node("Categories/" + category + "/MusicList")
+		var songs = music_list.get_children()
+		songs.sort_custom(func(a, b): return a.song_name.nocasecmp_to(b.song_name) < 0)
+		for index in songs.size():
+			music_list.move_child(songs[index], index)
 
 func _process(delta):
 	# Check if the effector button is pressed (shared by both players)

@@ -1,6 +1,5 @@
 extends Control
 
-const ROW_HEIGHT = 72.0
 const ANALOG_STEP = 0.08
 
 var categories: Array[Control] = []
@@ -124,8 +123,13 @@ func _render() -> void:
 		return
 	if opened_category != null and selected_index > 0:
 		entries[selected_index].update_song_info()
-	var half_count = int(ceil(size.y / ROW_HEIGHT / 2.0))
+	var category_height = entries[0].texture_normal.get_height()
+	var half_count = int(ceil(size.y / category_height / 2.0))
 	var row_count = half_count * 2 + 1
+	# Pack the original texture heights edge to edge, including across the loop boundary.
+	var row_y = floorf((size.y - entries[selected_index].texture_normal.get_height()) / 2.0)
+	for offset in range(-half_count, 0):
+		row_y -= entries[posmod(selected_index + offset, entries.size())].texture_normal.get_height()
 	while rows.size() < row_count:
 		var row = TextureButton.new()
 		row.focus_mode = Control.FOCUS_NONE
@@ -144,8 +148,9 @@ func _render() -> void:
 		var source = entries[index]
 		row.set_meta("entry_index", index)
 		row.texture_normal = source.texture_normal
-		row.position = Vector2(0.0 if offset == 0 else 32.0, (size.y - ROW_HEIGHT) / 2.0 + offset * ROW_HEIGHT)
+		row.position = Vector2(0.0 if offset == 0 else 32.0, row_y)
 		row.size = source.texture_normal.get_size()
+		row_y += row.size.y
 		row.modulate = Color.WHITE if offset == 0 else Color(0.8, 0.8, 0.8)
 		for child in row.get_children():
 			row.remove_child(child)

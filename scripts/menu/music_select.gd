@@ -1,5 +1,7 @@
 extends Control
 
+const player_colors = [Color(0.305, 0.305, 0.305, 1.0), Color(0.0, 0.686, 1.0), Color(1.0, 0.157, 0.0)]
+
 # Audio stream player node to apply effects
 @onready var audio_bus = AudioServer.get_bus_index("Master")  # Replace with your bus name
 
@@ -167,6 +169,10 @@ func set_joined(player: int, joined: bool) -> void:
 func update_joined(player: int) -> void:
 	get_node("BottomBar/P%dGameOptions" % player).visible = is_joined(player)
 	get_node("BottomBar/P%dPressStart" % player).visible = not is_joined(player)
+	if is_joined(player):
+		get_node("BottomBar/P%dColorRect" % player).color = player_colors[player]
+	else:
+		get_node("BottomBar/P%dColorRect" % player).color = player_colors[0]
 
 # P1 options panel goes over the song wheel, P2 options panel over the song info
 func game_options(player: int) -> Control:

@@ -38,10 +38,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -85.0
-offset_top = -68.0
-offset_right = 85.0
-offset_bottom = 68.0
+offset_left = -240.0
+offset_top = -164.0
+offset_right = 240.0
+offset_bottom = 164.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 32
@@ -57,6 +57,16 @@ text = "Import ZIP file"
 [node name="Button4" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 text = "Open user directory"
+
+[node name="RefreshSongs" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Refresh song list"
+
+[node name="StatusLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "After adding songs manually, refresh the list here."
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="Button2" type="Button" parent="VBoxContainer"]
 layout_mode = 2
@@ -74,6 +84,7 @@ use_native_dialog = true
 [connection signal="pressed" from="VBoxContainer/Button" to="." method="_on_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/Button5" to="." method="_on_button_5_pressed"]
 [connection signal="pressed" from="VBoxContainer/Button4" to="." method="_on_button_4_pressed"]
+[connection signal="pressed" from="VBoxContainer/RefreshSongs" to="." method="_on_refresh_songs_pressed"]
 [connection signal="pressed" from="VBoxContainer/Button2" to="." method="_on_button_2_pressed"]
 [connection signal="request_completed" from="HTTPRequest" to="." method="_on_http_request_request_completed"]
 [connection signal="file_selected" from="FileDialogFS" to="." method="_on_file_dialog_user_file_selected"]

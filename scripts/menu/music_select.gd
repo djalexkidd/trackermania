@@ -11,6 +11,7 @@ var effect_state = 0
 
 # Players can't join or leave when the music select is opened from netplay
 var netplay = false
+var songs_loading = true
 
 func _ready():
 	# Ensure all effects are initially disabled
@@ -28,17 +29,20 @@ func _ready():
 		update_joined(1)
 		update_joined(2)
 	
-	# Analyse game and user folders for charts
-	load_and_add_songs("user://songs")
-	sort_alphabet_categories()
-	add_random_entries()
-	
 	if Global.custom_music_select_bgm != "":
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
 	
 	$AudioStreamPlayer.play()
+	$SongWheel.hide()
+	$SongInfo/SongName.text = "Loading songs…"
+	await load_and_add_songs()
+	sort_alphabet_categories()
+	add_random_entries()
+	$SongInfo/SongName.text = ""
 	
+	$SongWheel.show()
 	$SongWheel.setup()
+	songs_loading = false
 	
 	# Slide animation for song wheel
 	var screen_size = get_viewport().size
@@ -53,24 +57,12 @@ func _ready():
 		.set_ease(Tween.EASE_OUT)
 
 # Function to load and add song entries
-func load_and_add_songs(folder_path: String):
-	var json_files = Loader.get_all_files(folder_path, "json")
-	for file_path in json_files:
-		var json_data = Loader.load_json_file(file_path)
-		add_song_entry(file_path, json_data["Title"], json_data["Artist"], int(json_data["Difficulty"]), json_data["DifficultyName"])
-	
-	# Amiga modules are charts too, one entry per generated difficulty (not in netplay)
-	if netplay:
-		return
-	var mod_files = Loader.get_all_files(folder_path, "mod") + Loader.get_all_files(folder_path, "MOD")
-	for file_path in mod_files:
-		var module = ModModule.load_file(file_path)
-		if module == null:
+func load_and_add_songs():
+	var songs = await Loader.get_song_catalog()
+	for song in songs:
+		if netplay and song["path"].get_extension().to_lower() == "mod":
 			continue
-		var title = module.title if module.title != "" else file_path.get_file().get_basename()
-		for difficulty_name in ModChart.DIFFICULTIES:
-			var chart = ModChart.new(module, difficulty_name)
-			add_song_entry(file_path, title, "Amiga module", chart.level, difficulty_name)
+		add_song_entry(song["path"], song["Title"], song["Artist"], int(song["Difficulty"]), song["DifficultyName"])
 
 func add_song_entry(file_path: String, title: String, artist: String, difficulty: int, difficulty_name: String):
 	var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
@@ -146,6 +138,8 @@ func add_random_entries() -> void:
 		entry.setup_random_title()
 
 func _process(delta):
+	if songs_loading:
+		return
 	# Check if the effector button is pressed (shared by both players)
 	for player in joined_players():
 		if Input.is_action_just_pressed("p%d_effect" % player):

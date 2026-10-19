@@ -29,6 +29,11 @@ Le jeu est en cours de développement, mais vous pouvez y jouer en Accès Antici
 - [ ] Importation de BMS
 - [x] Modules Amiga jouables directement avec keysounds
 
+## Bibliothèque musicale
+La sélection conserve les métadonnées des charts JSON et des modules Amiga dans `user://song_catalog.json`. Une analyse est lancée automatiquement si le cache est absent, vide ou invalide ; les ouvertures suivantes réutilisent cette liste.
+
+Après avoir ajouté, modifié ou supprimé des musiques manuellement dans `user://songs`, utilisez **Refresh song list** dans le menu de téléchargement et d'importation. L'importation d'un ZIP ou le téléchargement d'un pack actualise automatiquement la liste.
+
 ## Crédits
 Ce jeu contient du code source de ces projets :
 

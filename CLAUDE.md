@@ -90,6 +90,7 @@ Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load
   - Dégâts NORMAL : BAD −2, POOR −6, POOR vide −2. EASY : ×0.8.
   - HARD part de 100 %, P-GREAT/GREAT +0.16, GOOD 0, BAD −6, POOR −10, POOR vide −2, dégâts divisés par 2 à 30 % ou moins, échec à 0.
   - Affichage par paliers de 2 % (`gaugeDisplay()`), c'est cette valeur qui va dans `gauge_score`.
+  - Le dernier segment rempli reste allumé, les 2 d'avant clignotent (0 à 2 allumés depuis la gauche, tirés au hasard toutes les 50 ms, `flickerGauge()`), comme sur IIDX.
 - **POOR vide** (`emptyPress()`) : une touche pressée sans note à frapper, alors qu'une note de la lane arrive dans moins de 500 ms, abîme la jauge sans casser le combo.
 - L'horloge est `songPosition() - AudioServer.get_output_latency()` ; pour un MP3/OGG, `songPosition()` ajoute `AudioServer.get_time_since_last_mix()`, sinon elle avance par saccades de la taille d'un mixage (fatal avec des fenêtres de ±16 ms).
 - RANDOM mélange seulement les touches (0~6, ou 0~4 en 5 touches) ; le scratch ne bouge jamais, comme sur IIDX. En 5 touches, les lanes 5 et 6 sont vidées au chargement.

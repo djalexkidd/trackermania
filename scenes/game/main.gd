@@ -14,6 +14,12 @@ const PLAYFIELD_WIDTH : float = 870
 const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing when the chart has no measures (sec)
 const SUBLINE_LENGTH : float = 1.0
+# The two gauge segments before the last filled one flicker like in IIDX: 0 to 2 lit, drawn again at this interval (ms)
+const GAUGE_FLICKER_SEGMENTS : int = 2
+const GAUGE_FLICKER_MS : int = 50
+# Gauge texture geometry: one segment every 21 px (2 %), the gaps between them are around x = 21 n + 6
+const GAUGE_SEGMENT_PX : float = 21.0
+const GAUGE_GAP_PX : float = 6.0
 # Emitted in local versus when this player is done (song ended, failed or gave up)
 signal finished
 # Player number, picks the game options and the input actions (p1_* or p2_*)
@@ -78,6 +84,9 @@ var noteCount      : int     = 0
 # Groove gauge in percent (Judge rules), and what a PGREAT or GREAT recovers
 var gauge          : float   = 0.0
 var gaugeRecovery  : float   = 0.0
+# Flickering segments drawn over the gauge, and when they were last drawn
+var gaugeFlicker   : TextureRect
+var gaugeFlickerMs : int     = 0
 # Analog
 var previous_value := 0.0
 # The scratch lane stays lit this long after the analog turntable moved
@@ -160,6 +169,26 @@ func updateGauge(judgement : String) -> void:
 func showGauge() -> void:
 	$GrooveGauge.value = Judge.gaugeDisplay(opt("gauge_level"), gauge)
 	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
+# The last filled segment stays lit, the GAUGE_FLICKER_SEGMENTS before it light up from the left like a spectrum analyzer
+func flickerGauge() -> void:
+	var bar : TextureProgressBar = $GrooveGauge
+	var texture : Texture2D = bar.texture_under
+	var width : float = texture.get_width()
+	var last : int = int(bar.value / 2.0) - 1
+	var lit : int = randi_range(0, GAUGE_FLICKER_SEGMENTS)
+	# Unlit segments from the empty gauge texture, never the first one which is lit in it
+	var from : float = maxf((last - GAUGE_FLICKER_SEGMENTS + lit) * GAUGE_SEGMENT_PX + GAUGE_GAP_PX, GAUGE_SEGMENT_PX + GAUGE_GAP_PX)
+	var to : float = last * GAUGE_SEGMENT_PX + GAUGE_GAP_PX
+	gaugeFlicker.visible = to > from
+	if not gaugeFlicker.visible:
+		return
+	var atlas : AtlasTexture = gaugeFlicker.texture
+	atlas.atlas = texture
+	atlas.region = Rect2(from, 0, to - from, texture.get_height())
+	# The bar may be stretched in versus
+	var scale : float = bar.size.x / width
+	gaugeFlicker.position = Vector2(from * scale, 0)
+	gaugeFlicker.size = Vector2((to - from) * scale, bar.size.y)
 # A key pressed without a note to hit: an empty POOR if a note comes soon, it only hurts the gauge
 func emptyPress(i : int) -> void:
 	previewKeysound(i)
@@ -240,6 +269,14 @@ func _ready() -> void:
 	if opt("gauge_level") == Judge.HARD:
 		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
 		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
+	gaugeFlicker = TextureRect.new()
+	gaugeFlicker.texture = AtlasTexture.new()
+	gaugeFlicker.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gaugeFlicker.stretch_mode = TextureRect.STRETCH_SCALE
+	gaugeFlicker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gaugeFlicker.visible = false
+	$GrooveGauge.add_child(gaugeFlicker)
+	$GrooveGauge.move_child(gaugeFlicker, 0)
 	
 	set_process(false)
 	if opt("keys_mode") == 5:
@@ -374,6 +411,9 @@ func _process(_delta) -> void:
 	if (currentSongPos >= endPos):
 		finish(false)
 		return
+	if Time.get_ticks_msec() - gaugeFlickerMs >= GAUGE_FLICKER_MS:
+		gaugeFlickerMs = Time.get_ticks_msec()
+		flickerGauge()
 	# Confirm completion of long note
 	for i in range(0, 8):
 		if shouldPressEnd[i] == -1.0:

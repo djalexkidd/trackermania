@@ -554,6 +554,21 @@ visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
+[node name="BMS" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/BMS" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "BMS"
+category_texture = ExtResource("22_file_type")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/BMS"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
 [node name="BottomBar" type="ColorRect" parent="." unique_id=533358567]
 layout_mode = 1
 anchors_preset = 12

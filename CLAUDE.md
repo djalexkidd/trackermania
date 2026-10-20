@@ -4,20 +4,25 @@ Jeu de rythme libre inspiré de beatmania IIDX (7 touches + scratch), écrit en 
 Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/test_menu.tscn`.
 
 L'objectif d'origine : jouer directement des **modules Amiga (.MOD)**, le module étant la chart, avec des **keysounds** comme sur IIDX.
-Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues directement ; elles cohabitent avec les modules.
+Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues directement ; elles cohabitent avec les modules et les **BMS** (.bms, .bme, .bml, .bmson), keysoundés eux aussi. Les PMS (pop'n music, 9 touches) sont hors sujet.
 
 ## Arborescence
 
 ```
 project.godot            Config : autoloads, InputMap (p1_*/p2_*), viewport 1280x720
 default_bus_layout.tres  Bus Master avec Chorus / Phaser / Reverb (effector de la sélection)
-assets/                  Images, polices, sons (bgm de la sélection, frames, groove gauge, shader)
+assets/                  Images, polices, sons (bgm de la sélection, frames, groove gauge, shader), shift_jis.tres (table Shift-JIS)
+tools/                   qua2tm.py, make_shift_jis_table.py (génère assets/shift_jis.tres)
 scripts/
   Global.gd              Autoload : options et résultats des 2 joueurs, chargement des touches remappées
   Loader.gd              Autoload : chart choisie (file_path, chart_difficulty), scan de fichiers, cache JSON de la sélection
   QuaChart.gd            Lecture d'une beatmap Quaver .qua (class_name QuaChart)
   Scores.gd              Meilleurs scores en solo (user://scores.cfg), lampes de clear et rangs (class_name Scores)
   mod/                   Modules Amiga keysoundés (voir plus bas)
+  bms/                   BMS et bmson keysoundés (voir plus bas)
+    BmsChart.gd          Lecture d'un BMS/bmson -> événements sonores, notes, mesures
+    BmsPlayer.gd         Lecture audio : une voix par son, keysounds + BGM
+    ShiftJIS.gd          Décodage Shift-JIS (CP932) ou UTF-8 des textes des BMS
     ModModule.gd         Lecture du .MOD + replay ProTracker -> liste de notes avec automation
     ModChart.gd          Génération de la chart (lanes, difficultés, niveau)
     ModPlayer.gd         Lecture audio : une voix par canal, keysounds + BGM
@@ -41,7 +46,7 @@ scenes/
   netplay/               Lobby et chat en ligne (ENet, RPC level_play)
 ```
 
-Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/TrackerMania/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
+Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/TrackerMania/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER, BMS), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
 
 ## Fonctionnement du jeu
 
@@ -50,7 +55,7 @@ Menu titre -> sélection des musiques -> `song_entry._on_pressed()` règle `Load
 - `main.tscn` (P1 seul), `main_p2.tscn` (P2 seul) ou `main_2p.tscn` (versus) ;
 - en netplay, la sélection est ouverte dans le lobby et la partie se lance par RPC.
 
-`main.gd` charge la chart avec `loadQuaChart()` ou `loadModule()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats.
+`main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats.
 En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après la difficulté (`SongInfo/BestScore`).
 
 ### Options des joueurs (`Global.gd`)
@@ -59,12 +64,12 @@ Options : `hispeed` (temps de chute d'une note, en secondes, de 0.45 à 1.0), `k
 
 ### Beatmaps Quaver (`QuaChart.gd`)
 Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load_file()` lit le petit sous-ensemble YAML écrit par Quaver (champs du haut, listes `TimingPoints` et `HitObjects`, le reste comme les `KeySounds` est ignoré) et renvoie `null` si le mode n'est pas jouable.
-- Champs utilisés : `Title`, `Artist`, `DifficultyName` (libre, couleur seulement pour Beginner/Normal/Hyper/Another), `AudioFile` (mp3 ou ogg, à côté du .qua), `Mode`, `HasScratchKey`.
+- Champs utilisés : `Title`, `Artist`, `DifficultyName` (libre, couleur seulement pour Beginner/Normal/Hyper/Another/Leggendaria), `AudioFile` (mp3 ou ogg, à côté du .qua), `Mode`, `HasScratchKey`.
 - Lanes : `Keys7` va sur les touches 1~7, `Keys4` sur les touches 2~5 ; avec `HasScratchKey`, la dernière lane Quaver est le scratch (lane 7).
 - Une note `StartTime` (absent = 0) en ms, une note longue a un `EndTime`. Résultat : `noteArray`, 8 lanes, `[temps]` ou `[temps, durée]` en secondes, triées.
 - `LEAD_IN` (2 s) est ajouté aux notes et aux mesures au chargement : le fichier n'a pas de silence à prévoir. Dans `main.gd`, `songPosition()` compte ce temps avec `Time.get_ticks_usec()` puis lance la musique (`play()` au bon décalage) et suit sa position + `LEAD_IN`. Après la fin de la musique, l'horloge continue seule.
 - `measures` : une ligne à chaque `TimingPoint` (BPM, `Signature` Triple = 3 temps, sinon 4), puis une par mesure jusqu'au suivant ; le premier tempo remonte jusqu'au début.
-- Il n'y a pas de niveau dans un .qua : `level` vient de la densité (moyenne × `LEVEL_PER_NPS` + pic sur 2 s × `LEVEL_PER_PEAK_NPS`), borné entre 1 et 8.
+- Il n'y a pas de niveau dans un .qua : `level` vient de la densité (`QuaChart.densityLevel()`, utilisé aussi par les BMS) (moyenne × `LEVEL_PER_NPS` + pic sur 2 s × `LEVEL_PER_PEAK_NPS`), borné entre 1 et 8.
 
 ### `main.gd` (repris de gd-rhythm)
 - Les temps des notes sont décalés de `speed` (hispeed) : une note apparaît en y=0 à `t - speed` et atteint `PERFECT_YPOS` (500) au temps `t`.
@@ -124,9 +129,10 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 - `updateVoice()` applique l'enveloppe de la note en cours, alignée sur l'heure prévue de la note, pas sur l'heure de la frappe. Une note frappée en avance garde son état initial jusqu'à son heure.
 
 ### Lien avec `main.gd`
+- `keysoundPlayer` (non typé) est le `ModPlayer` ou le `BmsPlayer` : mêmes méthodes (`claim`, `play`, `get_playback_position`, `hit`, `preview`, `length`, `playing`).
 - `keysoundArray` suit `noteArray` partout : chargement, mélange RANDOM, vidage en 5 touches, création des notes (`note.keysound`, `lastKeysound`).
 - `keyPressed()` renvoie `false` s'il n'y avait aucune note à frapper. Dans ce cas, les pressions digitales (touches, turntable digital) appellent `previewKeysound()`. La turntable analogique n'en déclenche pas, sinon elle jouerait le son à chaque image.
-- La fin de partie est au minimum à `modPlayer.length + ENDPOS_BIAS`.
+- La fin de partie est au minimum à `keysoundPlayer.length + ENDPOS_BIAS`.
 - Les lignes de mesure suivent `module.measures` (+ `LEAD_IN`), mises dans `measures` comme celles d'un .qua. Sans mesures, une ligne par seconde (`SUBLINE_LENGTH`).
 
 ### Limites connues
@@ -134,10 +140,38 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 - La BGM est déclenchée à chaque image (environ 16 ms), avec une compensation du retard.
 - Pas de notes longues générées. Le format FLT8 est lu de façon approximative.
 
+## BMS keysoundés (`scripts/bms/`)
+
+Chaque fichier .bms, .bme, .bml ou .bmson est une entrée de la sélection (catégorie BMS), masquée en netplay. Seul le SP est lu : un chart avec des notes 2P (canaux 2x/6x, bmson `beat-14k`) ou un autre mode (pop'n…) est refusé (`null`).
+
+### `BmsChart` : lecture
+- `BmsChart.load_file(path, random)` : les octets sont lus en Latin-1 (`get_string_from_ascii`, un caractère par octet). Les textes (`#TITLE` + `#SUBTITLE`, `#ARTIST`, noms des `#WAV`) passent par `ShiftJIS.decode()` : ASCII tel quel, UTF-8 s'il est valide, sinon CP932 (table `assets/shift_jis.tres`).
+- BMS : `#WAVxx`, `#BPM`, `#BPMxx` + canal 08, canal 03 (hex), `#STOPxx` + canal 09 (en 1/192 de mesure), canal 02 (longueur de mesure), `#LNOBJ`, canaux 5x (LNTYPE 1 : un objet ouvre, le suivant ferme), `#VOLWAV`, `#BASE 62`.
+  `#RANDOM`/`#SETRANDOM`/`#IF`/`#ELSEIF`/`#ELSE`/`#ENDIF`/`#ENDRANDOM` : branche au hasard en jeu, la première pour la sélection (`random = false`).
+  Lanes : canaux 11~15 -> touches 1~5, 18/19 -> touches 6/7, 16 -> scratch. Le canal 01 (BGM) et la pédale 17 vont dans la BGM. Notes invisibles (3x) et mines (Dx/Ex) ignorées.
+- bmson : `info` (`title`, `subtitle`, `artist`, `level`, `chart_name`, `resolution`, `init_bpm`, `mode_hint` beat-7k ou beat-5k), `bpm_events`, `stop_events`, `lines`, `sound_channels`.
+  `x` 1~7 touches, 8 scratch, le reste BGM ; `l` donne une note longue. Un son de canal est découpé en tranches : une note sans `c` le relance, une note avec `c` le reprend à `offset` = temps depuis la dernière relance.
+- Le temps vient d'une ligne de temps (`buildTimeline`, `beatToTime`) : un changement de BPM s'applique avant un STOP au même temps, une note sur un STOP est jouée au début du STOP.
+- Résultat : `keysounds` (tous les sons triés par temps, `{time, sound, offset, cut}`), `noteArray` et `keysoundArray` (index dans `keysounds`, -1 pour une note sans son), `measures` (avec `LEAD_IN` = 2 s comme les autres formats).
+- Difficulté : `#DIFFICULTY` 1~5 (Beginner, Normal, Hyper, Another, Leggendaria = INSANE), sinon un mot du titre, du `chart_name` ou du nom de fichier, sinon `Lv.` + `#PLAYLEVEL`. Le niveau 1~8 vient de la densité, pas de `#PLAYLEVEL`.
+
+### `BmsPlayer` : lecture audio
+- Même principe que `ModPlayer` (`owners`, `triggered`, `hit()`, `preview()`, horloge `Time.get_ticks_usec()`), enfant de l'`AudioStreamPlayer` du terrain sous le nom `BmsPlayer`. En versus, le second terrain réutilise son `chart` : mêmes branches `#RANDOM` (`noteArray` copié par terrain).
+- Une voix (`AudioStreamPlayer`) par son utilisé : rejouer un son le coupe, comme LR2/beatoraja. Volume `#VOLWAV`, bus Master.
+- Fichiers cherchés dans le dossier de la chart et ses sous-dossiers, sans casse, `\` -> `/`, et avec une autre extension si besoin (ogg, wav, mp3), car un `.wav` déclaré est souvent un `.ogg`.
+- bmson (`cut`) : une note de chart pas encore frappée coupe la tranche précédente de son son. Une tranche `c` qui suit celle en cours n'est pas relancée si la position est à moins de `CONTINUE_TOLERANCE`.
+- `length` : fin du dernier son (coupé par la reprise suivante du même son) + `LEAD_IN`.
+
+### Limites
+- Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines ; pas de DP ; pas de BMS en netplay.
+- Godot transforme `\` en `/` dans les chemins : un dossier dont le nom contient un `\` (mojibake de zip) n'est pas lisible.
+- Les titres japonais demandent une police système avec ces glyphes (`allow_system_fallback`).
+
 ## Conventions
 - GDScript avec des tabulations. Fonctions et variables du gameplay en camelCase (`noteArray`, `keyPressed`) dans `main.gd`, `note.gd` et `scripts/mod/` ; snake_case dans les menus.
 - Commentaires courts en anglais au-dessus du code. Textes et README en français.
 - Godot génère les fichiers `.uid` : il faut les committer avec les scripts.
+- Le lien `bms` à la racine (BMS de référence, non suivi) ne doit pas être modifié. Avant un `godot --import` ou un test, le déplacer hors du projet, sinon Godot importe ses milliers de .ogg.
 
 ## Tester
 - `godot --headless --import` reconstruit le cache des classes après l'ajout d'un `class_name`.

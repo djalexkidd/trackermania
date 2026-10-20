@@ -37,12 +37,12 @@ var mirrored : bool
 var speed : float
 # Note information corresponding to 7 channels
 var noteArray      : Array = []
-# Keysound of each note of noteArray (Amiga modules only)
+# Keysound of each note of noteArray (Amiga modules and BMS)
 var keysoundArray  : Array   = [[], [], [], [], [], [], [], []]
 # Keysound of the last note created in each lane
 var lastKeysound   : Array   = [-1, -1, -1, -1, -1, -1, -1, -1]
-# Module player shared by the playfields when the chart is an Amiga module
-var modPlayer      : ModPlayer
+# Keysound player shared by the playfields: ModPlayer for an Amiga module, BmsPlayer for a BMS (same methods)
+var keysoundPlayer
 # Start time of each measure of the chart (seconds)
 var measures       : Array = []
 # Auxiliary line information
@@ -202,6 +202,10 @@ func _ready() -> void:
 		if not loadModule():
 			set_process(false)
 			return
+	elif BmsChart.is_bms(Loader.file_path):
+		if not loadBms():
+			set_process(false)
+			return
 	elif not loadQuaChart():
 		set_process(false)
 		return
@@ -256,7 +260,7 @@ func _ready() -> void:
 			break
 	if (audio == null):
 		OS.alert("Please assign a AudioStreamPlayer node")
-	if (modPlayer == null and get_node(audio).stream == null):
+	if (keysoundPlayer == null and get_node(audio).stream == null):
 		OS.alert("Please assign a music")
 	for i in range(0, 8):
 		noteArray[i] = getCorrectArr(noteArray[i], speed)
@@ -264,25 +268,25 @@ func _ready() -> void:
 	for i in range(0, 8):
 		if getEndPos(noteArray[i], speed, ENDPOS_BIAS) > endPos:
 			endPos = getEndPos(noteArray[i], speed, ENDPOS_BIAS)
-	if modPlayer:
+	if keysoundPlayer:
 		# The background music goes on after the last note
-		endPos = maxf(endPos, modPlayer.length + ENDPOS_BIAS)
+		endPos = maxf(endPos, keysoundPlayer.length + ENDPOS_BIAS)
 	if measures:
 		subLineArray = getLineArr(measures, speed)
 	else:
 		subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
-	if modPlayer:
+	if keysoundPlayer:
 		# Auto played notes are played on time by the background music
 		for i in range(0, 8):
 			if not AUTOPLAY and not (AUTOSCRATCH and i == 7):
-				modPlayer.claim([keysoundArray[i]])
+				keysoundPlayer.claim([keysoundArray[i]])
 	if (AUTOPLAY):
 		$isautoplay.visible = true
 	await get_tree().create_timer(1.0).timeout
 	$getready.hide()
-	if modPlayer:
-		if not modPlayer.playing:
-			modPlayer.play()
+	if keysoundPlayer:
+		if not keysoundPlayer.playing:
+			keysoundPlayer.play()
 	startUsec = Time.get_ticks_usec()
 	set_process(true)
 
@@ -308,27 +312,46 @@ func loadQuaChart() -> bool:
 # Generate the chart of an Amiga module, its notes are the keysounds
 func loadModule() -> bool:
 	# In local versus both playfields share the same module player, only load it once
-	modPlayer = get_node(audio).get_node_or_null("ModPlayer")
-	if modPlayer == null:
+	keysoundPlayer = get_node(audio).get_node_or_null("ModPlayer")
+	if keysoundPlayer == null:
 		var module : ModModule = ModModule.load_file(Loader.file_path)
 		if module == null:
 			OS.alert("Invalid Amiga module: " + Loader.file_path)
 			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
 			return false
-		modPlayer = ModPlayer.new(module)
-		modPlayer.name = "ModPlayer"
-		get_node(audio).add_child(modPlayer)
-	var chart : ModChart = ModChart.new(modPlayer.module, Loader.chart_difficulty, opt("keys_mode"))
+		keysoundPlayer = ModPlayer.new(module)
+		keysoundPlayer.name = "ModPlayer"
+		get_node(audio).add_child(keysoundPlayer)
+	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"))
 	noteArray = chart.noteArray
 	keysoundArray = chart.keysoundArray
 	# The lines follow the measures of the module
-	measures = modPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
+	measures = keysoundPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
+	return true
+
+# Load a BMS or bmson chart and its keysounds
+func loadBms() -> bool:
+	# In local versus both playfields share the same player, and the same #RANDOM branches
+	keysoundPlayer = get_node(audio).get_node_or_null("BmsPlayer")
+	if keysoundPlayer == null:
+		var chart : BmsChart = BmsChart.load_file(Loader.file_path)
+		if chart == null:
+			OS.alert("Invalid BMS chart: " + Loader.file_path)
+			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
+			return false
+		keysoundPlayer = BmsPlayer.new(chart, Loader.file_path.get_base_dir())
+		keysoundPlayer.name = "BmsPlayer"
+		get_node(audio).add_child(keysoundPlayer)
+	# The notes are changed while playing, each playfield has its copy
+	noteArray = keysoundPlayer.chart.noteArray.duplicate(true)
+	keysoundArray = keysoundPlayer.chart.keysoundArray.duplicate(true)
+	measures = keysoundPlayer.chart.measures.duplicate()
 	return true
 
 # Current time of the song (seconds)
 func songPosition() -> float:
-	if modPlayer:
-		return modPlayer.get_playback_position()
+	if keysoundPlayer:
+		return keysoundPlayer.get_playback_position()
 	var player : AudioStreamPlayer = get_node(audio)
 	var clock : float = (Time.get_ticks_usec() - startUsec) / 1000000.0
 	# The music starts after the lead-in, the playfields share it in versus
@@ -453,8 +476,8 @@ func keyPressed(i : int) -> bool:
 	if len(queue[i]) != 0 and queue[i][0].score != "Default":
 		showTiming(queue[i][0])
 		# The keysound plays even for a bad timing like in IIDX
-		if modPlayer:
-			modPlayer.hit(queue[i][0].keysound)
+		if keysoundPlayer:
+			keysoundPlayer.hit(queue[i][0].keysound)
 		if queue[i][0].isLongnote == false:
 			# General note
 			addJudge(queue[i][0].score)
@@ -482,13 +505,13 @@ func showTiming(n : Note) -> void:
 	$score/timing.show()
 # Play the keysound of the next note of a lane when its key is pressed without a note to hit
 func previewKeysound(i : int) -> void:
-	if modPlayer == null:
+	if keysoundPlayer == null:
 		return
 	for n in queue[i]:
 		if n != null:
-			modPlayer.preview(n.keysound)
+			keysoundPlayer.preview(n.keysound)
 			return
-	modPlayer.preview(keysoundArray[i][0] if keysoundArray[i] else lastKeysound[i])
+	keysoundPlayer.preview(keysoundArray[i][0] if keysoundArray[i] else lastKeysound[i])
 # Judge the notes from the time left before them
 func updateQueue() -> void:
 	for q in queue:

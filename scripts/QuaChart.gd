@@ -136,12 +136,16 @@ func buildMeasures(timingPoints : Array, end : float) -> void:
 
 # Level from the average and the peak note density
 func computeLevel() -> void:
+	level = densityLevel(noteArray)
+
+# Level of 8 lanes of notes (also used by the BMS charts)
+static func densityLevel(lanes : Array) -> int:
 	var times : Array = []
-	for notes in noteArray:
+	for notes in lanes:
 		for note in notes:
 			times.append(note[0])
 	if times.size() < 2:
-		return
+		return 1
 	times.sort()
 	var span : float = maxf(times[-1] - times[0], 1.0)
 	var peak : int = 0
@@ -151,4 +155,4 @@ func computeLevel() -> void:
 			first += 1
 		peak = maxi(peak, k - first + 1)
 	var nps : float = times.size() / span
-	level = clampi(roundi(nps * LEVEL_PER_NPS + peak / DENSITY_WINDOW * LEVEL_PER_PEAK_NPS), 1, MAX_LEVEL)
+	return clampi(roundi(nps * LEVEL_PER_NPS + peak / DENSITY_WINDOW * LEVEL_PER_PEAK_NPS), 1, MAX_LEVEL)

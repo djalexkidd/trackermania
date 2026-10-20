@@ -61,7 +61,7 @@ func _ready():
 func load_and_add_songs():
 	var songs = await Loader.get_song_catalog()
 	for song in songs:
-		if netplay and song["path"].get_extension().to_lower() == "mod":
+		if netplay and (song["path"].get_extension().to_lower() == "mod" or BmsChart.is_bms(song["path"])):
 			continue
 		add_song_entry(song["path"], song["Title"], song["Artist"], int(song["Difficulty"]), song["DifficultyName"])
 
@@ -80,6 +80,7 @@ func add_song_entry(file_path: String, title: String, artist: String, difficulty
 		"Normal": Color(0.5, 0.5, 1),
 		"Hyper": Color(1, 1, 0),
 		"Another": Color(1, 0.3, 0.3),
+		"Leggendaria": Color(0.8, 0.3, 1),
 	}
 	if difficulty_name in color_map:
 		label2.add_theme_color_override("font_color", color_map[difficulty_name])
@@ -112,7 +113,11 @@ func add_song_entry(file_path: String, title: String, artist: String, difficulty
 	alphabet_entry.difficulty_name = difficulty_name
 	$SongWheel.get_node("Categories/" + alphabet_category(title) + "/MusicList").add_child(alphabet_entry)
 
-	var file_type = "MODULE" if file_path.get_extension().to_lower() == "mod" else "QUAVER"
+	var file_type = "QUAVER"
+	if file_path.get_extension().to_lower() == "mod":
+		file_type = "MODULE"
+	elif BmsChart.is_bms(file_path):
+		file_type = "BMS"
 	var file_type_category = $SongWheel.get_node("Categories/" + file_type)
 	file_type_category.show()
 	var file_type_entry = song_entry.duplicate()

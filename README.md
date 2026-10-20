@@ -9,7 +9,7 @@
 ## Présentation
 TrackerMania est un jeu de rythme libre inspiré par IIDX. Ce projet utilise le moteur de jeu Godot Engine 4.
 
-Le jeu est en cours de développement, mais vous pouvez y jouer en Accès Anticipé™ ci-dessous (comme sur Steam wow!).
+Le jeu est en cours de développement.
 
 ## Jouer au jeu
 [Jouer sur navigateur](https://djalexkidd.github.io/trackermania)
@@ -19,18 +19,18 @@ Le jeu est en cours de développement, mais vous pouvez y jouer en Accès Antici
 ## Fonctionnalités
 - [x] Gameplay de base
 - [x] Mutateurs de jeu et options d'assistance (HI-SPEED, RANDOM, AUTO-SCRATCH...)
-- [ ] Sauvegarde des scores
+- [x] Sauvegarde des scores
 - [x] Multijoueur local
 - [x] Multijoueur en ligne
 - [ ] Classements en ligne
 - [ ] Éditeur de niveaux
 - [ ] Téléchargement de contenu crée par la communauté
 - [x] Lecture directe des beatmaps Quaver (.qua)
-- [ ] Importation de BMS
+- [x] Lecture directe des BMS (.bms, .bme, .bml) et bmson avec keysounds (SP 5 et 7 touches)
 - [x] Modules Amiga jouables directement avec keysounds
 
 ## Bibliothèque musicale
-La sélection conserve les métadonnées des beatmaps Quaver et des modules Amiga dans `user://song_catalog.json`. Une analyse est lancée automatiquement si le cache est absent, vide ou invalide ; les ouvertures suivantes réutilisent cette liste.
+La sélection conserve les métadonnées des beatmaps Quaver, des BMS et des modules Amiga dans `user://song_catalog.json`. Une analyse est lancée automatiquement si le cache est absent, vide ou invalide ; les ouvertures suivantes réutilisent cette liste.
 
 Après avoir ajouté, modifié ou supprimé des musiques manuellement dans `user://songs`, utilisez **Refresh song list** dans le menu de téléchargement et d'importation. L'importation d'un ZIP ou le téléchargement d'un pack actualise automatiquement la liste.
 

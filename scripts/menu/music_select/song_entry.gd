@@ -12,6 +12,7 @@ var color_map = {
 	"Normal": Color(0.5, 0.5, 1),
 	"Hyper": Color(1, 1, 0),
 	"Another": Color(1, 0.3, 0.3),
+	"Leggendaria": Color(0.8, 0.3, 1),
 }
 
 # Keep the moving title inside the ordinary song title area.

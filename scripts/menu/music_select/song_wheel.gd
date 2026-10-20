@@ -5,6 +5,8 @@ const SCROLL_DURATION = 0.16
 const CATEGORY_DURATION = 0.22
 const RANDOM_PREVIEW_INTERVAL = 0.06
 const RANDOM_TITLE_SPEED = 80.0
+# Sound effects, made by tools/make_select_sounds.py
+const SOUND_VOLUME_DB = -10.0
 
 var categories: Array[Control] = []
 var entries: Array[Control] = []
@@ -25,10 +27,16 @@ var preview_songs: Array[Node] = []
 var preview_index = 0
 var preview_time = 0.0
 var title_scroll = 0.0
+var scroll_sound: AudioStreamPlayer
+var decide_sound: AudioStreamPlayer
+var cancel_sound: AudioStreamPlayer
 
 @onready var scrollbar: VScrollBar = $PositionBar
 
 func setup() -> void:
+	scroll_sound = _add_sound(preload("res://assets/music_select/scroll.wav"))
+	decide_sound = _add_sound(preload("res://assets/music_select/decide.wav"))
+	cancel_sound = _add_sound(preload("res://assets/music_select/cancel.wav"))
 	rows_layer = Control.new()
 	rows_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(rows_layer)
@@ -44,10 +52,20 @@ func setup() -> void:
 	_render()
 	grab_focus()
 
+# A few voices, so a fast scroll does not cut the previous sound
+func _add_sound(stream: AudioStream) -> AudioStreamPlayer:
+	var player = AudioStreamPlayer.new()
+	player.stream = stream
+	player.volume_db = SOUND_VOLUME_DB
+	player.max_polyphony = 4
+	add_child(player)
+	return player
+
 func toggle_category(category: Control) -> void:
 	if opened_category == category:
 		close_category()
 		return
+	decide_sound.play()
 	_animate_category_change()
 	opened_category = category
 	entries.assign([category.get_node("Category")])
@@ -59,6 +77,7 @@ func toggle_category(category: Control) -> void:
 func close_category() -> bool:
 	if opened_category == null:
 		return false
+	cancel_sound.play()
 	_animate_category_change()
 	selected_index = categories.find(opened_category)
 	opened_category = null
@@ -70,6 +89,7 @@ func close_category() -> bool:
 func move_selection(direction: int) -> void:
 	if entries.is_empty() or direction == 0:
 		return
+	scroll_sound.play()
 	var old_index = selected_index
 	selected_index = posmod(selected_index + direction, entries.size())
 	# Limit large jumps to one screen of motion; ordinary steps retain their exact position.

@@ -12,7 +12,6 @@ Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues d
 project.godot            Config : autoloads, InputMap (p1_*/p2_*), viewport 1280x720
 default_bus_layout.tres  Bus Master avec Chorus / Phaser / Reverb (effector de la sélection)
 assets/                  Images, polices, sons (bgm de la sélection, frames, groove gauge, shader), shift_jis.tres (table Shift-JIS)
-tools/                   qua2tm.py, make_shift_jis_table.py (génère assets/shift_jis.tres)
 scripts/
   Global.gd              Autoload : options et résultats des 2 joueurs, chargement des touches remappées
   Loader.gd              Autoload : chart choisie (file_path, chart_difficulty), scan de fichiers, cache JSON de la sélection

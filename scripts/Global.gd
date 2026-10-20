@@ -55,20 +55,62 @@ func load_key_mappings():
 		var saved_key = config_file.get_value("input", action, "")
 		if saved_key == "" or not InputMap.has_action(action):
 			continue
-		# Try to load the event either as a key or as a gamepad button
-		var input_event
-		if saved_key.begins_with("Button"):
-			# Handle gamepad button input
-			input_event = InputEventJoypadButton.new()
-			input_event.button_index = int(saved_key.substr(saved_key.find(":") + 1)) # Parse button index from saved string
-		else:
-			# Handle keyboard input
-			input_event = InputEventKey.new()
-			input_event.keycode = OS.find_keycode_from_string(saved_key)
-
+		var input_event = string_to_event(saved_key, 0 if action.begins_with("p1_") else 1)
+		if input_event == null:
+			continue
 		# Erase existing action events and add the loaded event
 		InputMap.action_erase_events(action)
 		InputMap.action_add_event(action, input_event)
+
+# Saved form of an input: key name, "Button:index:device" or "Axis:axis:sign:device"
+func event_to_string(event: InputEvent) -> String:
+	if event is InputEventKey:
+		return OS.get_keycode_string(event.keycode if event.keycode != KEY_NONE else event.physical_keycode)
+	if event is InputEventJoypadButton:
+		return "Button:%d:%d" % [event.button_index, event.device]
+	if event is InputEventJoypadMotion:
+		return "Axis:%d:%d:%d" % [event.axis, sign(event.axis_value), event.device]
+	return ""
+
+# Old saves have no device ("Button:3"), it falls back to the player's pad
+func string_to_event(saved_key: String, default_device := 0) -> InputEvent:
+	var parts = saved_key.split(":")
+	if parts[0] == "Button":
+		var button = InputEventJoypadButton.new()
+		button.button_index = int(parts[1])
+		button.device = int(parts[2]) if parts.size() > 2 else default_device
+		return button
+	if parts[0] == "Axis" and parts.size() > 3:
+		var motion = InputEventJoypadMotion.new()
+		motion.axis = int(parts[1])
+		motion.axis_value = float(parts[2])
+		motion.device = int(parts[3])
+		return motion
+	var keycode = OS.find_keycode_from_string(saved_key)
+	if keycode == KEY_NONE:
+		return null
+	var key = InputEventKey.new()
+	key.keycode = keycode
+	return key
+
+# Bind a single input to an action and remember it in the mappings file
+func save_key_mapping(action: String, event: InputEvent) -> void:
+	InputMap.action_erase_events(action)
+	InputMap.action_add_event(action, event)
+	var config_file = ConfigFile.new()
+	config_file.load(KEY_MAPPING_PATH)
+	config_file.set_value("input", action, event_to_string(event))
+	config_file.save(KEY_MAPPING_PATH)
+
+# Back to the inputs of project.godot
+func reset_key_mapping(action: String) -> void:
+	InputMap.action_erase_events(action)
+	for event in ProjectSettings.get_setting("input/" + action)["events"]:
+		InputMap.action_add_event(action, event)
+	var config_file = ConfigFile.new()
+	if config_file.load(KEY_MAPPING_PATH) == OK and config_file.has_section_key("input", action):
+		config_file.erase_section_key("input", action)
+		config_file.save(KEY_MAPPING_PATH)
 
 # Per-player variables: "hispeed" belongs to player 1, "p2_hispeed" to player 2
 func get_player_var(player: int, var_name: String):

@@ -1,38 +1,20 @@
 extends Control
 
-func _ready() -> void:
-	$P1Container/LineEdit.text = Global.p1_name
+# Controller Setup: test and remap the inputs of both players (see controller_panel.gd)
 
-func _process(delta: float) -> void:
-	$P1Container/P1AnalogValues.text = str(Input.get_action_strength("p1_analog_turntable_fwd") - Input.get_action_strength("p1_analog_turntable_rew"))
+func _process(_delta: float) -> void:
+	# E1+E2 of either player goes back, unless an input is being assigned or a name typed
+	if ControllerPanel.listener != null or Time.get_ticks_msec() - ControllerPanel.last_assign_msec < 500:
+		return
+	if get_viewport().gui_get_focus_owner() is LineEdit:
+		return
+	for p in ["p1_", "p2_"]:
+		if Input.is_action_pressed(p + "start") and Input.is_action_pressed(p + "effect"):
+			back()
 
-func _on_remap_keys_button_pressed() -> void:
-	$P1Container.hide()
-	$P1Container/P1RemapKeysButton.hide()
-	$P1RemapKeys.show()
-	$P1RemapFinish.show()
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		back()
 
-func _on_p_1_remap_finish_pressed() -> void:
-	$P1Container.show()
-	$P1Container/P1RemapKeysButton.show()
-	$P1RemapKeys.hide()
-	$P1RemapFinish.hide()
-
-func _on_line_edit_text_changed(new_text: String) -> void:
-	Global.p1_name = new_text
-
-
-func _on_p_2_remap_keys_button_pressed() -> void:
-	$P2Container.hide()
-	$P2Container/P2RemapKeysButton.hide()
-	$P2RemapKeys.show()
-	$P2RemapFinish.show()
-
-func _on_p_2_remap_finish_pressed() -> void:
-	$P2Container.show()
-	$P2Container/P2RemapKeysButton.show()
-	$P2RemapKeys.hide()
-	$P2RemapFinish.hide()
-
-func _on_line_edit_p2_text_changed(new_text: String) -> void:
-	Global.p2_name = new_text
+func back() -> void:
+	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")

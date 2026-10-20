@@ -25,7 +25,8 @@ scripts/
     test_menu.gd         Menu titre
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector)
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
-    controller_test/     Test et remappage des touches (sauvés dans user://mappings.cfg)
+    controller_test/     CONTROLLER SETUP : controller_panel.gd (platine IIDX dessinée d'un joueur, test et remappage) ;
+                         touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs
   result/                Écrans de résultats solo et versus

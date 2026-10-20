@@ -307,7 +307,8 @@ func songPosition() -> float:
 func _process(_delta) -> void:
 	# Get current audio playback time
 	currentSongPos = songPosition()
-	currentSongPos -= AudioServer.get_output_latency()
+	# The notes come later when the sound is late (output latency and user offset)
+	currentSongPos -= AudioServer.get_output_latency() + Global.audio_offset / 1000.0
 	# Confirm game end
 	if (currentSongPos >= endPos):
 		finish(false)

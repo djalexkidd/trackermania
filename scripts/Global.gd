@@ -36,6 +36,8 @@ var p2_name = ""
 var custom_music_select_bgm = ""
 # Show the timing error in ms under the judgement (Customization menu)
 var show_timing = false
+# Extra audio latency in ms (bluetooth headphones...), positive when the sound comes late
+var audio_offset = 0
 
 const KEY_MAPPING_PATH = "user://mappings.cfg"
 

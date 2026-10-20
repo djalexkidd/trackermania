@@ -30,6 +30,7 @@ scripts/
     test_menu.gd         Menu titre
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector)
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
+                         song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
     controller_test/     CONTROLLER SETUP : controller_panel.gd (platine IIDX dessinée d'un joueur, test et remappage) ;
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
@@ -57,6 +58,12 @@ Menu titre -> sélection des musiques -> `song_entry._on_pressed()` règle `Load
 
 `main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats.
 En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après la difficulté (`SongInfo/BestScore`).
+
+### Aperçu dans la sélection (`song_preview.gd`)
+Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est chargée dans un thread (`WorkerThreadPool`) et jouée 20 s en boucle, avec fondu, sur le bus `Preview` (créé à la volée, envoyé vers Master : l'effector s'applique). La BGM de la sélection est en pause pendant ce temps et reprend sur une catégorie ou une entrée aléatoire.
+- .qua : l'audio depuis `SongPreviewTime` (`QuaChart.previewTime`), sinon depuis le tiers de la musique.
+- .mod : un `ModPlayer` sans chart (tout en BGM, bus `ModLeftPreview`/`ModRightPreview`), lancé par `play_from()` à la mesure la plus proche du tiers.
+- BMS : le fichier `#PREVIEW` ou `preview_music` (`BmsChart.previewFile`) s'il existe, sinon un `BmsPlayer` comme pour un module.
 
 ### Options des joueurs (`Global.gd`)
 Les variables de P1 n'ont pas de préfixe, celles de P2 sont préfixées par `p2_` : passer par `Global.get_player_var(player, name)` et `set_player_var`.

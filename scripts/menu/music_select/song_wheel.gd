@@ -131,6 +131,8 @@ func _update_song_info() -> void:
 	if selected == info_entry:
 		return
 	info_entry = selected
+	# Songs are previewed, the categories and the random entries play the music select BGM
+	get_parent().song_preview.select(selected.path if selected != null and not selected.is_random else "")
 	preview_songs.clear()
 	preview_time = 0.0
 	preview_index = 0

@@ -33,6 +33,8 @@ var playLevel : int = 0
 var soundFiles : PackedStringArray = []
 # The BMS file names are decoded only when the sounds are loaded
 var shiftJisNames : bool = false
+# Sound file played as the music select preview (#PREVIEW, bmson preview_music), "" if none
+var previewFile : String = ""
 # Volume of all the sounds (#VOLWAV)
 var volume : float = 1.0
 # All the sounds of the song in time order (seconds, without the lead-in): {time, sound, offset, cut}
@@ -170,6 +172,7 @@ func parseBms(text : String, random : bool) -> bool:
 	var difficulty : int = header.get("#DIFFICULTY", "0").to_int()
 	if difficulty > 0 and difficulty < DIFFICULTIES.size():
 		difficultyName = DIFFICULTIES[difficulty]
+	previewFile = ShiftJIS.decode(header.get("#PREVIEW", ""))
 	if header.has("#VOLWAV"):
 		volume = maxf(header["#VOLWAV"].to_float(), 0.0) / 100.0
 
@@ -281,6 +284,8 @@ func parseBmson(text : String) -> bool:
 		difficultyName = DIFFICULTIES[int(info["difficulty"])]
 	elif info.get("chart_name") is String:
 		difficultyName = guessDifficulty(info["chart_name"])
+	if info.get("preview_music") is String:
+		previewFile = info["preview_music"]
 	var resolution : float = num(info.get("resolution"), BMSON_RESOLUTION)
 	if resolution <= 0.0:
 		resolution = BMSON_RESOLUTION

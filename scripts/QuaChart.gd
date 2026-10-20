@@ -27,6 +27,8 @@ var title : String = ""
 var artist : String = ""
 var difficultyName : String = ""
 var audioFile : String = ""
+# Start of the music select preview (seconds, without the lead-in), -1 if the chart has none
+var previewTime : float = -1.0
 # 8 lanes of notes, [time] or [time, length] for a long note, in seconds with the lead-in
 var noteArray : Array = [[], [], [], [], [], [], [], []]
 # Start time of each measure, in seconds with the lead-in
@@ -80,6 +82,8 @@ func parse(text : String) -> bool:
 	artist = fields.get("Artist", "")
 	difficultyName = fields.get("DifficultyName", "")
 	audioFile = fields.get("AudioFile", "")
+	if fields.has("SongPreviewTime"):
+		previewTime = fields["SongPreviewTime"].to_float() / 1000.0
 
 	# Quaver times are in milliseconds, a missing StartTime is 0
 	var lastTime : float = 0.0

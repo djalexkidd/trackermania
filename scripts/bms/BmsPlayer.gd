@@ -28,7 +28,7 @@ var triggered : PackedByteArray = []
 var nextNote : int = 0
 var startUsec : int = 0
 
-func _init(_chart : BmsChart, dir : String) -> void:
+func _init(_chart : BmsChart, dir : String, bus : String = "Master") -> void:
 	chart = _chart
 	owners.resize(chart.keysounds.size())
 	triggered.resize(chart.keysounds.size())
@@ -51,6 +51,7 @@ func _init(_chart : BmsChart, dir : String) -> void:
 		if voices[s] == null:
 			var voice : AudioStreamPlayer = AudioStreamPlayer.new()
 			voice.stream = streams[s]
+			voice.bus = bus
 			voice.volume_db = linear_to_db(chart.volume) if chart.volume > 0.0 else -80.0
 			add_child(voice)
 			voices[s] = voice
@@ -105,6 +106,19 @@ func claim(keysounds : Array) -> void:
 func play() -> void:
 	startUsec = Time.get_ticks_usec()
 	playing = true
+
+# Start again at a time of the song, the earlier sounds are skipped (music select preview)
+func play_from(t : float) -> void:
+	for s in voices.size():
+		if voices[s] != null:
+			voices[s].stop()
+	voiceNote.fill(-1)
+	triggered.fill(0)
+	nextNote = 0
+	while nextNote < chart.keysounds.size() and chart.keysounds[nextNote].time < t:
+		nextNote += 1
+	play()
+	startUsec -= int((t + BmsChart.LEAD_IN) * 1000000.0)
 
 func get_playback_position() -> float:
 	return (Time.get_ticks_usec() - startUsec) / 1000000.0 if playing else 0.0

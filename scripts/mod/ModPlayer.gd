@@ -32,7 +32,8 @@ var nextNote : int = 0
 var gain : float = 1.0
 var startUsec : int = 0
 
-func _init(_module : ModModule) -> void:
+# The voices go to the panning buses sending to the bus send (the music select preview has its own)
+func _init(_module : ModModule, send : String = "Master") -> void:
 	module = _module
 	length = module.length + ModChart.LEAD_IN
 	owners.resize(module.notes.size())
@@ -54,20 +55,20 @@ func _init(_module : ModModule) -> void:
 		streams.append(stream)
 	for c in module.channels:
 		var voice : AudioStreamPlayer = AudioStreamPlayer.new()
-		voice.bus = panningBus(-1.0 if c % 4 in [0, 3] else 1.0)
+		voice.bus = panningBus(-1.0 if c % 4 in [0, 3] else 1.0, send)
 		add_child(voice)
 		voices.append(voice)
 		voiceNote.append(-1)
 		voiceEnv.append(0)
 
 # Bus panning the voices of one side, created once and kept for the next songs
-static func panningBus(side : float) -> String:
-	var bus_name : String = "ModLeft" if side < 0 else "ModRight"
+static func panningBus(side : float, send : String = "Master") -> String:
+	var bus_name : String = ("ModLeft" if side < 0 else "ModRight") + ("" if send == "Master" else send)
 	if AudioServer.get_bus_index(bus_name) == -1:
 		AudioServer.add_bus()
 		var index : int = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(index, bus_name)
-		AudioServer.set_bus_send(index, "Master")
+		AudioServer.set_bus_send(index, send)
 		var panner : AudioEffectPanner = AudioEffectPanner.new()
 		panner.pan = side * STEREO_SEPARATION
 		AudioServer.add_bus_effect(index, panner)
@@ -82,6 +83,18 @@ func claim(keysounds : Array) -> void:
 func play() -> void:
 	startUsec = Time.get_ticks_usec()
 	playing = true
+
+# Start again at a time of the module, the earlier notes are skipped (music select preview)
+func play_from(t : float) -> void:
+	for c in voices.size():
+		voices[c].stop()
+		voiceNote[c] = -1
+	triggered.fill(0)
+	nextNote = 0
+	while nextNote < module.notes.size() and module.notes[nextNote].time < t:
+		nextNote += 1
+	play()
+	startUsec -= int((t + ModChart.LEAD_IN) * 1000000.0)
 
 func get_playback_position() -> float:
 	return (Time.get_ticks_usec() - startUsec) / 1000000.0 if playing else 0.0

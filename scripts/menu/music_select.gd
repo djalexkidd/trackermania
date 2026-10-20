@@ -12,6 +12,7 @@ var effect_state = 0
 # Players can't join or leave when the music select is opened from netplay
 var netplay = false
 var songs_loading = true
+var song_preview: Node
 
 func _ready():
 	# Ensure all effects are initially disabled
@@ -33,6 +34,9 @@ func _ready():
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
 	
 	$AudioStreamPlayer.play()
+	song_preview = preload("res://scripts/menu/music_select/song_preview.gd").new()
+	song_preview.bgm = $AudioStreamPlayer
+	add_child(song_preview)
 	$SongWheel.hide()
 	$SongInfo/SongName.text = "Loading songs…"
 	await load_and_add_songs()

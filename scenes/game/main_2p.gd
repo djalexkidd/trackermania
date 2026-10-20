@@ -25,4 +25,4 @@ func playerFinished() -> void:
 		get_node("P%d/getready" % player).hide()
 	await get_tree().create_timer(RESULT_DELAY).timeout
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	get_tree().change_scene_to_file("res://scenes/result/result_screen_2p.tscn")
+	get_tree().change_scene_to_file("res://scenes/result/result.tscn")

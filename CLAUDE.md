@@ -39,14 +39,15 @@ scripts/
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs
-  result/                Écrans de résultats solo et versus
+  result/                result.gd (écran de résultats unique, solo et versus) et result_panel.gd (panneau d'un joueur)
 scenes/
   game/main.gd + .tscn   Terrain de jeu d'un joueur (le coeur du gameplay)
   game/main_p2.tscn      main.tscn côté 2P seul (player = 2)
   game/main_2p.gd/.tscn  Versus local : deux main.tscn côte à côte, un AudioStreamPlayer partagé
   game/note.gd           Une note (normale ou longue) qui descend
   game/judge.gd          Règles IIDX : fenêtres, EX-Score, jauge (class_name Judge)
-  menu/, result/         Scènes des menus et résultats
+  menu/                  Scènes des menus
+  result/result.tscn     Écran de résultats (solo et versus local)
   netplay/               lobby.tscn (salles et salle), result.tscn (résultats du round), img/crown.png
 ```
 
@@ -59,8 +60,15 @@ Menu titre -> sélection des musiques -> `song_entry._on_pressed()` règle `Load
 - `main.tscn` (P1 seul), `main_p2.tscn` (P2 seul) ou `main_2p.tscn` (versus) ;
 - en netplay, la sélection est ouverte depuis le lobby (choix de l'hôte), le round lance `main.tscn` sur chaque machine (voir Netplay).
 
-`main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats.
+`main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats (`scenes/result/result.tscn`, aussi pour le versus local).
 En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après la difficulté (`SongInfo/BestScore`).
+
+### Écran de résultats (`scripts/result/`)
+Un seul écran comme sur IIDX : 1P à gauche, 2P à droite (un seul panneau en solo, du côté du joueur), la musique au milieu, WIN/LOSE en versus. Pas d'image de fond pour l'instant.
+- `finish()` remplit `Global.result` / `p2_result` : `counts` (jugements, POOR vides compris), `fast`/`slow` (GREAT, GOOD, BAD en avance ou en retard, comme sur IIDX), `combo_break`, `miss_count` (BAD + POOR), `note_count`, `gauge_history` (jauge affichée après chaque jugement, en `Vector2(progression 0~1, jauge)`) et `previous_best` (le meilleur score lu avant `Scores.save_play()`). `Global.song_info` : titre, artiste, difficulté, niveau.
+- `result_panel.gd` dessine tout dans `_draw()` : le graphe de la jauge (zone rouge au-dessus de 80 %, ligne verte puis rouge, rouge en HARD) avec le DJ LEVEL par-dessus, SP / difficulté / niveau / notes, puis CLEAR TYPE, DJ LEVEL, EX SCORE et MISS COUNT (meilleur | cette partie, flèches UP!/DOWN et écarts vers le milieu), TARGET (pacemaker du DJ LEVEL suivant, MAX après AAA, avec les options de la partie), les jugements, COMBO BREAK, MAX COMBO, FAST/SLOW, le taux et la barre FAST/SLOW.
+- Apparition : la ligne de la jauge se dessine, le DJ LEVEL apparaît, les lignes arrivent une à une et les nombres défilent. Une première pression (START, touche 1 ou 7, Entrée, clic) termine l'animation, la suivante ramène à la sélection.
+- `Scores.save_play()` garde aussi le plus petit `miss_count`, sauf pour une partie échouée.
 
 ### Aperçu dans la sélection (`song_preview.gd`)
 Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est chargée dans un thread (`WorkerThreadPool`) et jouée 20 s en boucle, avec fondu, sur le bus `Preview` (créé à la volée, envoyé vers Master : l'effector s'applique). La BGM de la sélection est en pause pendant ce temps et reprend sur une catégorie ou une entrée aléatoire.

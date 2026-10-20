@@ -6,6 +6,8 @@ var combo_max = 0
 var combo_max_top = 0
 var failed = false
 var gauge_score = 0
+# Details of the last play for the result screen (judgements, FAST/SLOW, gauge graph, previous best)
+var result = {}
 
 var gauge_level = 0
 var keys_mode = 7
@@ -24,6 +26,7 @@ var p2_combo_max = 0
 var p2_combo_max_top = 0
 var p2_failed = false
 var p2_gauge_score = 0
+var p2_result = {}
 
 var p2_gauge_level = 0
 var p2_keys_mode = 7
@@ -31,6 +34,9 @@ var p2_hispeed = 1.0
 var p2_auto_play = false
 var p2_auto_scratch = false
 var p2_random = false
+
+# Song of the last play: title, artist, difficulty, level
+var song_info = {}
 
 var p1_name = ""
 var p2_name = ""

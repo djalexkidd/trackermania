@@ -83,6 +83,14 @@ var comboMax       : int     = 0
 var exScore        : int     = 0
 # Number of each judgement, for the netplay results
 var judgeCounts    : Dictionary = {"PGreat": 0, "Great": 0, "Good": 0, "Bad": 0, "Poor": 0}
+# Early and late GREAT, GOOD and BAD, and judgements that broke the combo, for the result screen
+var fastCount      : int     = 0
+var slowCount      : int     = 0
+var comboBreak     : int     = 0
+# Gauge after each judgement, as (song progress 0~1, shown gauge) for the graph of the result screen
+var gaugeHistory   : PackedVector2Array = []
+# Song shown on the result screen
+var songInfo       : Dictionary = {}
 # Number of judgements of the chart, a long note counts twice (press and release) like a CN
 var noteCount      : int     = 0
 # Groove gauge in percent (Judge rules), and what a PGREAT or GREAT recovers
@@ -152,11 +160,19 @@ func getLineArr(times : Array, sp : float) -> Array:
 		arr.pop_front()
 	return arr
 # Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
-func addJudge(judgement : String) -> void:
+# offset is how late the hit was in seconds (negative when early), 0 when there was no hit
+func addJudge(judgement : String, offset : float = 0.0) -> void:
 	exScore += Judge.EX_POINTS.get(judgement, 0)
 	judgeCounts[judgement] += 1
+	# FAST/SLOW like in IIDX: the PGREATs and the missed notes are not counted
+	if offset != 0.0 and judgement in ["Great", "Good", "Bad"]:
+		if offset < 0.0:
+			fastCount += 1
+		else:
+			slowCount += 1
 	updateGauge(judgement)
 	if judgement == "Bad" or judgement == "Poor":
+		comboBreak += 1
 		resetCombo(judgement)
 	else:
 		addCombo(judgement)
@@ -182,6 +198,7 @@ func resetCombo(judgement : String) -> void:
 func updateGauge(judgement : String) -> void:
 	gauge = Judge.gaugeChange(opt("gauge_level"), judgement, gauge, gaugeRecovery)
 	showGauge()
+	gaugeHistory.append(Vector2(clampf(currentSongPos / endPos, 0.0, 1.0), $GrooveGauge.value))
 	if gauge <= 0.0:
 		# Deferred because the note queues are still being iterated
 		finish.call_deferred(true)
@@ -219,6 +236,8 @@ func emptyPress(i : int) -> void:
 	if next == INF and noteArray[i]:
 		next = noteArray[i][0][0] + speed
 	if next - currentSongPos <= Judge.EMPTY_POOR_WINDOW / 1000.0:
+		# Counted in the POORs and the miss count like in IIDX, but it does not break the combo
+		judgeCounts["Poor"] += 1
 		updateGauge("EmptyPoor")
 		$anim.play("Poor")
 
@@ -336,6 +355,7 @@ func _ready() -> void:
 	if keysoundPlayer:
 		# The background music goes on after the last note
 		endPos = maxf(endPos, keysoundPlayer.length + ENDPOS_BIAS)
+	gaugeHistory.append(Vector2(0.0, $GrooveGauge.value))
 	if measures:
 		subLineArray = getLineArr(measures, speed)
 	else:
@@ -370,6 +390,7 @@ func loadQuaChart() -> bool:
 		return false
 	noteArray = chart.noteArray
 	measures = chart.measures
+	songInfo = {"title": chart.title, "artist": chart.artist, "level": chart.level}
 	var audio_path : String = Loader.file_path.get_base_dir().path_join(chart.audioFile)
 	# In local versus both playfields share the same audio player, only load it once
 	if get_node(audio).stream == null:
@@ -396,6 +417,7 @@ func loadModule() -> bool:
 	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"))
 	noteArray = chart.noteArray
 	keysoundArray = chart.keysoundArray
+	songInfo = {"title": keysoundPlayer.module.title, "artist": "Amiga module", "level": chart.level}
 	# The lines follow the measures of the module
 	measures = keysoundPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
 	return true
@@ -417,6 +439,7 @@ func loadBms() -> bool:
 	noteArray = keysoundPlayer.chart.noteArray.duplicate(true)
 	keysoundArray = keysoundPlayer.chart.keysoundArray.duplicate(true)
 	measures = keysoundPlayer.chart.measures.duplicate()
+	songInfo = {"title": keysoundPlayer.chart.title, "artist": keysoundPlayer.chart.artist, "level": keysoundPlayer.chart.level}
 	return true
 
 # Current time of the song (seconds)
@@ -459,7 +482,7 @@ func _process(delta) -> void:
 			endLongnote(i, "PGreat")
 		elif currentSongPos - shouldPressEnd[i] > Judge.BAD_WINDOW / 1000.0:
 			# Still held long after the end
-			endLongnote(i, "Bad")
+			endLongnote(i, "Bad", currentSongPos - shouldPressEnd[i])
 	# Create a note
 	for i in range(0, 8):
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
@@ -556,18 +579,18 @@ func keyPressed(i : int) -> bool:
 			keysoundPlayer.hit(queue[i][0].keysound)
 		if queue[i][0].isLongnote == false:
 			# General note
-			addJudge(queue[i][0].score)
+			addJudge(queue[i][0].score, currentSongPos - queue[i][0].hitTime)
 			queue[i][0].free()
 			queue[i].pop_front()
 		elif queue[i][0].score == "Bad":
 			# Long note failure, its release is lost too
-			addJudge("Bad")
+			addJudge("Bad", currentSongPos - queue[i][0].hitTime)
 			addJudge("Poor")
 			queue[i][0].longnoteFailed()
 			queue[i].pop_front()
 		else:
 			# Long note normal entry
-			startLongnote(i)
+			startLongnote(i, currentSongPos - queue[i][0].hitTime)
 		return true
 	return false
 # Show how early (-) or late (+) a note was hit, measured like the judgement from its y position
@@ -596,14 +619,14 @@ func updateQueue() -> void:
 				var judgement : String = Judge.judge(currentSongPos - n.hitTime)
 				n.score = judgement if judgement != "" else "Default"
 # Press a long note: the head is judged, the release will be judged at its end
-func startLongnote(i : int) -> void:
-	addJudge(queue[i][0].score)
+func startLongnote(i : int, offset : float = 0.0) -> void:
+	addJudge(queue[i][0].score, offset)
 	shouldPress[i] = true
 	shouldPressEnd[i] = queue[i][0].hitTime + queue[i][0].longnoteTime
 	queue[i][0].longnoteStart()
 # Judge the release of the held long note of a lane
-func endLongnote(i : int, judgement : String) -> void:
-	addJudge(judgement)
+func endLongnote(i : int, judgement : String, offset : float = 0.0) -> void:
+	addJudge(judgement, offset)
 	if judgement == "Poor":
 		queue[i][0].longnoteFailed()
 	queue[i].pop_front()
@@ -654,7 +677,7 @@ func updateInputState() -> void:
 		if (pressed[i] == false and shouldPress[i] and not (AUTOSCRATCH and i == 7)):
 			# Long note released, too early it is a POOR
 			var judgement : String = Judge.judge(currentSongPos - shouldPressEnd[i])
-			endLongnote(i, judgement if judgement != "" else "Poor")
+			endLongnote(i, judgement if judgement != "" else "Poor", currentSongPos - shouldPressEnd[i] if judgement != "" else 0.0)
 	# Light the lanes, the scratch lane included, and the keys
 	for i in range(0, 8):
 		get_node("pressed" + str(i+1)).visible = pressed[i]
@@ -702,6 +725,13 @@ func finish(failed : bool) -> void:
 	Global.set_player_var(player, "score", exScore * 100.0 / maxi(noteCount * 2, 1))
 	Global.set_player_var(player, "combo_max", comboMax)
 	Global.set_player_var(player, "gauge_score", $GrooveGauge.value)
+	# Details of the play and the best score before it, for the result screen
+	Global.set_player_var(player, "result", {
+		"counts": judgeCounts.duplicate(), "fast": fastCount, "slow": slowCount, "combo_break": comboBreak,
+		"miss_count": judgeCounts["Bad"] + judgeCounts["Poor"], "note_count": noteCount,
+		"gauge_history": gaugeHistory, "previous_best": Scores.get_best(Loader.file_path, Loader.chart_difficulty).duplicate(),
+	})
+	Global.song_info = songInfo.merged({"difficulty": Loader.chart_difficulty})
 	if netplay:
 		if not AUTOPLAY:
 			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
@@ -724,7 +754,7 @@ func finish(failed : bool) -> void:
 		if not AUTOPLAY:
 			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
+		get_tree().change_scene_to_file("res://scenes/result/result.tscn")
 # X position of the notes of a lane (0~6 keys, 7 scratch)
 func laneX(i : int) -> float:
 	if i == 7:

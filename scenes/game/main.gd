@@ -92,6 +92,12 @@ var previous_value := 0.0
 # The scratch lane stays lit this long after the analog turntable moved
 const SCRATCH_LIGHT_MS : int = 100
 var lastScratchMove : int = -SCRATCH_LIGHT_MS
+# Turntable disc speed in turns per second, clockwise is positive
+const DISC_SPEED     : float = 0.5
+const DISC_SPEED_FWD : float = 2.0
+const DISC_SPEED_REW : float = -1.5
+# Direction of the last analog turntable move (1 forward, -1 rewind)
+var scratchDirection : float = 1.0
 # Gets the end value of the note time information.
 func getEndPos(array : Array, sp : float, bias : float) -> float:
 	var result : float  = -1.0
@@ -402,7 +408,8 @@ func songPosition() -> float:
 	# The playback position only moves at each audio mix, the time since then makes it smooth
 	return QuaChart.LEAD_IN + player.get_playback_position() + AudioServer.get_time_since_last_mix()
 
-func _process(_delta) -> void:
+func _process(delta) -> void:
+	spinDisc(delta)
 	# Get current audio playback time
 	currentSongPos = songPosition()
 	# The notes come later when the sound is late (output latency and user offset)
@@ -576,6 +583,16 @@ func endLongnote(i : int, judgement : String) -> void:
 # Y position of a note at the current time, it reaches PERFECT_YPOS at its time
 func notePosition(time : float) -> float:
 	return PERFECT_YPOS * (1.0 - (time - currentSongPos) / speed)
+# Turn the disc: slowly clockwise, faster with Scratch+, backwards with Scratch-
+func spinDisc(delta : float) -> void:
+	var turns : float = DISC_SPEED
+	if Input.is_action_pressed(prefix + "digital_turntable_fwd"):
+		turns = DISC_SPEED_FWD
+	elif Input.is_action_pressed(prefix + "digital_turntable_rew"):
+		turns = DISC_SPEED_REW
+	elif Time.get_ticks_msec() - lastScratchMove < SCRATCH_LIGHT_MS:
+		turns = DISC_SPEED_FWD if scratchDirection > 0 else DISC_SPEED_REW
+	$P1Frame/TextureRect/Disc.rotation += TAU * turns * delta
 func updateInputState() -> void:
 	# Get the current analog value from the turntable
 	var current_value := Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
@@ -583,6 +600,9 @@ func updateInputState() -> void:
 	if current_value != previous_value:
 		keyPressed(7)
 		lastScratchMove = Time.get_ticks_msec()
+		# A jump of more than half the range is the axis wrapping around
+		var move : float = current_value - previous_value
+		scratchDirection = signf(move) if absf(move) < 1.0 else -signf(move)
 		# Update the previous value to the current one
 		previous_value = current_value
 	
@@ -696,6 +716,7 @@ func setupMirroredLayout() -> void:
 	turntable.flip_h = true
 	turntable.position.x = PLAYFIELD_WIDTH - turntable.size.x - $P1Frame.position.x
 	$P1Frame/TextureRect/Key8.position.x = turntable.size.x - $P1Frame/TextureRect/Key8.position.x
+	$P1Frame/TextureRect/Disc.position.x = turntable.size.x - $P1Frame/TextureRect/Disc.position.x
 	# Lines and judgement areas across the whole playfield (29~864 on 1P side, 22~857 on 2P side)
 	for node in [$"ui/9", $"ui/400~440", $"ui/440~480", $"ui/480~520", $sublinecontainer]:
 		node.position.x -= 7

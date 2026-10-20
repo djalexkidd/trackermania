@@ -4,8 +4,6 @@ extends Node2D
 
 # The perfect y coordinate to press on the screen
 const PERFECT_YPOS : float = 500
-# Y-axis end of the Gear UI
-const GEAR_END : float = 520
 # 2P side: horizontal shift of the keys, the scratch lane goes to their right
 const KEYS_SHIFT_2P : float = -142
 # 2P side: axis used to mirror the scratch lane (P1 scratch lane 28~164 becomes 722~858)
@@ -68,12 +66,18 @@ var done           : bool    = false
 var combo          : int     = 0
 # Maximum number of combos
 var comboMax       : int     = 0
-# Current score
-var currentScore   : float   = 0.0
-# Maximum points you can get
-var maximumScore   : float   = 0.0
+# Current EX score
+var exScore        : int     = 0
+# Number of judgements of the chart, a long note counts twice (press and release) like a CN
+var noteCount      : int     = 0
+# Groove gauge in percent (Judge rules), and what a PGREAT or GREAT recovers
+var gauge          : float   = 0.0
+var gaugeRecovery  : float   = 0.0
 # Analog
 var previous_value := 0.0
+# The scratch lane stays lit this long after the analog turntable moved
+const SCRATCH_LIGHT_MS : int = 100
+var lastScratchMove : int = -SCRATCH_LIGHT_MS
 # Gets the end value of the note time information.
 func getEndPos(array : Array, sp : float, bias : float) -> float:
 	var result : float  = -1.0
@@ -111,53 +115,55 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 	while (arr[0] < sp):
 		arr.pop_front()
 	return arr
-# Get the maximum number of points you can get.
-func getMaximumScore(notearr : Array) -> float:
-	var result : float = 0.0
-	for i in notearr:
-		for note in i:
-			if (len(note) == 1):
-				result += 1.0
-			else:
-				result += note[1] * 10.0
-	return result
+# Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
+func addJudge(judgement : String) -> void:
+	exScore += Judge.EX_POINTS.get(judgement, 0)
+	updateGauge(judgement)
+	if judgement == "Bad" or judgement == "Poor":
+		resetCombo(judgement)
+	else:
+		addCombo(judgement)
 # Add a combo.
 func addCombo(score : String) -> void:
 	combo += 1
 	if combo > comboMax:
 		comboMax = combo
-	if (score == "Perfect"):
-		currentScore += 1.0
-	elif (score == "Good"):
-		currentScore += 0.7
 	$combo.text = str(combo)
-	if combo % 2 == 0 and combo >= 50 and opt("gauge_level") == 2:
-		$GrooveGauge.value += 2
-	if combo % 2 == 0 and opt("gauge_level") < 2:
-		$GrooveGauge.value += 2
-	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
 	$anim.play(score)
 	await $anim.animation_finished
 	$anim.play("combo")
 	await $anim.animation_finished
 # Resets the combo.
-func resetCombo() -> void:
+func resetCombo(judgement : String) -> void:
 	combo = 0
 	$combo.text = str(combo)
-	$anim.play("Bad")
-	if opt("gauge_level") == 1:
-		$GrooveGauge.value -= 2
-	elif opt("gauge_level") == 2:
-		$GrooveGauge.value -= 8
-	else:
-		$GrooveGauge.value -= 4
-	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
-	if $GrooveGauge.value == 0 and opt("gauge_level") == 2:
-		# Deferred because the note queues are still being iterated
-		finish.call_deferred(true)
+	$anim.play(judgement)
 	await $anim.animation_finished
 	$anim.play("combo")
 	await $anim.animation_finished
+# Apply a judgement to the groove gauge, the HARD gauge fails at 0
+func updateGauge(judgement : String) -> void:
+	gauge = Judge.gaugeChange(opt("gauge_level"), judgement, gauge, gaugeRecovery)
+	showGauge()
+	if gauge <= 0.0:
+		# Deferred because the note queues are still being iterated
+		finish.call_deferred(true)
+func showGauge() -> void:
+	$GrooveGauge.value = Judge.gaugeDisplay(opt("gauge_level"), gauge)
+	$GrooveGauge/Label.text = str(int($GrooveGauge.value)) + " %"
+# A key pressed without a note to hit: an empty POOR if a note comes soon, it only hurts the gauge
+func emptyPress(i : int) -> void:
+	previewKeysound(i)
+	var next : float = INF
+	for n in queue[i]:
+		if n != null and n.longnoteScore == "":
+			next = n.hitTime
+			break
+	if next == INF and noteArray[i]:
+		next = noteArray[i][0][0] + speed
+	if next - currentSongPos <= Judge.EMPTY_POOR_WINDOW / 1000.0:
+		updateGauge("EmptyPoor")
+		$anim.play("Poor")
 
 # Get a game option of this player
 func opt(option : String):
@@ -198,7 +204,8 @@ func _ready() -> void:
 		keysoundArray[5] = []
 		keysoundArray[6] = []
 		lanes = range(5)
-	Global.set_player_var(player, "combo_max_top", getMaximumScore(noteArray))
+	noteCount = Judge.noteCount(noteArray)
+	Global.set_player_var(player, "combo_max_top", noteCount)
 	
 	if opt("random"):
 		randomize()
@@ -213,9 +220,10 @@ func _ready() -> void:
 		noteArray = shuffledNotes
 		keysoundArray = shuffledKeysounds
 	
-	if opt("gauge_level") == 2:
-		$GrooveGauge.value = 100
-		$GrooveGauge/Label.text = "100 %"
+	gauge = Judge.gaugeStart(opt("gauge_level"))
+	gaugeRecovery = Judge.gaugeRecovery(opt("gauge_level"), noteCount)
+	showGauge()
+	if opt("gauge_level") == Judge.HARD:
 		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
 		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
 	
@@ -252,7 +260,6 @@ func _ready() -> void:
 	elif (get_node(audio).stream.get_length() < endPos):
 		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
 	subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
-	maximumScore = getMaximumScore(noteArray)
 	if modPlayer:
 		# Auto played notes are played on time by the background music
 		for i in range(0, 8):
@@ -302,7 +309,10 @@ func loadModule() -> bool:
 
 # Current time of the song (seconds)
 func songPosition() -> float:
-	return modPlayer.get_playback_position() if modPlayer else get_node(audio).get_playback_position()
+	if modPlayer:
+		return modPlayer.get_playback_position()
+	# The playback position only moves at each audio mix, the time since then makes it smooth
+	return get_node(audio).get_playback_position() + AudioServer.get_time_since_last_mix()
 
 func _process(_delta) -> void:
 	# Get current audio playback time
@@ -315,10 +325,13 @@ func _process(_delta) -> void:
 		return
 	# Confirm completion of long note
 	for i in range(0, 8):
-		if shouldPressEnd[i] != -1.0 and shouldPressEnd[i] <= currentSongPos:
-			shouldPress[i] = false
-			shouldPressEnd[i] = -1.0
-			queue[i].pop_front()
+		if shouldPressEnd[i] == -1.0:
+			continue
+		if (AUTOPLAY or (AUTOSCRATCH and i == 7)) and shouldPressEnd[i] <= currentSongPos:
+			endLongnote(i, "PGreat")
+		elif currentSongPos - shouldPressEnd[i] > Judge.BAD_WINDOW / 1000.0:
+			# Still held long after the end
+			endLongnote(i, "Bad")
 	# Create a note
 	for i in range(0, 8):
 		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
@@ -329,6 +342,9 @@ func _process(_delta) -> void:
 				note.keysound = keysoundArray[i].pop_front()
 				lastKeysound[i] = note.keysound
 			var info : Array = noteArray[i].pop_front()
+			note.hitTime = info[0] + speed
+			note.perfectYpos = PERFECT_YPOS
+			note.comboTicks = false
 			if (len(info) == 1):
 				# Create a general note
 				note.setNote(i+1, speed, coordPerFrame)
@@ -338,20 +354,20 @@ func _process(_delta) -> void:
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
 			container.get_child(container.get_child_count()-1).position.x = laneX(i)
-			container.get_child(container.get_child_count()-1).position.y += coordPerFrame * (currentSongPos - info[0]) / 60
+			container.get_child(container.get_child_count()-1).position.y = notePosition(note.hitTime)
 			queue[i].append(container.get_child(container.get_child_count()-1))
 	# Create auxiliary line
 	if (subLineArray and subLineArray[0] <= currentSongPos):
-		subLineArray.pop_front()
 		var line : Line2D = Line2D.new()
+		line.set_meta("time", subLineArray.pop_front() + speed)
 		line.width = 1
 		line.points = [Vector2(-37, 0), Vector2(800, 0)]
 		$sublinecontainer.add_child(line)
 	# Move & Delete Auxiliary Lines
 	for line in $sublinecontainer.get_children():
+		line.position.y = notePosition(line.get_meta("time"))
 		if line.position.y >= PERFECT_YPOS:
 			line.queue_free()
-		line.position.y += coordPerFrame
 	# Give up (works in auto play too)
 	if Input.is_action_just_pressed(prefix + "meta"):
 		finish(true)
@@ -376,69 +392,62 @@ func autoscratch():
 	if (queue[7] and queue[7][0] == null):
 		queue[7].pop_front()
 	if (queue[7] and queue[7][0].isLongnote == false):
-		if (queue[7][0].position.y >= PERFECT_YPOS):
-			queue[7][0].score = "Perfect"
-			addCombo(queue[7][0].score)
+		if (queue[7][0].hitTime <= currentSongPos):
+			queue[7][0].score = "PGreat"
+			addJudge(queue[7][0].score)
 			queue[7][0].free()
 			queue[7].pop_front()
 	elif (queue[7] and queue[7][0].isLongnote == true and queue[7][0].longnoteScore == ""):
-		if (queue[7][0].position.y >= PERFECT_YPOS):
-			queue[7][0].score = "Perfect"
-			shouldPress[7] = true
-			shouldPressEnd[7] = currentSongPos + queue[7][0].longnoteTime
-			queue[7][0].longnoteStart()
+		if (queue[7][0].hitTime <= currentSongPos):
+			queue[7][0].score = "PGreat"
+			startLongnote(7)
 
 func autoplay():
 	for i in range(0, 8):
 		if (queue[i] and queue[i][0] == null):
 			queue[i].pop_front()
 		if (queue[i] and queue[i][0].isLongnote == false):
-			if (queue[i][0].position.y >= PERFECT_YPOS):
-				queue[i][0].score = "Perfect"
-				addCombo(queue[i][0].score)
+			if (queue[i][0].hitTime <= currentSongPos):
+				queue[i][0].score = "PGreat"
+				addJudge(queue[i][0].score)
 				queue[i][0].free()
 				queue[i].pop_front()
 		elif (queue[i] and queue[i][0].isLongnote == true and queue[i][0].longnoteScore == ""):
-			if (queue[i][0].position.y >= PERFECT_YPOS):
-				queue[i][0].score = "Perfect"
-				shouldPress[i] = true
-				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
-				queue[i][0].longnoteStart()
+			if (queue[i][0].hitTime <= currentSongPos):
+				queue[i][0].score = "PGreat"
+				startLongnote(i)
 # Called when the i-th channel key is pressed, returns false if there was no note to hit
 func keyPressed(i : int) -> bool:
+	# The long note is already held (analog turntable)
+	if shouldPress[i]:
+		return true
 	# If the first note in that channel is scored
 	if len(queue[i]) != 0 and queue[i][0].score != "Default":
 		showTiming(queue[i][0])
 		# The keysound plays even for a bad timing like in IIDX
 		if modPlayer:
 			modPlayer.hit(queue[i][0].keysound)
-		if queue[i][0].score == "Bad":
-			resetCombo()
-			if queue[i][0].isLongnote == false:
-				# General note failure
-				queue[i][0].free()
-			else:
-				# Long note failure
-				queue[i][0].longnoteFailed()
+		if queue[i][0].isLongnote == false:
+			# General note
+			addJudge(queue[i][0].score)
+			queue[i][0].free()
+			queue[i].pop_front()
+		elif queue[i][0].score == "Bad":
+			# Long note failure, its release is lost too
+			addJudge("Bad")
+			addJudge("Poor")
+			queue[i][0].longnoteFailed()
 			queue[i].pop_front()
 		else:
-			if (queue[i][0].isLongnote == false):
-				# General notes completed
-				addCombo(queue[i][0].score)
-				queue[i][0].free()
-				queue[i].pop_front()
-			else:
-				# Long note normal entry
-				shouldPress[i] = true
-				shouldPressEnd[i] = currentSongPos + queue[i][0].longnoteTime
-				queue[i][0].longnoteStart()
+			# Long note normal entry
+			startLongnote(i)
 		return true
 	return false
 # Show how early (-) or late (+) a note was hit, measured like the judgement from its y position
 func showTiming(n : Note) -> void:
 	if not Global.show_timing:
 		return
-	var ms : int = roundi((n.position.y - PERFECT_YPOS) / PERFECT_YPOS * speed * 1000.0)
+	var ms : int = roundi((currentSongPos - n.hitTime) * 1000.0)
 	$score/timing.text = "%+dms" % ms
 	# Fast in blue, slow in red like in IIDX
 	$score/timing.add_theme_color_override("font_color", Color(0.3, 0.6, 1) if ms < 0 else Color(1, 0.3, 0.3))
@@ -452,75 +461,85 @@ func previewKeysound(i : int) -> void:
 			modPlayer.preview(n.keysound)
 			return
 	modPlayer.preview(keysoundArray[i][0] if keysoundArray[i] else lastKeysound[i])
+# Judge the notes from the time left before them
 func updateQueue() -> void:
 	for q in queue:
 		for n in q:
-			var m = n.position.y
-			if (m < 400): continue
-			if (400 <= m and m < 440): 
-				n.score = "Bad"
-			elif (440 <= m and m < 480):
-				n.score = "Good"
-			elif (480 <= m and m < 520):
-				n.score = "Perfect"
+			if n.longnoteScore == "":
+				var judgement : String = Judge.judge(currentSongPos - n.hitTime)
+				n.score = judgement if judgement != "" else "Default"
+# Press a long note: the head is judged, the release will be judged at its end
+func startLongnote(i : int) -> void:
+	addJudge(queue[i][0].score)
+	shouldPress[i] = true
+	shouldPressEnd[i] = queue[i][0].hitTime + queue[i][0].longnoteTime
+	queue[i][0].longnoteStart()
+# Judge the release of the held long note of a lane
+func endLongnote(i : int, judgement : String) -> void:
+	addJudge(judgement)
+	if judgement == "Poor":
+		queue[i][0].longnoteFailed()
+	queue[i].pop_front()
+	shouldPress[i] = false
+	shouldPressEnd[i] = -1.0
+# Y position of a note at the current time, it reaches PERFECT_YPOS at its time
+func notePosition(time : float) -> float:
+	return PERFECT_YPOS * (1.0 - (time - currentSongPos) / speed)
 func updateInputState() -> void:
 	# Get the current analog value from the turntable
 	var current_value := Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
 	# Check if the analog value has changed since the last frame
 	if current_value != previous_value:
-		# Calculate the rotation difference
-		var rotation_difference := (current_value - previous_value)
-		# Apply the rotation difference
-		pressed[7] = true
 		keyPressed(7)
-
+		lastScratchMove = Time.get_ticks_msec()
 		# Update the previous value to the current one
 		previous_value = current_value
-	else:
-		pressed[7] = false
 	
 	if (Input.is_action_just_pressed(prefix + "digital_turntable_rew")):
-		pressed[7] = true
 		if not keyPressed(7):
-			previewKeysound(7)
-	if (Input.is_action_just_released(prefix + "digital_turntable_rew")):
-		pressed[7] = false
+			emptyPress(7)
 	
+	# Scratch held while a digital direction is held or just after the analog turntable moved
+	pressed[7] = Input.is_action_pressed(prefix + "digital_turntable_fwd") or Input.is_action_pressed(prefix + "digital_turntable_rew") \
+		or Time.get_ticks_msec() - lastScratchMove < SCRATCH_LIGHT_MS
+
+	for i in range(0, 8):
+		if (Input.is_action_just_pressed(keycodes[i])):
+			if i != 7:
+				pressed[i] = true
+			if not keyPressed(i):
+				emptyPress(i)
+		if (Input.is_action_just_released(keycodes[i]) and i != 7):
+			pressed[i] = false
+		if (pressed[i] == false and shouldPress[i] and not (AUTOSCRATCH and i == 7)):
+			# Long note released, too early it is a POOR
+			var judgement : String = Judge.judge(currentSongPos - shouldPressEnd[i])
+			endLongnote(i, judgement if judgement != "" else "Poor")
+	# Light the lanes, the scratch lane included
 	for i in range(0, 8):
 		get_node("pressed" + str(i+1)).visible = pressed[i]
-		if (Input.is_action_just_pressed(keycodes[i])):
-			pressed[i] = true
-			if not keyPressed(i):
-				previewKeysound(i)
-		if (Input.is_action_just_released(keycodes[i])):
-			pressed[i] = false
-		if (pressed[i] == false and shouldPress[i]):
-			# Failed while pressing long note
-			resetCombo()
-			queue[i][0].longnoteFailed()
-			queue[i].pop_front()
-			shouldPressEnd[i] = -1.0
-			shouldPress[i] = false
 func dequeue() -> void:
 	for i in range(0, 8):
-		if (len(queue[i]) != 0 and queue[i][0] != null and queue[i][0].position.y >= GEAR_END):
+		if (len(queue[i]) != 0 and queue[i][0] != null and currentSongPos - queue[i][0].hitTime > Judge.BAD_WINDOW / 1000.0):
 			# If it's a long note
 			if (queue[i][0].isLongnote == true):
-				# If you didn't press it in the first place
+				# If you didn't press it in the first place, the press and the release are missed
 				if (not shouldPress[i]):
 					$score/timing.hide()
 					queue[i][0].longnoteFailed()
 					queue[i].pop_front()
-					resetCombo()
+					addJudge("Poor")
+					addJudge("Poor")
 			# If it's a general note
 			else:
 				$score/timing.hide()
 				queue[i].pop_front()
-				resetCombo()
+				addJudge("Poor")
 func killGarbage() -> void:
 	for i in range(1, 9):
 		for n in get_node("container" + str(i)).get_children():
-			if (n.position.y - n.effect.size.y >= 600):
+			# The late notes stay until they are judged
+			if (n.position.y - n.effect.size.y >= 600 and not queue[i-1].has(n)):
 				n.free()
 # Store this player's results, then show them (or wait for the other player in versus)
 func finish(failed : bool) -> void:
@@ -535,7 +554,9 @@ func finish(failed : bool) -> void:
 			n.queue_free()
 	queue = [[], [], [], [], [], [], [], []]
 	Global.set_player_var(player, "failed", failed)
-	Global.set_player_var(player, "score", snapped(currentScore / maximumScore * 100.0, 0.1))
+	Global.set_player_var(player, "ex_score", exScore)
+	# Rate of the EX score over its maximum (2 per note), gives the grade
+	Global.set_player_var(player, "score", exScore * 100.0 / maxi(noteCount * 2, 1))
 	Global.set_player_var(player, "combo_max", comboMax)
 	Global.set_player_var(player, "gauge_score", $GrooveGauge.value)
 	if versus:

@@ -10,7 +10,7 @@ func _ready() -> void:
 		panel.get_node("VersusLabel").add_theme_color_override("font_color", Global.VERSUS_RESULT_COLORS[result])
 		panel.get_node("ClearLabel").text = clear[0]
 		panel.get_node("ClearLabel").add_theme_color_override("font_color", clear[1])
-		panel.get_node("ScoreLabel").text = "Accuracy: " + str(Global.get_player_var(player, "score")) + "%"
+		panel.get_node("ScoreLabel").text = get_score_text(player)
 		panel.get_node("ComboLabel").text = "Max combo: " + str(Global.get_player_var(player, "combo_max"))
 		panel.get_node("RankLabelValue").text = get_rank(player)
 	
@@ -19,7 +19,9 @@ func _ready() -> void:
 
 func _on_button_pressed() -> void:
 	Global.score = 0
+	Global.ex_score = 0
 	Global.combo_max = 0
 	Global.p2_score = 0
+	Global.p2_ex_score = 0
 	Global.p2_combo_max = 0
 	get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")

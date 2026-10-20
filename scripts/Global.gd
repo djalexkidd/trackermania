@@ -1,6 +1,7 @@
 extends Node
 
 var score = 0
+var ex_score = 0
 var combo_max = 0
 var combo_max_top = 0
 var failed = false
@@ -18,6 +19,7 @@ var p1_joined = true
 var p2_joined = false
 
 var p2_score = 0
+var p2_ex_score = 0
 var p2_combo_max = 0
 var p2_combo_max_top = 0
 var p2_failed = false

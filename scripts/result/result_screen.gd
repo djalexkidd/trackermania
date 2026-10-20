@@ -4,7 +4,7 @@ extends Control
 var player = 1 if Global.p1_joined else 2
 
 func _ready() -> void:
-	$ScoreLabel.text = "Accuracy: " + str(Global.get_player_var(player, "score")) + "%"
+	$ScoreLabel.text = get_score_text(player)
 	$ComboLabel.text = "Max combo: " + str(Global.get_player_var(player, "combo_max"))
 	$VBoxContainer/RankLabelValue.text = get_rank(player)
 	
@@ -14,24 +14,16 @@ func _ready() -> void:
 	
 	Global.set_player_var(player, "failed", false)
 
-# Rank letter of a player's score
+# EX score of a player with its rate
+func get_score_text(player: int) -> String:
+	return "EX Score: %d (%.2f%%)" % [Global.get_player_var(player, "ex_score"), Global.get_player_var(player, "score")]
+
+# Rank letter of a player's score, one rank every 1/9 of the maximum EX score like in IIDX
 func get_rank(player: int) -> String:
-	var score = Global.get_player_var(player, "score")
-	if score >= 88.89:
-		return "AAA"
-	elif score >= 77.78:
-		return "AA"
-	elif score >= 66.67:
-		return "A"
-	elif score >= 55.56:
-		return "B"
-	elif score >= 44.44:
-		return "C"
-	elif score >= 33.33:
-		return "D"
-	elif score >= 22.22:
-		return "E"
-	return "F"
+	var ranks = ["F", "F", "E", "D", "C", "B", "A", "AA", "AAA", "AAA"]
+	# The small margin keeps exactly 8/9 in AAA despite the float rounding
+	var ninths = int(Global.get_player_var(player, "score") * 9.0 / 100.0 + 0.000001)
+	return ranks[clampi(ninths, 0, 9)]
 
 # Clear lamp of a player as [text, color]
 func get_clear(player: int) -> Array:
@@ -58,5 +50,6 @@ func get_clear(player: int) -> Array:
 
 func _on_button_pressed() -> void:
 	Global.set_player_var(player, "score", 0)
+	Global.set_player_var(player, "ex_score", 0)
 	Global.set_player_var(player, "combo_max", 0)
 	get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")

@@ -23,6 +23,11 @@ var autoScratch : bool = Global.auto_scratch
 var scratchOnRight : bool = false
 # Keysound played when the note is hit (Amiga modules only)
 var keysound : int = -1
+# Song time when the note reaches perfectYpos, the note then follows the song time instead of the frames
+var hitTime : float = -1.0
+var perfectYpos : float
+# Long notes add a combo 10 times per second while held (netplay), main.gd judges their release instead
+var comboTicks : bool = true
 
 # Score when long note is pressed
 var longnoteScore : String = ""
@@ -59,6 +64,8 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 
 func longnoteStart():
 	longnoteScore = score
+	if not comboTicks:
+		return
 	var longnoteStartPos = position.y
 	var step = 10 / speed
 	var index = snapped(longnoteStartPos, 1)
@@ -79,7 +86,10 @@ func longnoteFailed():
 	$LN_Effect.color = Color("d38b8e")
 
 func _process(_delta):
-	self.position.y += coordPerFrame
+	if hitTime >= 0.0:
+		position.y = perfectYpos * (1.0 - (hitTime - get_parent().get_parent().currentSongPos) / speed)
+	else:
+		self.position.y += coordPerFrame
 	# If it is a long note and the combo queue is not empty, add the combo.
 	if (isLongnote and longnoteComboQueue != []):
 		if (position.y >= longnoteComboQueue[0]):

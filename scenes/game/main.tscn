@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dqo644576we4d"]
+[gd_scene load_steps=16 format=3 uid="uid://dqo644576we4d"]
 
 [ext_resource type="Script" uid="uid://ben076tp58g38" path="res://scenes/game/main.gd" id="1_2b8v7"]
 [ext_resource type="Texture2D" uid="uid://bl0lp2l46fft0" path="res://assets/play/p1_frame.png" id="3_8tcdk"]
@@ -40,7 +40,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": ["Bad"]
+"values": ["BAD"]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -53,6 +53,47 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Color(0.882353, 0, 0.270588, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_poor"]
+resource_name = "Poor"
+length = 0.1
+step = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("score:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("score:text")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["POOR"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("score:theme_override_colors/font_color")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.6, 0.6, 0.6, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_q54hi"]
@@ -81,7 +122,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": ["Good"]
+"values": ["GOOD"]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -96,8 +137,49 @@ tracks/2/keys = {
 "values": [Color(0, 1, 0.0980392, 1)]
 }
 
+[sub_resource type="Animation" id="Animation_great"]
+resource_name = "Great"
+length = 0.1
+step = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("score:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("score:text")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["GREAT"]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("score:theme_override_colors/font_color")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 0.85, 0, 1)]
+}
+
 [sub_resource type="Animation" id="Animation_r63dx"]
-resource_name = "Perfect"
+resource_name = "PGreat"
 length = 0.1
 step = 0.01
 tracks/0/type = "value"
@@ -134,7 +216,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": ["Perfect"]
+"values": ["P-GREAT"]
 }
 
 [sub_resource type="Animation" id="Animation_krr70"]
@@ -158,7 +240,9 @@ tracks/0/keys = {
 _data = {
 &"Bad": SubResource("Animation_ou11v"),
 &"Good": SubResource("Animation_q54hi"),
-&"Perfect": SubResource("Animation_r63dx"),
+&"Great": SubResource("Animation_great"),
+&"PGreat": SubResource("Animation_r63dx"),
+&"Poor": SubResource("Animation_poor"),
 &"combo": SubResource("Animation_krr70")
 }
 

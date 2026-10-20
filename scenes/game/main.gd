@@ -102,6 +102,14 @@ const DISC_SPEED_FWD : float = 2.0
 const DISC_SPEED_REW : float = -1.5
 # Direction of the last analog turntable move (1 forward, -1 rewind)
 var scratchDirection : float = 1.0
+# Key faces in p1_frame.png: white keys 1/3/5/7 and black keys 2/4/6, one key every 198 px per color
+const KEY_WHITE_RECT : Rect2 = Rect2(42, 31, 68, 75)
+const KEY_BLACK_RECT : Rect2 = Rect2(137, 21, 72, 71)
+const KEY_SPACING    : float = 198
+# Pressed keys light up in red like in IIDX (the black keys are darker, so their tint is brighter)
+const KEY_LIGHT_WHITE : Color = Color(1.0, 0.25, 0.25)
+const KEY_LIGHT_BLACK : Color = Color(2.6, 0.5, 0.5)
+var keyLights : Array[TextureRect] = []
 # Gets the end value of the note time information.
 func getEndPos(array : Array, sp : float, bias : float) -> float:
 	var result : float  = -1.0
@@ -288,6 +296,7 @@ func _ready() -> void:
 	if opt("gauge_level") == Judge.HARD:
 		$GrooveGauge.texture_progress = load("res://assets/play/progress_hard.png")
 		$GrooveGauge.texture_under = load("res://assets/play/groove_gauge_hard.png")
+	createKeyLights()
 	gaugeFlicker = TextureRect.new()
 	gaugeFlicker.texture = AtlasTexture.new()
 	gaugeFlicker.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -646,9 +655,11 @@ func updateInputState() -> void:
 			# Long note released, too early it is a POOR
 			var judgement : String = Judge.judge(currentSongPos - shouldPressEnd[i])
 			endLongnote(i, judgement if judgement != "" else "Poor")
-	# Light the lanes, the scratch lane included
+	# Light the lanes, the scratch lane included, and the keys
 	for i in range(0, 8):
 		get_node("pressed" + str(i+1)).visible = pressed[i]
+	for i in range(0, 7):
+		keyLights[i].visible = pressed[i]
 func dequeue() -> void:
 	for i in range(0, 8):
 		if (len(queue[i]) != 0 and queue[i][0] != null and currentSongPos - queue[i][0].hitTime > Judge.BAD_WINDOW / 1000.0):
@@ -679,6 +690,7 @@ func finish(failed : bool) -> void:
 	done = true
 	set_process(false)
 	for i in range(1, 9): get_node("pressed" + str(i)).visible = false
+	for light in keyLights: light.visible = false
 	for i in $sublinecontainer.get_children(): i.free()
 	for i in range(1, 9):
 		for n in get_node("container" + str(i)).get_children():
@@ -728,6 +740,24 @@ func setupVersusLayout() -> void:
 	$isautoplay.move_to_front()
 	# The background must still hide long notes below the frame, down to the bottom of the screen
 	$Background.size = Vector2(PLAYFIELD_WIDTH, 1000)
+# Red copy of each key face of the frame, shown while the key is held
+func createKeyLights() -> void:
+	for i in range(0, 7):
+		var white : bool = i % 2 == 0
+		var region : Rect2 = KEY_WHITE_RECT if white else KEY_BLACK_RECT
+		region.position.x += KEY_SPACING * floorf(i / 2.0)
+		var atlas := AtlasTexture.new()
+		atlas.atlas = $P1Frame.texture
+		atlas.region = region
+		var light := TextureRect.new()
+		light.texture = atlas
+		light.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		light.position = region.position
+		light.modulate = KEY_LIGHT_WHITE if white else KEY_LIGHT_BLACK
+		light.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		light.visible = false
+		$P1Frame.add_child(light)
+		keyLights.append(light)
 # 2P side like in IIDX: keys on the left, scratch lane on the right, HUD mirrored
 func setupMirroredLayout() -> void:
 	# Keys

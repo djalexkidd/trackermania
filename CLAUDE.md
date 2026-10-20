@@ -32,6 +32,8 @@ scripts/
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector)
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
                          song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
+                         game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :
+                         choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, AUTO PLAY et HI-SPEED sous les touches 1 et 7
     controller_test/     CONTROLLER SETUP : controller_panel.gd (platine IIDX dessinée d'un joueur, test et remappage) ;
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
@@ -94,6 +96,7 @@ Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load
 - **POOR vide** (`emptyPress()`) : une touche pressée sans note à frapper, alors qu'une note de la lane arrive dans moins de 500 ms, abîme la jauge sans casser le combo.
 - L'horloge est `songPosition() - AudioServer.get_output_latency()` ; pour un MP3/OGG, `songPosition()` ajoute `AudioServer.get_time_since_last_mix()`, sinon elle avance par saccades de la taille d'un mixage (fatal avec des fenêtres de ±16 ms).
 - RANDOM mélange seulement les touches (0~6, ou 0~4 en 5 touches) ; le scratch ne bouge jamais, comme sur IIDX. En 5 touches, les lanes 5 et 6 sont vidées au chargement.
+- Les touches enfoncées s'allument en rouge comme sur IIDX (`createKeyLights()`) : une copie teintée de chaque touche de `p1_frame.png` (zones `KEY_WHITE_RECT`/`KEY_BLACK_RECT`, une touche tous les `KEY_SPACING` px), enfant de `P1Frame`.
 - Côté 2P (`mirrored`) l'interface est inversée, avec le scratch à droite.
 
 ## Modules Amiga keysoundés (`scripts/mod/`)

@@ -18,7 +18,6 @@
 [ext_resource type="FontFile" uid="uid://bmqjsoyv3o27y" path="res://assets/font/tallpixelfont.ttf" id="8_qtw6o"]
 [ext_resource type="Script" uid="uid://mmou6ix3nudg" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
 [ext_resource type="Texture2D" uid="uid://b23buntq635jn" path="res://assets/music_select/difficulty.png" id="9_g2fnn"]
-[ext_resource type="Texture2D" uid="uid://cht6hbw5e3txs" path="res://assets/music_select/keyboard.png" id="9_vpjg6"]
 [ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="10_rocpe"]
 [ext_resource type="AudioStream" uid="uid://csvkylr0deve0" path="res://assets/music_select/close.ogg" id="11_uuciq"]
 
@@ -1108,90 +1107,6 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
 script = ExtResource("9_fxi4t")
 
-[node name="TextureRect" type="TextureRect" parent="GameOptionSettings" unique_id=1516365588]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -164.0
-offset_top = -82.0
-offset_right = 164.0
-offset_bottom = 82.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("9_vpjg6")
-
-[node name="GameOptionLabel" type="Label" parent="GameOptionSettings" unique_id=573192895]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -119.0
-offset_top = 32.0
-offset_right = 119.0
-offset_bottom = 55.0
-grow_horizontal = 2
-theme_override_fonts/font = ExtResource("1_mbwtn")
-text = "GAME OPTIONS"
-
-[node name="AutoPlayLabel" type="Label" parent="GameOptionSettings" unique_id=1770259871]
-layout_mode = 0
-offset_left = 67.0
-offset_top = 352.0
-offset_right = 112.0
-offset_bottom = 375.0
-text = "AUTO"
-
-[node name="HiSpeedLabel" type="Label" parent="GameOptionSettings" unique_id=658123070]
-layout_mode = 0
-offset_left = 324.0
-offset_top = 352.0
-offset_right = 395.0
-offset_bottom = 375.0
-text = "HI-SPEED"
-
-[node name="EasyGaugeLabel" type="Label" parent="GameOptionSettings" unique_id=594642792]
-layout_mode = 0
-offset_left = 204.0
-offset_top = 130.0
-offset_right = 244.0
-offset_bottom = 153.0
-text = "EASY"
-
-[node name="HardGaugeLabel" type="Label" parent="GameOptionSettings" unique_id=1564379859]
-layout_mode = 0
-offset_left = 201.0
-offset_top = 152.0
-offset_right = 246.0
-offset_bottom = 175.0
-text = "HARD"
-
-[node name="RandomLabel" type="Label" parent="GameOptionSettings" unique_id=443717854]
-layout_mode = 0
-offset_left = 97.0
-offset_top = 152.0
-offset_right = 170.0
-offset_bottom = 175.0
-text = "RANDOM"
-
-[node name="AutoScratchLabel" type="Label" parent="GameOptionSettings" unique_id=1283345434]
-layout_mode = 0
-offset_left = 291.0
-offset_top = 130.0
-offset_right = 338.0
-offset_bottom = 153.0
-text = "AUTO SCRATCH"
-
-[node name="FiveKeysLabel" type="Label" parent="GameOptionSettings" unique_id=1481267818]
-layout_mode = 0
-offset_left = 291.0
-offset_top = 152.0
-offset_right = 338.0
-offset_bottom = 175.0
-text = "5KEYS"
-
 [node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettings" unique_id=855704338]
 stream = ExtResource("10_rocpe")
 
@@ -1210,90 +1125,6 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
 script = ExtResource("9_fxi4t")
 player = 2
-
-[node name="TextureRect" type="TextureRect" parent="GameOptionSettingsP2" unique_id=794561802]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -164.0
-offset_top = -82.0
-offset_right = 164.0
-offset_bottom = 82.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("9_vpjg6")
-
-[node name="GameOptionLabel" type="Label" parent="GameOptionSettingsP2" unique_id=2010096810]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -119.0
-offset_top = 32.0
-offset_right = 119.0
-offset_bottom = 55.0
-grow_horizontal = 2
-theme_override_fonts/font = ExtResource("1_mbwtn")
-text = "2P GAME OPTIONS"
-
-[node name="AutoPlayLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1628815285]
-layout_mode = 0
-offset_left = 67.0
-offset_top = 352.0
-offset_right = 112.0
-offset_bottom = 375.0
-text = "AUTO"
-
-[node name="HiSpeedLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1755159374]
-layout_mode = 0
-offset_left = 324.0
-offset_top = 352.0
-offset_right = 395.0
-offset_bottom = 375.0
-text = "HI-SPEED"
-
-[node name="EasyGaugeLabel" type="Label" parent="GameOptionSettingsP2" unique_id=693589031]
-layout_mode = 0
-offset_left = 204.0
-offset_top = 130.0
-offset_right = 244.0
-offset_bottom = 153.0
-text = "EASY"
-
-[node name="HardGaugeLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1622496134]
-layout_mode = 0
-offset_left = 201.0
-offset_top = 152.0
-offset_right = 246.0
-offset_bottom = 175.0
-text = "HARD"
-
-[node name="RandomLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1766581195]
-layout_mode = 0
-offset_left = 97.0
-offset_top = 152.0
-offset_right = 170.0
-offset_bottom = 175.0
-text = "RANDOM"
-
-[node name="AutoScratchLabel" type="Label" parent="GameOptionSettingsP2" unique_id=533364720]
-layout_mode = 0
-offset_left = 291.0
-offset_top = 130.0
-offset_right = 338.0
-offset_bottom = 153.0
-text = "AUTO SCRATCH"
-
-[node name="FiveKeysLabel" type="Label" parent="GameOptionSettingsP2" unique_id=1432731081]
-layout_mode = 0
-offset_left = 291.0
-offset_top = 152.0
-offset_right = 338.0
-offset_bottom = 175.0
-text = "5KEYS"
 
 [node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettingsP2" unique_id=265986722]
 stream = ExtResource("10_rocpe")

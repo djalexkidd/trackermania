@@ -110,9 +110,13 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 	while (index < endpos):
 		arr.append(index)
 		index += sec
+	return getLineArr(arr, sp)
+# Shift line times like the notes, dropping the lines too early to come from the top
+func getLineArr(times : Array, sp : float) -> Array:
+	var arr : Array = times.duplicate()
 	for i in range(len(arr)):
 		arr[i] -= sp
-	while (arr[0] < sp):
+	while (arr and arr[0] < sp):
 		arr.pop_front()
 	return arr
 # Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
@@ -259,7 +263,12 @@ func _ready() -> void:
 		endPos = maxf(endPos, modPlayer.length + ENDPOS_BIAS)
 	elif (get_node(audio).stream.get_length() < endPos):
 		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
-	subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
+	if modPlayer:
+		# The lines follow the measures of the module
+		var measures : Array = modPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
+		subLineArray = getLineArr(measures, speed)
+	else:
+		subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
 	if modPlayer:
 		# Auto played notes are played on time by the background music
 		for i in range(0, 8):

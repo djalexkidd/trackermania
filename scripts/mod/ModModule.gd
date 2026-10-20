@@ -10,6 +10,8 @@ const AMIGA_CLOCK : float = 3546895.0
 const PERIOD_MIN : int = 113
 const PERIOD_MAX : int = 856
 const ROWS : int = 64
+# Rows of a measure, most modules have 4 rows per beat and 4 beats per measure
+const ROWS_PER_MEASURE : int = 16
 # Stop the replay of songs looping forever (seconds)
 const MAX_LENGTH : float = 1200.0
 # ProTracker vibrato and tremolo waveform
@@ -27,6 +29,8 @@ var patterns : Array = []
 var notes : Array = []
 # Duration of the song (seconds)
 var length : float = 0.0
+# Start time of each measure (seconds), they follow the tempo changes of the song
+var measures : Array = []
 
 static func load_file(path : String) -> ModModule:
 	var module : ModModule = ModModule.new()
@@ -122,6 +126,8 @@ func replay() -> void:
 		if visited.has(key) and not state.any(func(ch): return ch.loop_count > 0):
 			break
 		visited[key] = true
+		if row % ROWS_PER_MEASURE == 0:
+			measures.append(time)
 		var pattern : PackedByteArray = patterns[order[order_pos]]
 		var flow : Dictionary = {"jump_order": -1, "break_row": -1, "loop_row": -1, "row_delay": 0, "stop": false}
 		for c in channels:

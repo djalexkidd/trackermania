@@ -407,6 +407,7 @@ func autoplay():
 func keyPressed(i : int) -> bool:
 	# If the first note in that channel is scored
 	if len(queue[i]) != 0 and queue[i][0].score != "Default":
+		showTiming(queue[i][0])
 		# The keysound plays even for a bad timing like in IIDX
 		if modPlayer:
 			modPlayer.hit(queue[i][0].keysound)
@@ -432,6 +433,15 @@ func keyPressed(i : int) -> bool:
 				queue[i][0].longnoteStart()
 		return true
 	return false
+# Show how early (-) or late (+) a note was hit, measured like the judgement from its y position
+func showTiming(n : Note) -> void:
+	if not Global.show_timing:
+		return
+	var ms : int = roundi((n.position.y - PERFECT_YPOS) / PERFECT_YPOS * speed * 1000.0)
+	$score/timing.text = "%+dms" % ms
+	# Fast in blue, slow in red like in IIDX
+	$score/timing.add_theme_color_override("font_color", Color(0.3, 0.6, 1) if ms < 0 else Color(1, 0.3, 0.3))
+	$score/timing.show()
 # Play the keysound of the next note of a lane when its key is pressed without a note to hit
 func previewKeysound(i : int) -> void:
 	if modPlayer == null:
@@ -497,11 +507,13 @@ func dequeue() -> void:
 			if (queue[i][0].isLongnote == true):
 				# If you didn't press it in the first place
 				if (not shouldPress[i]):
+					$score/timing.hide()
 					queue[i][0].longnoteFailed()
 					queue[i].pop_front()
 					resetCombo()
 			# If it's a general note
 			else:
+				$score/timing.hide()
 				queue[i].pop_front()
 				resetCombo()
 func killGarbage() -> void:

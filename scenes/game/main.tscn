@@ -284,6 +284,17 @@ theme_override_font_sizes/font_size = 27
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="timing" type="Label" parent="score"]
+visible = false
+offset_left = -50.0
+offset_top = 34.0
+offset_right = 150.0
+offset_bottom = 56.0
+theme_override_fonts/font = ExtResource("3_15r0s")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="getready" type="Label" parent="."]
 offset_left = 314.0
 offset_top = 340.0

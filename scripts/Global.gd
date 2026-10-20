@@ -34,6 +34,8 @@ var p1_name = ""
 var p2_name = ""
 
 var custom_music_select_bgm = ""
+# Show the timing error in ms under the judgement (Customization menu)
+var show_timing = false
 
 const KEY_MAPPING_PATH = "user://mappings.cfg"
 

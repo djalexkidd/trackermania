@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dirg25neoj332" path="res://scripts/menu/music_select.gd" id="1_8an63"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/song_wheel.gd" id="20_wheel"]
 [ext_resource type="Texture2D" path="res://assets/music_select/alphabet.png" id="21_alphabet"]
+[ext_resource type="Texture2D" path="res://assets/music_select/file_type.png" id="22_file_type"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
 [ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="1_u0514"]
 [ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="1_y1sfi"]
@@ -519,6 +520,36 @@ category_name = "OTHERS"
 category_texture = ExtResource("21_alphabet")
 
 [node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/OTHERS"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MODULE" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/MODULE" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "MODULE"
+category_texture = ExtResource("22_file_type")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/MODULE"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="QUAVER" type="VBoxContainer" parent="SongWheel/Categories"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Category" parent="SongWheel/Categories/QUAVER" instance=ExtResource("3_ojufb")]
+layout_mode = 2
+category_name = "QUAVER"
+category_texture = ExtResource("22_file_type")
+
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/QUAVER"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0

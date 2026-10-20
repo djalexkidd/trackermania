@@ -40,7 +40,7 @@ scenes/
   netplay/               Lobby et chat en ligne (ENet, RPC level_play)
 ```
 
-Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/TrackerMania/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded.
+Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/TrackerMania/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
 
 ## Fonctionnement du jeu
 

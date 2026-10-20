@@ -112,6 +112,16 @@ func add_song_entry(file_path: String, title: String, artist: String, difficulty
 	alphabet_entry.difficulty_name = difficulty_name
 	$SongWheel.get_node("Categories/" + alphabet_category(title) + "/MusicList").add_child(alphabet_entry)
 
+	var file_type = "MODULE" if file_path.get_extension().to_lower() == "mod" else "QUAVER"
+	var file_type_category = $SongWheel.get_node("Categories/" + file_type)
+	file_type_category.show()
+	var file_type_entry = song_entry.duplicate()
+	file_type_entry.path = file_path
+	file_type_entry.song_name = title
+	file_type_entry.creator = artist
+	file_type_entry.difficulty_name = difficulty_name
+	file_type_category.get_node("MusicList").add_child(file_type_entry)
+
 func alphabet_category(title: String) -> String:
 	var initial = title.left(1).to_upper()
 	for category in ALPHABET_CATEGORIES:

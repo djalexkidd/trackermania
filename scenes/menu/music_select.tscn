@@ -214,6 +214,25 @@ theme_override_font_sizes/font_size = 48
 horizontal_alignment = 2
 uppercase = true
 
+[node name="BestScore" type="VBoxContainer" parent="SongInfo"]
+layout_mode = 2
+
+[node name="Gap" type="Control" parent="SongInfo/BestScore"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="Lamp" type="Label" parent="SongInfo/BestScore"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 2
+
+[node name="Score" type="Label" parent="SongInfo/BestScore"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("6_me461")
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 2
+
 [node name="SongWheel" type="Control" parent="." unique_id=148367591]
 clip_contents = true
 layout_mode = 1

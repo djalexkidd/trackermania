@@ -140,7 +140,7 @@ func _update_song_info() -> void:
 		preview_songs.assign(selected.get_parent().get_children().filter(func(song): return not song.is_random))
 		preview_songs.shuffle()
 		if not preview_songs.is_empty():
-			preview_songs[0].update_song_info()
+			preview_songs[0].update_song_info(false)
 			return
 	selected.update_song_info()
 
@@ -158,7 +158,7 @@ func _process(delta: float) -> void:
 	if preview_time >= RANDOM_PREVIEW_INTERVAL:
 		preview_index = (preview_index + int(preview_time / RANDOM_PREVIEW_INTERVAL)) % preview_songs.size()
 		preview_time = fmod(preview_time, RANDOM_PREVIEW_INTERVAL)
-		preview_songs[preview_index].update_song_info()
+		preview_songs[preview_index].update_song_info(false)
 
 func _gui_input(event: InputEvent) -> void:
 	# Pad actions are polled by music select; avoid also triggering Godot's UI actions.

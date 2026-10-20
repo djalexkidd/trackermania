@@ -52,12 +52,30 @@ func _on_focus_entered() -> void:
 	$AnimationPlayer.play("open")
 	update_song_info()
 
-func update_song_info() -> void:
+# The random entry previews songs without their score
+func update_song_info(show_score := true) -> void:
 	var song_info = get_node("../../../../../SongInfo")
 	song_info.get_node("SongName").text = song_name
+	song_info.get_node("BestScore").visible = show_score
+	if show_score:
+		update_best_score(song_info.get_node("BestScore"))
 	song_info.get_node("ArtistName").text = creator
 	song_info.get_node("DifficultyName").text = difficulty_name
 	song_info.get_node("DifficultyName").add_theme_color_override("font_color", color_map.get(difficulty_name, Color.WHITE))
+
+# Best solo score of the chart
+func update_best_score(best_score: Control) -> void:
+	var best = Scores.get_best(path, difficulty_name)
+	var lamp_label = best_score.get_node("Lamp")
+	var score_label = best_score.get_node("Score")
+	if best.is_empty():
+		lamp_label.text = "NO PLAY"
+		lamp_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		score_label.text = ""
+		return
+	lamp_label.text = Scores.LAMPS[best["lamp"]]
+	lamp_label.add_theme_color_override("font_color", Scores.LAMP_COLORS[best["lamp"]])
+	score_label.text = "%s  EX %d (%.2f%%)" % [Scores.rank(best["rate"]), best["ex_score"], best["rate"]]
 
 func _on_focus_exited() -> void:
 	$AnimationPlayer.play("RESET")

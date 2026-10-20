@@ -18,35 +18,14 @@ func _ready() -> void:
 func get_score_text(player: int) -> String:
 	return "EX Score: %d (%.2f%%)" % [Global.get_player_var(player, "ex_score"), Global.get_player_var(player, "score")]
 
-# Rank letter of a player's score, one rank every 1/9 of the maximum EX score like in IIDX
+# Rank letter of a player's score
 func get_rank(player: int) -> String:
-	var ranks = ["F", "F", "E", "D", "C", "B", "A", "AA", "AAA", "AAA"]
-	# The small margin keeps exactly 8/9 in AAA despite the float rounding
-	var ninths = int(Global.get_player_var(player, "score") * 9.0 / 100.0 + 0.000001)
-	return ranks[clampi(ninths, 0, 9)]
+	return Scores.rank(Global.get_player_var(player, "score"))
 
 # Clear lamp of a player as [text, color]
 func get_clear(player: int) -> Array:
-	var score = Global.get_player_var(player, "score")
-	var gauge_level = Global.get_player_var(player, "gauge_level")
-	var clear = ["CLEAR", Color(0, 0.735801, 1)]
-	
-	if Global.get_player_var(player, "gauge_score") < 80 and gauge_level < 2 or Global.get_player_var(player, "failed"):
-		return ["FAILED", Color(1, 0.1, 0)]
-	
-	if gauge_level == 1:
-		clear = ["EASY CLEAR", Color(0.3, 1, 0.3)]
-	
-	if gauge_level == 2:
-		clear = ["HARD CLEAR", Color(1, 0.3, 0)]
-	
-	if Global.get_player_var(player, "combo_max") == Global.get_player_var(player, "combo_max_top"):
-		clear = ["FULL COMBO", Color(1, 1, 0)]
-	
-	if score == 100:
-		clear = ["PERFECT", Color(1, 1, 1)]
-	
-	return clear
+	var lamp = Scores.lamp(player)
+	return [Scores.LAMPS[lamp], Scores.LAMP_COLORS[lamp]]
 
 func _on_button_pressed() -> void:
 	Global.set_player_var(player, "score", 0)

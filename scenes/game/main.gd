@@ -567,6 +567,9 @@ func finish(failed : bool) -> void:
 			$getready.show()
 		finished.emit()
 	else:
+		# Only the solo plays are saved, not the autoplay
+		if not AUTOPLAY:
+			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		get_tree().change_scene_to_file("res://scenes/result/result_screen.tscn")
 # X position of the notes of a lane (0~6 keys, 7 scratch)

@@ -121,7 +121,7 @@ func change_level(scene: PackedScene):
 	add_child(scene.instantiate())
 
 func music_selected():
-	_game.onTextSubmitted("Selected: " + Loader.load_json_file(Loader.file_path)["Title"])
+	_game.onTextSubmitted("Selected: " + QuaChart.load_file(Loader.file_path).title)
 	_start_game_btn.show()
 
 func game_finished(score):

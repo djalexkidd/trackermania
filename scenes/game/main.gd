@@ -12,7 +12,7 @@ const SCRATCH_AXIS_2P : float = 886
 const PLAYFIELD_WIDTH : float = 870
 # After the last note is finished, wait for this margin and then the game ends.
 const ENDPOS_BIAS : float = +2.0
-# Auxiliary line spacing (sec)
+# Auxiliary line spacing when the chart has no measures (sec)
 const SUBLINE_LENGTH : float = 1.0
 # Emitted in local versus when this player is done (song ended, failed or gave up)
 signal finished
@@ -43,8 +43,13 @@ var keysoundArray  : Array   = [[], [], [], [], [], [], [], []]
 var lastKeysound   : Array   = [-1, -1, -1, -1, -1, -1, -1, -1]
 # Module player shared by the playfields when the chart is an Amiga module
 var modPlayer      : ModPlayer
+# Start time of each measure of the chart (seconds)
+var measures       : Array = []
 # Auxiliary line information
 var subLineArray   : Array = []
+# Time when the chart started, the music of a .qua starts after the lead-in
+var startUsec      : int     = 0
+var musicStarted   : bool    = false
 # Current audio playback time (seconds)
 var currentSongPos : float   = 0.0
 # The y-coordinate at which the note descends per frame
@@ -197,8 +202,9 @@ func _ready() -> void:
 		if not loadModule():
 			set_process(false)
 			return
-	else:
-		loadJsonChart()
+	elif not loadQuaChart():
+		set_process(false)
+		return
 	# Key lanes shuffled by RANDOM, the scratch lane never moves like in IIDX
 	var lanes : Array = range(7)
 	# The 6th and 7th keys are not played in 5 keys mode
@@ -261,11 +267,7 @@ func _ready() -> void:
 	if modPlayer:
 		# The background music goes on after the last note
 		endPos = maxf(endPos, modPlayer.length + ENDPOS_BIAS)
-	elif (get_node(audio).stream.get_length() < endPos):
-		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
-	if modPlayer:
-		# The lines follow the measures of the module
-		var measures : Array = modPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
+	if measures:
 		subLineArray = getLineArr(measures, speed)
 	else:
 		subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
@@ -281,22 +283,27 @@ func _ready() -> void:
 	if modPlayer:
 		if not modPlayer.playing:
 			modPlayer.play()
-	elif not get_node(audio).playing:
-		get_node(audio).play()
+	startUsec = Time.get_ticks_usec()
 	set_process(true)
 
-# Load the notes and the music of a TrackerMania chart
-func loadJsonChart() -> void:
-	var json_data = Loader.load_json_file(Loader.file_path)
-	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
-	var file_extension = json_data["AudioFile"].get_extension()
-	noteArray = json_data["noteArray"]
+# Load the notes and the music of a Quaver beatmap
+func loadQuaChart() -> bool:
+	var chart : QuaChart = QuaChart.load_file(Loader.file_path)
+	if chart == null:
+		OS.alert("Invalid Quaver beatmap: " + Loader.file_path)
+		get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
+		return false
+	noteArray = chart.noteArray
+	measures = chart.measures
+	var audio_path : String = Loader.file_path.get_base_dir().path_join(chart.audioFile)
 	# In local versus both playfields share the same audio player, only load it once
 	if get_node(audio).stream == null:
-		if file_extension == "mp3":
-			get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
-		elif file_extension == "ogg":
-			get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
+		match chart.audioFile.get_extension().to_lower():
+			"mp3":
+				get_node(audio).stream = load_mp3(audio_path)
+			"ogg":
+				get_node(audio).stream = AudioStreamOggVorbis.load_from_file(audio_path)
+	return true
 
 # Generate the chart of an Amiga module, its notes are the keysounds
 func loadModule() -> bool:
@@ -314,14 +321,26 @@ func loadModule() -> bool:
 	var chart : ModChart = ModChart.new(modPlayer.module, Loader.chart_difficulty, opt("keys_mode"))
 	noteArray = chart.noteArray
 	keysoundArray = chart.keysoundArray
+	# The lines follow the measures of the module
+	measures = modPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
 	return true
 
 # Current time of the song (seconds)
 func songPosition() -> float:
 	if modPlayer:
 		return modPlayer.get_playback_position()
+	var player : AudioStreamPlayer = get_node(audio)
+	var clock : float = (Time.get_ticks_usec() - startUsec) / 1000000.0
+	# The music starts after the lead-in, the playfields share it in versus
+	if not musicStarted and clock >= QuaChart.LEAD_IN:
+		musicStarted = true
+		if not player.playing:
+			player.play(clock - QuaChart.LEAD_IN)
+	# Before and after the music, the clock goes on alone
+	if not player.playing:
+		return clock
 	# The playback position only moves at each audio mix, the time since then makes it smooth
-	return get_node(audio).get_playback_position() + AudioServer.get_time_since_last_mix()
+	return QuaChart.LEAD_IN + player.get_playback_position() + AudioServer.get_time_since_last_mix()
 
 func _process(_delta) -> void:
 	# Get current audio playback time

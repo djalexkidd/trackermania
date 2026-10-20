@@ -6,7 +6,7 @@ extends Node2D
 const PERFECT_YPOS : float = 500
 # After the last note is finished, wait for this margin and then the game ends.
 const ENDPOS_BIAS : float = +2.0
-# Auxiliary line spacing (sec)
+# Auxiliary line spacing when the chart has no measures (sec)
 const SUBLINE_LENGTH : float = 1.0
 # Network node
 @onready var networkRoot = get_node("..")
@@ -20,8 +20,13 @@ const SUBLINE_LENGTH : float = 1.0
 var speed : float = Global.hispeed
 # Note information corresponding to 7 channels
 var noteArray      : Array = []
+# Start time of each measure of the chart (seconds)
+var measures       : Array = []
 # Auxiliary line information
 var subLineArray   : Array = []
+# Time when the chart started, the music starts after the lead-in
+var startUsec      : int     = 0
+var musicStarted   : bool    = false
 # Current audio playback time (seconds)
 var currentSongPos : float   = 0.0
 # The y-coordinate at which the note descends per frame
@@ -87,9 +92,13 @@ func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
 	while (index < endpos):
 		arr.append(index)
 		index += sec
+	return getLineArr(arr, sp)
+# Shift line times like the notes, dropping the lines too early to come from the top
+func getLineArr(times : Array, sp : float) -> Array:
+	var arr : Array = times.duplicate()
 	for i in range(len(arr)):
 		arr[i] -= sp
-	while (arr[0] < sp):
+	while (arr and arr[0] < sp):
 		arr.pop_front()
 	return arr
 # Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
@@ -157,11 +166,15 @@ func load_mp3(path):
 	return sound
 
 func _ready() -> void:
-	var json_data = Loader.load_json_file(Loader.file_path)
-	var directory_path = Loader.file_path.substr(0, Loader.file_path.rfind("/") + 1)
-	var file_extension = json_data["AudioFile"].get_extension()
+	var chart : QuaChart = QuaChart.load_file(Loader.file_path)
+	if chart == null:
+		OS.alert("Invalid Quaver beatmap: " + Loader.file_path)
+		set_process(false)
+		return
+	var audio_path : String = Loader.file_path.get_base_dir().path_join(chart.audioFile)
 	
-	noteArray = json_data["noteArray"]
+	noteArray = chart.noteArray
+	measures = chart.measures
 	if Global.keys_mode == 5:
 		noteArray[5] = []
 		noteArray[6] = []
@@ -175,10 +188,11 @@ func _ready() -> void:
 		randomize()
 		noteArray.shuffle()
 	
-	if file_extension == "mp3":
-		get_node(audio).stream = load_mp3(directory_path + json_data["AudioFile"])
-	elif file_extension == "ogg":
-		get_node(audio).stream = AudioStreamOggVorbis.load_from_file(directory_path + json_data["AudioFile"])
+	match chart.audioFile.get_extension().to_lower():
+		"mp3":
+			get_node(audio).stream = load_mp3(audio_path)
+		"ogg":
+			get_node(audio).stream = AudioStreamOggVorbis.load_from_file(audio_path)
 	
 	for i in range(0, networkRoot._game._players.size()):
 		var player_score_container = HBoxContainer.new()
@@ -216,18 +230,32 @@ func _ready() -> void:
 	for i in range(0, 8):
 		if getEndPos(noteArray[i], speed, ENDPOS_BIAS) > endPos:
 			endPos = getEndPos(noteArray[i], speed, ENDPOS_BIAS)
-	if (get_node(audio).stream.get_length() < endPos):
-		OS.alert("Please add enough space after the music, or decrease the ENDPOS_BIAS")
-	subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
+	if measures:
+		subLineArray = getLineArr(measures, speed)
+	else:
+		subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
 	await get_tree().create_timer(1.0).timeout
 	$getready.hide()
-	get_node(audio).play()
+	startUsec = Time.get_ticks_usec()
 	set_process(true)
+
+# Current time of the song (seconds)
+func songPosition() -> float:
+	var player : AudioStreamPlayer = get_node(audio)
+	var clock : float = (Time.get_ticks_usec() - startUsec) / 1000000.0
+	# The music starts after the lead-in
+	if not musicStarted and clock >= QuaChart.LEAD_IN:
+		musicStarted = true
+		player.play(clock - QuaChart.LEAD_IN)
+	# Before and after the music, the clock goes on alone
+	if not player.playing:
+		return clock
+	# The playback position only moves at each audio mix, the time since then makes it smooth
+	return QuaChart.LEAD_IN + player.get_playback_position() + AudioServer.get_time_since_last_mix()
 
 func _process(_delta) -> void:
 	# Get current audio playback time
-	# The playback position only moves at each audio mix, the time since then makes it smooth
-	currentSongPos = get_node(audio).get_playback_position() + AudioServer.get_time_since_last_mix()
+	currentSongPos = songPosition()
 	currentSongPos -= AudioServer.get_output_latency()
 	# Confirm game end
 	if (currentSongPos >= endPos):

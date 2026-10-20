@@ -6,7 +6,7 @@ var chart_difficulty = ""
 
 const SONG_CACHE_PATH = "user://song_catalog.json"
 # Bump when selection metadata or module chart generation changes.
-const SONG_CACHE_VERSION = 1
+const SONG_CACHE_VERSION = 2
 
 # Cache only selection metadata, never chart notes or module audio.
 func get_song_catalog(force_refresh: bool = false) -> Array:
@@ -23,20 +23,22 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 	var batch_start = Time.get_ticks_msec()
 	for song_path in get_all_files("user://songs"):
 		var extension = song_path.get_extension().to_lower()
-		if extension not in ["json", "mod"]:
+		if extension not in ["qua", "mod"]:
 			continue
 		# Let the loading message render and keep the menu responsive.
 		if Time.get_ticks_msec() - batch_start >= 8:
 			await get_tree().process_frame
 			batch_start = Time.get_ticks_msec()
-		if extension == "json":
-			var data = load_json_file(song_path)
+		if extension == "qua":
+			var chart = QuaChart.load_file(song_path)
+			if chart == null:
+				continue
 			var entry = {
 				"path": song_path,
-				"Title": data.get("Title"),
-				"Artist": data.get("Artist"),
-				"Difficulty": data.get("Difficulty"),
-				"DifficultyName": data.get("DifficultyName"),
+				"Title": chart.title if chart.title != "" else song_path.get_file().get_basename(),
+				"Artist": chart.artist,
+				"Difficulty": chart.level,
+				"DifficultyName": chart.difficultyName,
 			}
 			if is_song_metadata(entry):
 				songs.append(entry)
@@ -71,7 +73,7 @@ func is_song_metadata(entry: Variant) -> bool:
 		return false
 	return difficulty >= 1 and difficulty <= 8 and difficulty == int(difficulty) \
 		and entry["path"].begins_with("user://songs/") \
-		and entry["path"].get_extension().to_lower() in ["json", "mod"]
+		and entry["path"].get_extension().to_lower() in ["qua", "mod"]
 
 # Analyse files recursively by extention
 func get_all_files(path: String, file_ext := "", files := []):

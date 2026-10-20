@@ -14,6 +14,13 @@ var netplay = false
 var songs_loading = true
 var song_preview: Node
 
+# Opening/closing of the game options: the wheel slides out to the right, then the panel slides in
+const OPTIONS_SLIDE_TIME = 0.15
+var wheel_x := 0.0
+var wheel_tween: Tween
+var options_x := {}
+var options_tweens := {}
+
 func _ready():
 	# Ensure all effects are initially disabled
 	AudioServer.set_bus_effect_enabled(audio_bus, 0, false)  # Chorus
@@ -40,6 +47,9 @@ func _ready():
 	song_preview = preload("res://scripts/menu/music_select/song_preview.gd").new()
 	song_preview.bgm = $AudioStreamPlayer
 	add_child(song_preview)
+	wheel_x = $SongWheel.position.x
+	for player in [1, 2]:
+		options_x[player] = game_options(player).position.x
 	$SongWheel.hide()
 	$SongInfo/SongName.text = "Loading songs…"
 	await load_and_add_songs()
@@ -59,8 +69,8 @@ func _ready():
 	# Slide container to right
 	$SongWheel.position.x = screen_size.x + 50
 
-	var tween = create_tween()
-	tween.tween_property($SongWheel, "position", target_position, 0.6)\
+	wheel_tween = create_tween()
+	wheel_tween.tween_property($SongWheel, "position", target_position, 0.6)\
 		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_OUT)
 
@@ -193,16 +203,16 @@ func _process(delta):
 			else:
 				open_game_options(player)
 		
-		if Input.is_action_just_released(prefix + "start") and game_options(player).visible:
+		if Input.is_action_just_released(prefix + "start") and game_options(player).open:
 			close_game_options(player)
 		
 		if Input.is_action_just_pressed(prefix + "meta") and is_joined(player) and not netplay:
-			if game_options(player).visible:
+			if game_options(player).open:
 				close_game_options(player)
 			set_joined(player, false)
 			return
 	
-	var navigating_players = joined_players().filter(func(player): return not game_options(player).visible)
+	var navigating_players = joined_players().filter(func(player): return not game_options(player).open)
 	# P1's panel covers the wheel and temporarily suspends navigation for both players.
 	$SongWheel.poll_navigation(delta, navigating_players if $SongWheel.visible else [])
 	for player in navigating_players:
@@ -255,21 +265,56 @@ func game_options(player: int) -> Control:
 	return $GameOptionSettings if player == 1 else $GameOptionSettingsP2
 
 func open_game_options(player: int) -> void:
-	if player == 1:
-		$SongWheel.hide()
-	else:
-		$SongInfo.hide()
-	game_options(player).show()
-	game_options(player).get_node("OpenAudio").play()
+	var panel = game_options(player)
+	panel.open = true
+	panel.get_node("OpenAudio").play()
+	var tween = options_tween(player)
+	# P1: the wheel leaves to the right first
+	if player == 1 and $SongWheel.visible:
+		if wheel_tween:
+			wheel_tween.kill()
+		tween.tween_property($SongWheel, "position:x", size.x, OPTIONS_SLIDE_TIME)\
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		tween.tween_callback($SongWheel.hide)
+	if not panel.visible:
+		panel.position.x = options_hidden_x(player)
+		panel.show()
+	tween.tween_property(panel, "position:x", options_x[player], OPTIONS_SLIDE_TIME)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# P2: the panel covers the song info
+	if player == 2:
+		tween.tween_callback($SongInfo.hide)
 
 func close_game_options(player: int) -> void:
-	if player == 1:
-		$SongWheel.show()
-		$SongWheel.grab_focus()
-	else:
+	var panel = game_options(player)
+	panel.open = false
+	panel.get_node("CloseAudio").play()
+	var tween = options_tween(player)
+	if player == 2:
 		$SongInfo.show()
-	game_options(player).hide()
-	game_options(player).get_node("CloseAudio").play()
+	tween.tween_property(panel, "position:x", options_hidden_x(player), OPTIONS_SLIDE_TIME)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_callback(panel.hide)
+	# P1: then the wheel comes back
+	if player == 1 and not songs_loading:
+		tween.tween_callback(func():
+			if not $SongWheel.visible:
+				$SongWheel.position.x = size.x
+				$SongWheel.show()
+			$SongWheel.grab_focus())
+		tween.tween_property($SongWheel, "position:x", wheel_x, OPTIONS_SLIDE_TIME)\
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+# Out of the screen: P1 panel on the right, P2 panel on the left
+func options_hidden_x(player: int) -> float:
+	return size.x if player == 1 else -game_options(player).size.x
+
+# A new slide replaces the one running, from where it stopped
+func options_tween(player: int) -> Tween:
+	if options_tweens.has(player):
+		options_tweens[player].kill()
+	options_tweens[player] = create_tween()
+	return options_tweens[player]
 
 func _cycle_audio_effects():
 	# Disable all effects before cycling to the next one

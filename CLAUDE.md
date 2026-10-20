@@ -33,7 +33,8 @@ scripts/
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
                          song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
                          game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :
-                         choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, AUTO PLAY et HI-SPEED sous les touches 1 et 7
+                         choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, AUTO PLAY et HI-SPEED sous les touches 1 et 7.
+                         Ouverture (music_select.gd) : en P1 la roue sort à droite puis le panneau entre par la droite ; en P2 le panneau entre seul par la gauche
     controller_test/     CONTROLLER SETUP : controller_panel.gd (platine IIDX dessinée d'un joueur, test et remappage) ;
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)

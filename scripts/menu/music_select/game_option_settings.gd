@@ -47,19 +47,18 @@ const HISPEED_STEP = 0.05
 
 # Last change of each key, for the flash of its option
 var changed_at := {}
+# Held open by START, set by music_select; the panel still shows while sliding out
+var open := false
 
 func _ready():
 	color = Color(0.02, 0.03, 0.06, 0.94)
-	visibility_changed.connect(_on_visibility_changed)
-
-func _on_visibility_changed() -> void:
-	if not visible:
-		return
-	modulate.a = 0.0
-	create_tween().tween_property(self, "modulate:a", 1.0, 0.12)
 
 func _process(_delta: float) -> void:
 	if not visible:
+		return
+	# Redrawn every frame for the key lights and the flashes
+	queue_redraw()
+	if not open:
 		return
 	if Input.is_action_just_pressed(key("key1")):
 		set_opt("auto_play", !get_opt("auto_play"))
@@ -90,9 +89,6 @@ func _process(_delta: float) -> void:
 		set_opt("hispeed", HISPEED_MAX if hispeed < HISPEED_MIN else hispeed)
 		emit_signal("update", "hispeed", get_opt("hispeed"))
 		changed(6)
-
-	# Redrawn every frame for the key lights and the flashes
-	queue_redraw()
 
 func changed(i: int) -> void:
 	changed_at[i] = Time.get_ticks_msec()

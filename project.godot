@@ -23,6 +23,7 @@ config/icon="res://icon.png"
 
 Global="*res://scripts/Global.gd"
 Loader="*res://scripts/Loader.gd"
+Netplay="*res://scripts/netplay/Netplay.gd"
 
 [display]
 

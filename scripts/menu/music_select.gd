@@ -9,7 +9,7 @@ const ALPHABET_CATEGORIES = ["ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWXYZ", "
 # To track which effect is currently active (0 = off, 1 = chorus, 2 = phaser, 3 = reverb)
 var effect_state = 0
 
-# Players can't join or leave when the music select is opened from netplay
+# Opened from the netplay lobby: only P1 plays, the chosen song goes to the room
 var netplay = false
 var songs_loading = true
 var song_preview: Node
@@ -25,10 +25,13 @@ func _ready():
 		$BottomBar/P1ColorRect/P1DJPrefixLabel/P1NameLabel.text = Global.p1_name
 		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
 	
-	netplay = get_tree().current_scene != self
-	if not netplay:
-		update_joined(1)
-		update_joined(2)
+	netplay = Netplay.active
+	if netplay:
+		Global.p1_joined = true
+		Global.p2_joined = false
+		Netplay.closed.connect(_on_netplay_closed)
+	update_joined(1)
+	update_joined(2)
 	
 	if Global.custom_music_select_bgm != "":
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
@@ -65,8 +68,6 @@ func _ready():
 func load_and_add_songs():
 	var songs = await Loader.get_song_catalog()
 	for song in songs:
-		if netplay and (song["path"].get_extension().to_lower() == "mod" or BmsChart.is_bms(song["path"])):
-			continue
 		add_song_entry(song["path"], song["Title"], song["Artist"], int(song["Difficulty"]), song["DifficultyName"])
 
 func add_song_entry(file_path: String, title: String, artist: String, difficulty: int, difficulty_name: String):
@@ -216,7 +217,7 @@ func _process(delta):
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
 				if not $SongWheel.visible or $SongWheel.close_category():
 					return
-				get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+				leave()
 				return
 
 func is_joined(player: int) -> bool:
@@ -230,7 +231,15 @@ func set_joined(player: int, joined: bool) -> void:
 	update_joined(player)
 	# Nobody left, back to the title menu
 	if joined_players().is_empty():
-		get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+		leave()
+
+# Back to the title menu, or to the netplay lobby
+func leave() -> void:
+	get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn" if netplay else "res://scenes/menu/test_menu.tscn")
+
+# The room was closed while choosing, the lobby tells why
+func _on_netplay_closed(_reason: String) -> void:
+	leave()
 
 # Show the player's game options bar, or "PRESS START BUTTON" when the player is out
 func update_joined(player: int) -> void:

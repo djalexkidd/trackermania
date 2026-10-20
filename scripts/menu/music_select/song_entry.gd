@@ -39,9 +39,13 @@ func _on_pressed() -> void:
 		return
 	Loader.file_path = path
 	Loader.chart_difficulty = difficulty_name
-	if get_node("../../../../../..").name == "Main":
-		get_node("../../../../../..").music_selected()
-		get_node("../../../../..").queue_free()
+	if Netplay.active:
+		# The host picks the song of the room, the others suggest it in the chat
+		if Netplay.is_host:
+			Netplay.choose_song(path, difficulty_name, song_name, creator, int($Label2.text))
+		else:
+			Netplay.suggest_song(song_name, difficulty_name)
+		get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn")
 	elif Global.p1_joined and Global.p2_joined:
 		get_tree().change_scene_to_file("res://scenes/game/main_2p.tscn")
 	elif Global.p2_joined:

@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/netplay/netplay_result.gd" id="1_result"]
+[ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="2_scroll"]
+[ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="3_grid"]
+[ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="4_banner"]
+[ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="5_title"]
+[ext_resource type="FontFile" uid="uid://bggd18styexhu" path="res://assets/font/monofonto.otf" id="6_name"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scroll"]
+shader = ExtResource("2_scroll")
+shader_parameter/speed = 0.1
+
+[node name="NetplayResult" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_result")
+
+[node name="Background" type="TextureRect" parent="."]
+texture_repeat = 2
+material = SubResource("ShaderMaterial_scroll")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_grid")
+
+[node name="Banner" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -1888.0
+offset_right = 32.0
+offset_bottom = 113.0
+grow_horizontal = 0
+texture = ExtResource("4_banner")
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 512.0
+offset_bottom = 48.0
+theme_override_fonts/font = ExtResource("5_title")
+theme_override_font_sizes/font_size = 32
+text = "netplay result"
+
+[node name="SongLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 60.0
+offset_right = -16.0
+offset_bottom = 104.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("6_name")
+theme_override_font_sizes/font_size = 36
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="BottomBar" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -88.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)

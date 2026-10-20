@@ -1,6 +1,6 @@
 class_name Judge
 
-# Judgement, EX score and groove gauge rules of beatmania IIDX, shared by main.gd and main_netplay.gd
+# Judgement, EX score and groove gauge rules of beatmania IIDX, used by main.gd
 
 # Judgement windows in ms, early or late (one 60 fps frame = 16.67 ms)
 const PGREAT_WINDOW : float = 16.67

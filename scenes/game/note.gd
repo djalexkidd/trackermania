@@ -26,13 +26,8 @@ var keysound : int = -1
 # Song time when the note reaches perfectYpos, the note then follows the song time instead of the frames
 var hitTime : float = -1.0
 var perfectYpos : float
-# Long notes add a combo 10 times per second while held (netplay), main.gd judges their release instead
-var comboTicks : bool = true
-
 # Score when long note is pressed
 var longnoteScore : String = ""
-# Coordinate queue corresponding to long note combo
-var longnoteComboQueue : Array = []
 
 func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTime : float = -1.0) -> void:
 	self.position.y = 0.0
@@ -64,25 +59,8 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 
 func longnoteStart():
 	longnoteScore = score
-	if not comboTicks:
-		return
-	var longnoteStartPos = position.y
-	var step = 10 / speed
-	var index = snapped(longnoteStartPos, 1)
-	var tempComboQueue = []
-	# Creates a combo queue of 50 elements per second.
-	while (index <= longnoteStartPos + effect.size.y):
-		tempComboQueue.append(index)
-		index += step
-	# If the number of combo queue elements is not a multiple of 2, remove one from the back.
-	if (len(tempComboQueue) != snapped(len(tempComboQueue), 2)):
-		tempComboQueue.pop_back()
-	# 10 combo queues are selected from the 50 combo queues per second.
-	for i in range(1, len(tempComboQueue), 5):
-		longnoteComboQueue.append(tempComboQueue[i-1])
 
 func longnoteFailed():
-	longnoteComboQueue.clear()
 	$LN_Effect.color = Color("d38b8e")
 
 func _process(_delta):
@@ -90,8 +68,3 @@ func _process(_delta):
 		position.y = perfectYpos * (1.0 - (hitTime - get_parent().get_parent().currentSongPos) / speed)
 	else:
 		self.position.y += coordPerFrame
-	# If it is a long note and the combo queue is not empty, add the combo.
-	if (isLongnote and longnoteComboQueue != []):
-		if (position.y >= longnoteComboQueue[0]):
-			longnoteComboQueue.pop_front()
-			get_parent().get_parent().addCombo(longnoteScore)

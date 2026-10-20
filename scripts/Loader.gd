@@ -79,6 +79,11 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 		push_warning("Could not save song catalog: %s" % FileAccess.get_open_error())
 	return songs
 
+# The next music select scans the songs again (a song was downloaded)
+func clear_song_catalog() -> void:
+	if FileAccess.file_exists(SONG_CACHE_PATH):
+		DirAccess.remove_absolute(SONG_CACHE_PATH)
+
 func is_song_metadata(entry: Variant) -> bool:
 	if not entry is Dictionary:
 		return false

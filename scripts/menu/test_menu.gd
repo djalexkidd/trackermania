@@ -21,7 +21,7 @@ func _on_custom_texture_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/customization_menu.tscn")
 
 func _on_netplay_texture_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/netplay/scene/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn")
 
 # Full Screen
 func _on_full_screen_texture_button_pressed() -> void:

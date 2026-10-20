@@ -17,6 +17,7 @@ scripts/
   Global.gd              Autoload : options et résultats des 2 joueurs, chargement des touches remappées
   Loader.gd              Autoload : chart choisie (file_path, chart_difficulty), scan de fichiers, cache JSON de la sélection
   QuaChart.gd            Lecture d'une beatmap Quaver .qua (class_name QuaChart)
+  netplay/               Netplay.gd (autoload réseau), NetplayUI.gd (style des écrans), lobby.gd, scoreboard.gd, netplay_result.gd
   Scores.gd              Meilleurs scores en solo (user://scores.cfg), lampes de clear et rangs (class_name Scores)
   mod/                   Modules Amiga keysoundés (voir plus bas)
   bms/                   BMS et bmson keysoundés (voir plus bas)
@@ -40,11 +41,10 @@ scenes/
   game/main.gd + .tscn   Terrain de jeu d'un joueur (le coeur du gameplay)
   game/main_p2.tscn      main.tscn côté 2P seul (player = 2)
   game/main_2p.gd/.tscn  Versus local : deux main.tscn côte à côte, un AudioStreamPlayer partagé
-  game/main_netplay.gd   Copie de main.gd pour le jeu en ligne (ne gère pas les .MOD)
   game/note.gd           Une note (normale ou longue) qui descend
-  game/judge.gd          Règles IIDX partagées avec le netplay : fenêtres, EX-Score, jauge (class_name Judge)
+  game/judge.gd          Règles IIDX : fenêtres, EX-Score, jauge (class_name Judge)
   menu/, result/         Scènes des menus et résultats
-  netplay/               Lobby et chat en ligne (ENet, RPC level_play)
+  netplay/               lobby.tscn (salles et salle), result.tscn (résultats du round), img/crown.png
 ```
 
 Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/TrackerMania/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER, BMS), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
@@ -54,7 +54,7 @@ Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous 
 ### Flux des scènes
 Menu titre -> sélection des musiques -> `song_entry._on_pressed()` règle `Loader.file_path` et `Loader.chart_difficulty`, puis ouvre :
 - `main.tscn` (P1 seul), `main_p2.tscn` (P2 seul) ou `main_2p.tscn` (versus) ;
-- en netplay, la sélection est ouverte dans le lobby et la partie se lance par RPC.
+- en netplay, la sélection est ouverte depuis le lobby (choix de l'hôte), le round lance `main.tscn` sur chaque machine (voir Netplay).
 
 `main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats.
 En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après la difficulté (`SongInfo/BestScore`).
@@ -80,7 +80,7 @@ Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load
 
 ### `main.gd` (repris de gd-rhythm)
 - Les temps des notes sont décalés de `speed` (hispeed) : une note apparaît en y=0 à `t - speed` et atteint `PERFECT_YPOS` (500) au temps `t`.
-- Chaque note connaît son heure (`note.hitTime`) : sa position est recalculée à chaque image depuis l'heure de la chanson (`notePosition()`), les lignes de mesure aussi. Les notes du netplay (sans `hitTime`) bougent encore par image (`coordPerFrame`).
+- Chaque note connaît son heure (`note.hitTime`) : sa position est recalculée à chaque image depuis l'heure de la chanson (`notePosition()`), les lignes de mesure aussi.
 - **Jugement comme IIDX**, sur l'écart en temps (`Judge.judge()`), fenêtres en ms symétriques : P-GREAT ±16.67, GREAT ±33.33, GOOD ±116.67, BAD ±250. Au-delà du BAD tardif, c'est un POOR.
   GOOD garde le combo, BAD et POOR le cassent. Tout passe par `addJudge()`.
 - **EX-Score** : P-GREAT 2 points, GREAT 1, le reste 0. Une note longue compte pour 2 (appui et relâché, comme une CN) : relâchée trop tôt, POOR ; tenue plus de 250 ms après la fin, BAD.
@@ -98,7 +98,7 @@ Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load
 
 ## Modules Amiga keysoundés (`scripts/mod/`)
 
-Un fichier `.mod` dans `user://songs` crée **3 entrées** (Normal, Hyper, Another) dans la sélection. Leur niveau est calculé, et elles sont masquées en netplay.
+Un fichier `.mod` dans `user://songs` crée **3 entrées** (Normal, Hyper, Another) dans la sélection. Leur niveau est calculé.
 Dans `main.gd`, `loadModule()` remplace `loadQuaChart()` quand l'extension est `mod`.
 
 ### 1. `ModModule` : lecture et replay
@@ -144,13 +144,12 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 - Les lignes de mesure suivent `module.measures` (+ `LEAD_IN`), mises dans `measures` comme celles d'un .qua. Sans mesures, une ligne par seconde (`SUBLINE_LENGTH`).
 
 ### Limites connues
-- Pas de .MOD en netplay (`main_netplay.gd` est une copie séparée de `main.gd`, qui reprend le même jugement, l'EX-Score et la jauge via `Judge`). En fin de partie, l'EX-Score est envoyé dans le chat.
 - La BGM est déclenchée à chaque image (environ 16 ms), avec une compensation du retard.
 - Pas de notes longues générées. Le format FLT8 est lu de façon approximative.
 
 ## BMS keysoundés (`scripts/bms/`)
 
-Chaque fichier .bms, .bme, .bml ou .bmson est une entrée de la sélection (catégorie BMS), masquée en netplay. Seul le SP est lu : un chart avec des notes 2P (canaux 2x/6x, bmson `beat-14k`) ou un autre mode (pop'n…) est refusé (`null`).
+Chaque fichier .bms, .bme, .bml ou .bmson est une entrée de la sélection (catégorie BMS). Seul le SP est lu : un chart avec des notes 2P (canaux 2x/6x, bmson `beat-14k`) ou un autre mode (pop'n…) est refusé (`null`).
 
 ### `BmsChart` : lecture
 - `BmsChart.load_file(path, random)` : les octets sont lus en Latin-1 (`get_string_from_ascii`, un caractère par octet). Les textes (`#TITLE` + `#SUBTITLE`, `#ARTIST`, noms des `#WAV`) passent par `ShiftJIS.decode()` : ASCII tel quel, UTF-8 s'il est valide, sinon CP932 (table `assets/shift_jis.tres`).
@@ -171,9 +170,18 @@ Chaque fichier .bms, .bme, .bml ou .bmson est une entrée de la sélection (cat�
 - `length` : fin du dernier son (coupé par la reprise suivante du même son) + `LEAD_IN`.
 
 ### Limites
-- Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines ; pas de DP ; pas de BMS en netplay.
+- Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines ; pas de DP.
 - Godot transforme `\` en `/` dans les chemins : un dossier dont le nom contient un `\` (mojibake de zip) n'est pas lisible.
 - Les titres japonais demandent une police système avec ces glyphes (`allow_system_fallback`).
+
+## Netplay (`scripts/netplay/`)
+
+Autoload `Netplay` (ENet, port 47800) : il survit aux changements de scène, toutes les RPC passent par lui (`/root/Netplay`). L'hôte fait autorité : il garde `room` (`name`, `state` lobby/loading/playing, `song`, `seed`, `round`) et `players` (id -> `name`, `slot`, `ready`, `where`, `song_state`, `progress`, `ping`) et les renvoie à tous (`_sync_room`, `_sync_players`). Les clients demandent par `update_me()`, `say()` ; `_to_host()` appelle directement quand on est l'hôte. `PROTOCOL` refuse une autre version, 8 joueurs max, noms de 6 lettres en majuscules (`user://netplay.cfg`).
+- **LAN** : l'hôte envoie une balise JSON en broadcast UDP (port 47801, chaque seconde, 255.255.255.255 et le /24 de chaque adresse). Le navigateur de salles écoute ce port (un seul jeu par machine peut l'écouter, sinon il reste la connexion par adresse).
+- **Musique** : identifiée par son chemin sous `user://songs/` et le md5 du fichier de chart. Un client cherche `user://songs/<chemin>` puis `user://songs/netplay/<chemin>` (`find_song`), sinon la demande à l'hôte : le dossier entier pour un BMS, chart + audio pour un .qua, le fichier pour un .mod, la chart en dernier (`song_files`). Morceaux de 64 Ko, au plus 16 non acquittés par client, écrits en `.part` puis renommés, chemins vérifiés (`safe_path`). Ensuite `Loader.clear_song_catalog()`.
+- **Round** : l'hôte lance (`start_round`) quand les joueurs du lobby sont prêts ; `round` = joueurs prêts + l'hôte. Chacun ouvre `main.tscn` (`main.gd` : `netplay = Netplay.in_round()`, `seed(room.seed)` pour les mêmes `#RANDOM`), signale `mark_loaded()`, et attend `wait_begin()` (tous chargés, ou `LOAD_TIMEOUT`). Scores en direct par `send_live()` (5 fois/s, non fiable), affichés par `scoreboard.gd` à droite du terrain. `finish()` envoie le résultat (`send_result`, avec `judgeCounts`) et ouvre `scenes/netplay/result.tscn`. Le round se termine quand tous ont un résultat ou sont partis.
+- La sélection en netplay : seul P1, toutes les musiques ; l'hôte choisit (`choose_song`), un client suggère dans le chat ; les touches noires ramènent au lobby.
+- Pas de netplay dans la version web (pas d'ENet).
 
 ## Conventions
 - GDScript avec des tabulations. Fonctions et variables du gameplay en camelCase (`noteArray`, `keyPressed`) dans `main.gd`, `note.gd` et `scripts/mod/` ; snake_case dans les menus.

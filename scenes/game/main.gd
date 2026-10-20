@@ -26,6 +26,8 @@ signal finished
 @export var player : int = 1
 # Local versus flag (two playfields side by side, shared audio)
 @export var versus : bool = false
+# Online round (Netplay): same start for everyone, live ranking and the netplay results
+var netplay : bool = false
 # Autoplay flag
 var AUTOPLAY : bool
 var AUTOSCRATCH : bool
@@ -79,6 +81,8 @@ var combo          : int     = 0
 var comboMax       : int     = 0
 # Current EX score
 var exScore        : int     = 0
+# Number of each judgement, for the netplay results
+var judgeCounts    : Dictionary = {"PGreat": 0, "Great": 0, "Good": 0, "Bad": 0, "Poor": 0}
 # Number of judgements of the chart, a long note counts twice (press and release) like a CN
 var noteCount      : int     = 0
 # Groove gauge in percent (Judge rules), and what a PGREAT or GREAT recovers
@@ -142,6 +146,7 @@ func getLineArr(times : Array, sp : float) -> Array:
 # Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
 func addJudge(judgement : String) -> void:
 	exScore += Judge.EX_POINTS.get(judgement, 0)
+	judgeCounts[judgement] += 1
 	updateGauge(judgement)
 	if judgement == "Bad" or judgement == "Poor":
 		resetCombo(judgement)
@@ -225,6 +230,14 @@ func _ready() -> void:
 	speed = opt("hispeed")
 	prefix = "p%d_" % player
 	mirrored = player == 2
+	netplay = not versus and Netplay.in_round()
+	if netplay:
+		# Same #RANDOM branches for everyone
+		seed(Netplay.room["seed"])
+		var scoreboard : Control = preload("res://scripts/netplay/scoreboard.gd").new()
+		scoreboard.position = Vector2(PLAYFIELD_WIDTH + 24, 90)
+		scoreboard.size = Vector2(1280 - PLAYFIELD_WIDTH - 40, 520)
+		add_child(scoreboard)
 	# Touch buttons follow this player's actions
 	for button in $P1Frame.find_children("*", "TouchScreenButton"):
 		button.action = button.action.replace("p1_", prefix)
@@ -325,6 +338,12 @@ func _ready() -> void:
 				keysoundPlayer.claim([keysoundArray[i]])
 	if (AUTOPLAY):
 		$isautoplay.visible = true
+	if netplay:
+		# Everyone starts together once all the charts are loaded
+		$getready.text = "Waiting for the DJs…"
+		Netplay.mark_loaded()
+		await Netplay.wait_begin()
+		$getready.text = "Get Ready !"
 	await get_tree().create_timer(1.0).timeout
 	$getready.hide()
 	if keysoundPlayer:
@@ -418,6 +437,8 @@ func _process(delta) -> void:
 	if (currentSongPos >= endPos):
 		finish(false)
 		return
+	if netplay:
+		Netplay.send_live(exScore, noteCount * 2, int($GrooveGauge.value), combo)
 	if Time.get_ticks_msec() - gaugeFlickerMs >= GAUGE_FLICKER_MS:
 		gaugeFlickerMs = Time.get_ticks_msec()
 		flickerGauge()
@@ -442,7 +463,6 @@ func _process(delta) -> void:
 			var info : Array = noteArray[i].pop_front()
 			note.hitTime = info[0] + speed
 			note.perfectYpos = PERFECT_YPOS
-			note.comboTicks = false
 			if (len(info) == 1):
 				# Create a general note
 				note.setNote(i+1, speed, coordPerFrame)
@@ -670,7 +690,17 @@ func finish(failed : bool) -> void:
 	Global.set_player_var(player, "score", exScore * 100.0 / maxi(noteCount * 2, 1))
 	Global.set_player_var(player, "combo_max", comboMax)
 	Global.set_player_var(player, "gauge_score", $GrooveGauge.value)
-	if versus:
+	if netplay:
+		if not AUTOPLAY:
+			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
+		Netplay.send_result({
+			"ex": exScore, "max_ex": noteCount * 2, "rate": opt("score"), "lamp": Scores.lamp(player),
+			"failed": failed, "gauge": int($GrooveGauge.value), "combo_max": comboMax, "counts": judgeCounts,
+			"auto_play": AUTOPLAY,
+		})
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		get_tree().change_scene_to_file("res://scenes/netplay/result.tscn")
+	elif versus:
 		$score.hide()
 		if failed:
 			$getready.text = "Failed"

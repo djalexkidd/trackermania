@@ -38,6 +38,7 @@ func _ready():
 	await load_and_add_songs()
 	sort_alphabet_categories()
 	add_random_entries()
+	add_category_lamps()
 	$SongInfo/SongName.text = ""
 	
 	$SongWheel.show()
@@ -82,6 +83,7 @@ func add_song_entry(file_path: String, title: String, artist: String, difficulty
 	}
 	if difficulty_name in color_map:
 		label2.add_theme_color_override("font_color", color_map[difficulty_name])
+	ClearLamp.attach(song_entry, Scores.get_best(file_path, difficulty_name).get("lamp", -1))
 
 	$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
 
@@ -136,6 +138,20 @@ func add_random_entries() -> void:
 		music_list.add_child(entry)
 		music_list.move_child(entry, 0)
 		entry.setup_random_title()
+
+# A category shows the worst lamp of its songs like in IIDX, none while one is not played
+func add_category_lamps() -> void:
+	for category in $SongWheel/Categories.get_children():
+		var lamp = -1
+		for song in category.get_node("MusicList").get_children():
+			if song.is_random:
+				continue
+			var song_lamp = song.get_node("ClearLamp").lamp
+			if song_lamp < 0:
+				lamp = -1
+				break
+			lamp = song_lamp if lamp < 0 else mini(lamp, song_lamp)
+		ClearLamp.attach(category.get_node("Category"), lamp)
 
 func _process(delta):
 	if songs_loading:

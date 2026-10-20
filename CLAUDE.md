@@ -30,6 +30,7 @@ scripts/
   menu/
     test_menu.gd         Menu titre
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector)
+    loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
                          song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
                          game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :
@@ -69,6 +70,11 @@ Un seul écran comme sur IIDX : 1P à gauche, 2P à droite (un seul panneau en s
 - `result_panel.gd` dessine tout dans `_draw()` : le graphe de la jauge (zone rouge au-dessus de 80 %, ligne verte puis rouge, rouge en HARD) avec le DJ LEVEL par-dessus, SP / difficulté / niveau / notes, puis CLEAR TYPE, DJ LEVEL, EX SCORE et MISS COUNT (meilleur | cette partie, flèches UP!/DOWN et écarts vers le milieu), TARGET (pacemaker du DJ LEVEL suivant, MAX après AAA, avec les options de la partie), les jugements, COMBO BREAK, MAX COMBO, FAST/SLOW, le taux et la barre FAST/SLOW.
 - Apparition : la ligne de la jauge se dessine, le DJ LEVEL apparaît, les lignes arrivent une à une et les nombres défilent. Une première pression (START, touche 1 ou 7, Entrée, clic) termine l'animation, la suivante ramène à la sélection.
 - `Scores.save_play()` garde aussi le plus petit `miss_count`, sauf pour une partie échouée.
+
+### Chargement de la sélection (`loading_screen.gd`)
+`music_select.gd` pose l'écran en premier, construit les entrées par lots (une image toutes les 8 ms) pour qu'il reste animé, puis `await loading_screen.finish()`.
+- Fond bleu CPC, police `assets/font/amstrad_cpc464.ttf` (importée sans anticrénelage), en bas à droite le personnage (`assets/loading/walk.0~2.png`, marche 0 1 2 1) puis « NOW LOADING... » et un curseur jaune qui clignote. Un pixel du sprite ou de la police = 4 px.
+- `finish()` attend au moins `MIN_TIME`, fait courir le personnage vers la droite (il efface chaque lettre qu'il dépasse), puis rend la main : le fond part en bandes horizontales vers la droite (la plus proche du personnage d'abord), pendant que la BGM démarre et que la roue entre par la droite.
 
 ### Aperçu dans la sélection (`song_preview.gd`)
 Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est chargée dans un thread (`WorkerThreadPool`) et jouée 20 s en boucle, avec fondu, sur le bus `Preview` (créé à la volée, envoyé vers Master : l'effector s'applique). La BGM de la sélection est en pause pendant ce temps et reprend sur une catégorie ou une entrée aléatoire.

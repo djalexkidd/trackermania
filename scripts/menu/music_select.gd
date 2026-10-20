@@ -40,10 +40,13 @@ func _ready():
 	update_joined(1)
 	update_joined(2)
 	
+	# NOW LOADING screen over everything until the wheel is built
+	var loading_screen = preload("res://scripts/menu/loading_screen.gd").new()
+	add_child(loading_screen)
+
 	if Global.custom_music_select_bgm != "":
 		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
-	
-	$AudioStreamPlayer.play()
+
 	song_preview = preload("res://scripts/menu/music_select/song_preview.gd").new()
 	song_preview.bgm = $AudioStreamPlayer
 	add_child(song_preview)
@@ -51,23 +54,23 @@ func _ready():
 	for player in [1, 2]:
 		options_x[player] = game_options(player).position.x
 	$SongWheel.hide()
-	$SongInfo/SongName.text = "Loading songs…"
+	# Draw the loading screen before the work starts
+	await get_tree().process_frame
 	await load_and_add_songs()
 	sort_alphabet_categories()
 	add_random_entries()
 	add_category_lamps()
-	$SongInfo/SongName.text = ""
-	
+
+	# Built behind the loading screen, out of the screen on the right
+	var target_position = $SongWheel.position
+	$SongWheel.position.x = size.x + 50
 	$SongWheel.show()
 	$SongWheel.setup()
+	await loading_screen.finish()
+	$AudioStreamPlayer.play()
 	songs_loading = false
-	
-	# Slide animation for song wheel
-	var screen_size = get_viewport().size
-	var target_position = $SongWheel.position
 
-	# Slide container to right
-	$SongWheel.position.x = screen_size.x + 50
+	# Slide animation for song wheel, while the loading screen leaves
 
 	wheel_tween = create_tween()
 	wheel_tween.tween_property($SongWheel, "position", target_position, 0.6)\
@@ -77,7 +80,12 @@ func _ready():
 # Function to load and add song entries
 func load_and_add_songs():
 	var songs = await Loader.get_song_catalog()
+	var batch_start = Time.get_ticks_msec()
 	for song in songs:
+		# Small batches keep the loading screen animated
+		if Time.get_ticks_msec() - batch_start >= 8:
+			await get_tree().process_frame
+			batch_start = Time.get_ticks_msec()
 		add_song_entry(song["path"], song["Title"], song["Artist"], int(song["Difficulty"]), song["DifficultyName"])
 
 func add_song_entry(file_path: String, title: String, artist: String, difficulty: int, difficulty_name: String):

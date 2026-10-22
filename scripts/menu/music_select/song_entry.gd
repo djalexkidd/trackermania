@@ -2,7 +2,9 @@ extends TextureButton
 
 var song_name = ""
 var creator = ""
-# Difficulties of the song, easiest first: {path, difficulty_name, level}
+# Difficulties of the song, easiest first: {path, difficulty_name, level, notes, double}
+var all_charts: Array = []
+# Difficulties of the style played (single play or DOUBLE PLAY), empty when the song has none
 var charts: Array = []
 var chart_index = 0
 # Chart shown and played, charts[chart_index]
@@ -27,10 +29,20 @@ static func difficulty_color(name: String, level: int) -> Color:
 func setup(title: String, artist: String, song_charts: Array) -> void:
 	song_name = title
 	creator = artist
-	charts = song_charts
+	all_charts = song_charts
 	$Label.text = title
 	ClearLamp.attach(self, -1)
-	select_preferred()
+	apply_style()
+
+# Keep the difficulties of the style played, a song without them is hidden from the wheel
+func apply_style() -> void:
+	var double = Global.is_double_play()
+	charts = all_charts.filter(func(chart): return chart["double"] == double)
+	if not charts.is_empty():
+		select_preferred()
+
+func available() -> bool:
+	return is_random or not charts.is_empty()
 
 # The difficulty chosen with E3 is kept from song to song like in IIDX: the same name, else the same place
 func select_preferred() -> void:
@@ -63,11 +75,11 @@ func chart_color(index: int) -> Color:
 	return difficulty_color(charts[index]["difficulty_name"], charts[index]["level"])
 
 func chart_lamp(index: int) -> int:
-	return Scores.get_best(charts[index]["path"], charts[index]["difficulty_name"]).get("lamp", -1)
+	return Scores.get_best(charts[index]["path"], charts[index]["difficulty_name"], charts[index]["double"]).get("lamp", -1)
 
-# The same preview for every difficulty: changing it does not restart the song
+# The same preview for every difficulty and style: changing it does not restart the song
 func preview_path() -> String:
-	return charts[0]["path"]
+	return all_charts[0]["path"]
 
 # Keep the moving title inside the ordinary song title area.
 func setup_random_title() -> void:
@@ -121,7 +133,7 @@ func update_song_info(show_score := true) -> void:
 
 # Best solo score of the chart
 func update_best_score(best_score: Control) -> void:
-	var best = Scores.get_best(path, difficulty_name)
+	var best = Scores.get_best(path, difficulty_name, charts[chart_index]["double"])
 	var lamp_label = best_score.get_node("Lamp")
 	var score_label = best_score.get_node("Score")
 	if best.is_empty():

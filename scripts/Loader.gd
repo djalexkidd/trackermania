@@ -8,7 +8,7 @@ var difficulty_slot = 0
 
 const SONG_CACHE_PATH = "user://song_catalog.json"
 # Bump when selection metadata or module chart generation changes.
-const SONG_CACHE_VERSION = 4
+const SONG_CACHE_VERSION = 5
 
 # Chart files of the music select
 const SONG_EXTENSIONS = ["qua", "mod"] + BmsChart.EXTENSIONS
@@ -44,7 +44,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 				"Artist": chart.artist,
 				"Difficulty": chart.level,
 				"DifficultyName": chart.difficultyName,
-				"Notes": note_count(chart.noteArray),
+				"Notes": note_count(chart.noteArray), "Style": "SP",
 			}
 			if is_song_metadata(entry):
 				songs.append(entry)
@@ -59,7 +59,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 				"Artist": bms.artist,
 				"Difficulty": bms.level,
 				"DifficultyName": bms.difficultyName,
-				"Notes": note_count(bms.noteArray),
+				"Notes": note_count(bms.noteArray), "Style": "DP" if bms.double else "SP",
 			}
 			if is_song_metadata(entry):
 				songs.append(entry)
@@ -68,13 +68,15 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 			if module == null:
 				continue
 			var title = module.title if module.title != "" else song_path.get_file().get_basename()
-			for difficulty_name in ModChart.DIFFICULTIES:
-				var chart = ModChart.new(module, difficulty_name)
-				songs.append({
-					"path": song_path, "Title": title, "Artist": "Amiga module",
-					"Difficulty": chart.level, "DifficultyName": difficulty_name,
-					"Notes": note_count(chart.noteArray),
-				})
+			# A module makes its single play and double play charts
+			for style in ["SP", "DP"]:
+				for difficulty_name in ModChart.DIFFICULTIES:
+					var chart = ModChart.new(module, difficulty_name, 7, style == "DP")
+					songs.append({
+						"path": song_path, "Title": title, "Artist": "Amiga module",
+						"Difficulty": chart.level, "DifficultyName": difficulty_name,
+						"Notes": note_count(chart.noteArray), "Style": style,
+					})
 
 	var file = FileAccess.open(SONG_CACHE_PATH, FileAccess.WRITE)
 	if file:
@@ -102,6 +104,9 @@ func is_song_metadata(entry: Variant) -> bool:
 	for field in ["path", "Title", "Artist", "DifficultyName"]:
 		if not entry.get(field) is String:
 			return false
+	# Single play or double play chart
+	if not entry.get("Style") in ["SP", "DP"]:
+		return false
 	var difficulty = entry.get("Difficulty")
 	if not (difficulty is float or difficulty is int):
 		return false

@@ -35,7 +35,7 @@ var elapsed := 0.0
 var leaving = false
 
 func _ready() -> void:
-	entries = Arcade.load_ranking()
+	entries = Arcade.load_ranking(Arcade.is_double())
 
 func _process(delta: float) -> void:
 	elapsed += delta
@@ -117,6 +117,8 @@ func draw_row(row: Rect2, rank: int, alpha: float) -> void:
 func draw_header() -> void:
 	draw_texture(INFO_BAR, Vector2(size.x + INFO_BAR_LEFT, 0))
 	draw_text(TITLE_FONT, Vector2(16, 16 + TITLE_FONT.get_ascent(32)), "ranking", 32, Color.WHITE)
+	# Single play and double play games have their own ranking
+	draw_text(TITLE_FONT, Vector2(16, 16 + TITLE_FONT.get_ascent(32) + 30), "DOUBLE PLAY" if Arcade.is_double() else "SINGLE PLAY", 16, YELLOW)
 	# No tag here
 	draw_rect(Rect2(size.x + INFO_BAR_LEFT + 1303, 0, 600, 98), Color.BLACK)
 

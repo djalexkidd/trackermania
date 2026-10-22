@@ -8,6 +8,8 @@ const RANDOM_TITLE_SPEED = 80.0
 # Sound effects, made by tools/make_select_sounds.py
 const SOUND_VOLUME_DB = -10.0
 
+# Categories of the music select, and those shown: a category without a song in the style played is hidden
+var all_categories: Array[Control] = []
 var categories: Array[Control] = []
 var entries: Array[Control] = []
 var opened_category: Control
@@ -42,7 +44,8 @@ func setup() -> void:
 	add_child(rows_layer)
 	for category in $Categories.get_children():
 		if category.visible:
-			categories.append(category)
+			all_categories.append(category)
+	categories = _shown_categories()
 	$Categories.hide()
 	entries.assign(categories.map(func(category): return category.get_node("Category")))
 	scrollbar.value_changed.connect(_on_scrollbar_changed)
@@ -69,10 +72,40 @@ func toggle_category(category: Control) -> void:
 	_animate_category_change()
 	opened_category = category
 	entries.assign([category.get_node("Category")])
-	entries.append_array(category.get_node("MusicList").get_children())
+	entries.append_array(_songs(category))
 	selected_index = 0
 	_render()
 	grab_focus()
+
+# Songs of a category in the style played, with its random entry
+func _songs(category: Control) -> Array:
+	return category.get_node("MusicList").get_children().filter(func(song): return song.available())
+
+func _shown_categories() -> Array[Control]:
+	var shown: Array[Control] = []
+	for category in all_categories:
+		var songs = category.get_node("MusicList").get_children().filter(func(song): return not song.is_random)
+		if songs.is_empty() or songs.any(func(song): return song.available()):
+			shown.append(category)
+	if shown.is_empty():
+		shown.append(all_categories[0])
+	return shown
+
+# The style changed (DOUBLE PLAY): show the categories and the songs of the new one, on the same entry when it is still there
+func apply_style() -> void:
+	var selected = entries[selected_index] if not entries.is_empty() else null
+	categories = _shown_categories()
+	if opened_category != null and opened_category in categories:
+		entries.assign([opened_category.get_node("Category")])
+		entries.append_array(_songs(opened_category))
+	else:
+		if opened_category != null:
+			selected = opened_category.get_node("Category")
+		opened_category = null
+		entries.assign(categories.map(func(category): return category.get_node("Category")))
+	selected_index = maxi(entries.find(selected), 0)
+	scroll_offset = 0.0
+	refresh()
 
 func close_category() -> bool:
 	if opened_category == null:
@@ -140,7 +173,7 @@ func _on_pressed() -> void:
 		entries[selected_index]._on_pressed()
 
 func play_random_song(entry: Control) -> void:
-	var songs = entry.get_parent().get_children().filter(func(song): return not song.is_random)
+	var songs = entry.get_parent().get_children().filter(func(song): return not song.is_random and song.available())
 	if songs.is_empty():
 		return
 	var song = songs.pick_random()
@@ -159,7 +192,7 @@ func _update_song_info() -> void:
 	if selected == null:
 		return
 	if selected.is_random:
-		preview_songs.assign(selected.get_parent().get_children().filter(func(song): return not song.is_random))
+		preview_songs.assign(selected.get_parent().get_children().filter(func(song): return not song.is_random and song.available()))
 		preview_songs.shuffle()
 		if not preview_songs.is_empty():
 			preview_songs[0].update_song_info(false)

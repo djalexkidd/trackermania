@@ -96,10 +96,17 @@ const FRAME_FIRST_KEY_X : float = 72.0
 
 # Emitted in local versus when this player is done (song ended, failed or gave up)
 signal finished
-# Player number, picks the game options and the input actions (p1_* or p2_*)
+# Player number, picks the game options and where the results go
 var player : int = 1
+# Side of the screen, picks the layout and the input actions (p1_* or p2_*), the player's side except in double play
+var side : int = 1
 # This player plays on this playfield, otherwise it is only shown
 var active : bool = false
+# DOUBLE PLAY: the playfield of the other side, and the 1P side one which keeps the score, gauge and combo of both
+var partner : Playfield = null
+var scorer : Playfield = self
+# Lanes of the chart taken by this side: 0~7, or 8~15 for the 2P side in double play
+var laneOffset : int = 0
 # Local versus flag (two playfields side by side, shared audio)
 var versus : bool = false
 # Online round (Netplay): same start for everyone, live ranking and the netplay results
@@ -210,19 +217,27 @@ var overlay        : Overlay
 var disc           : Sprite2D
 
 # Set the side of this playfield before start(): the player, whether it plays here, and the mode
-func setup(p : int, plays : bool, both : bool, online : bool) -> void:
+func setup(p : int, plays : bool, both : bool, online : bool, s : int = p) -> void:
 	player = p
+	side = s
 	active = plays
 	versus = both
 	netplay = online
-	prefix = "p%d_" % player
-	mirrored = player == 2
+	prefix = "p%d_" % side
+	mirrored = side == 2
 	keycodes = PackedStringArray([prefix + "key1", prefix + "key2", prefix + "key3", prefix + "key4",
 		prefix + "key5", prefix + "key6", prefix + "key7", prefix + "digital_turntable_fwd"])
 	buildLayout()
 	if not active:
 		modulate = Color(IDLE_DIM, IDLE_DIM, IDLE_DIM)
 	set_process(false)
+
+# DOUBLE PLAY: the two playfields play one chart, the 1P side counts for both
+func pairWith(other : Playfield) -> void:
+	partner = other
+	other.partner = self
+	other.scorer = self
+	other.laneOffset = ModChart.SIDE_LANES
 
 # Load the chart and start the playfield, called by main.gd for each player who plays
 func start() -> void:
@@ -256,8 +271,19 @@ func start() -> void:
 		disabled[5] = true
 		disabled[6] = true
 		lanes = range(5)
-	noteCount = Judge.noteCount(noteArray)
-	Global.set_player_var(player, "combo_max_top", noteCount)
+	# In double play the 1P side counts the notes of both sides
+	scorer.noteCount += Judge.noteCount(noteArray)
+	Global.set_player_var(player, "combo_max_top", scorer.noteCount)
+
+	# BATTLE: the 2P side plays the chart mirrored, like on IIDX
+	if versus and Global.is_battle() and side == 2:
+		var flippedNotes : Array = noteArray.duplicate()
+		var flippedKeysounds : Array = keysoundArray.duplicate()
+		for i in lanes.size():
+			flippedNotes[lanes[i]] = noteArray[lanes[-1 - i]]
+			flippedKeysounds[lanes[i]] = keysoundArray[lanes[-1 - i]]
+		noteArray = flippedNotes
+		keysoundArray = flippedKeysounds
 
 	if opt("random"):
 		randomize()
@@ -272,8 +298,10 @@ func start() -> void:
 		noteArray = shuffledNotes
 		keysoundArray = shuffledKeysounds
 
-	gauge = Judge.gaugeStart(opt("gauge_level"))
-	gaugeRecovery = Judge.gaugeRecovery(opt("gauge_level"), noteCount)
+	if scorer == self:
+		gauge = Judge.gaugeStart(opt("gauge_level"))
+	# The 2P side of a double play starts after the 1P side, the recovery counts the notes of both
+	scorer.gaugeRecovery = Judge.gaugeRecovery(opt("gauge_level"), scorer.noteCount)
 	refreshHud()
 
 	set_process(false)
@@ -303,7 +331,12 @@ func start() -> void:
 	if keysoundPlayer:
 		# The background music goes on after the last note
 		endPos = maxf(endPos, keysoundPlayer.length + ENDPOS_BIAS)
-	gaugeHistory.append(Vector2(0.0, shownGauge()))
+	# Both sides of a double play end together
+	if partner:
+		endPos = maxf(endPos, partner.endPos)
+		partner.endPos = endPos
+	if scorer == self:
+		gaugeHistory.append(Vector2(0.0, shownGauge()))
 	if measures:
 		subLineArray = getLineArr(measures, speed)
 	else:
@@ -413,9 +446,9 @@ func loadModule() -> bool:
 		keysoundPlayer = ModPlayer.new(module)
 		keysoundPlayer.name = "ModPlayer"
 		get_node(audio).add_child(keysoundPlayer)
-	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"))
-	noteArray = chart.noteArray
-	keysoundArray = chart.keysoundArray
+	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"), partner != null)
+	noteArray = sideLanes(chart.noteArray)
+	keysoundArray = sideLanes(chart.keysoundArray)
 	songInfo = {"title": keysoundPlayer.module.title, "artist": "Amiga module", "level": chart.level}
 	# The lines follow the measures of the module
 	measures = keysoundPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
@@ -445,12 +478,19 @@ func loadBms() -> bool:
 		keysoundPlayer.name = "BmsPlayer"
 		get_node(audio).add_child(keysoundPlayer)
 	# The notes are changed while playing, each playfield has its copy
-	noteArray = keysoundPlayer.chart.noteArray.duplicate(true)
-	keysoundArray = keysoundPlayer.chart.keysoundArray.duplicate(true)
+	noteArray = sideLanes(keysoundPlayer.chart.noteArray.duplicate(true))
+	keysoundArray = sideLanes(keysoundPlayer.chart.keysoundArray.duplicate(true))
 	measures = keysoundPlayer.chart.measures.duplicate()
 	bpms = bmsBpms(keysoundPlayer.chart)
 	songInfo = {"title": keysoundPlayer.chart.title, "artist": keysoundPlayer.chart.artist, "level": keysoundPlayer.chart.level}
 	return true
+
+# The 8 lanes of this side in the lanes of a chart, the 2P side of a double play takes the lanes 8~15
+func sideLanes(lanes : Array) -> Array:
+	var result : Array = lanes.slice(laneOffset, laneOffset + ModChart.SIDE_LANES)
+	while result.size() < ModChart.SIDE_LANES:
+		result.append([])
+	return result
 
 # Tempo changes of a BMS chart, with the lead-in like its notes
 func bmsBpms(chart : BmsChart) -> Array:
@@ -630,9 +670,14 @@ func keyPressed(i : int) -> bool:
 		return true
 	return false
 
-# Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
+# A judgement of a note of this side: counted by the scorer, shown over these lanes
 # offset is how late the hit was in seconds (negative when early), 0 when there was no hit
 func addJudge(judgement : String, offset : float = 0.0) -> void:
+	scorer.countJudge(judgement, offset)
+	showJudge(judgement)
+
+# Count a judgement: EX score, gauge, then combo (GOOD keeps it, BAD and POOR break it like in IIDX)
+func countJudge(judgement : String, offset : float) -> void:
 	exScore += Judge.EX_POINTS.get(judgement, 0)
 	judgeCounts[judgement] += 1
 	# FAST/SLOW like in IIDX: the PGREATs and the missed notes are not counted
@@ -648,7 +693,6 @@ func addJudge(judgement : String, offset : float = 0.0) -> void:
 	else:
 		combo += 1
 		comboMax = maxi(comboMax, combo)
-	showJudge(judgement)
 
 # Show a judgement over the lanes, with the combo after it
 func showJudge(judgement : String) -> void:
@@ -666,12 +710,14 @@ func updateGauge(judgement : String) -> void:
 
 # Gauge as shown on the screen, by steps of 2 %
 func shownGauge() -> float:
-	return float(Judge.gaugeDisplay(opt("gauge_level"), gauge))
+	return float(Judge.gaugeDisplay(opt("gauge_level"), scorer.gauge))
 
-# Gauge shown under the keys, the numbers of the HUD are drawn with the overlay
+# Gauge shown under the keys (both sides in double play), the numbers of the HUD are drawn with the overlay
 func refreshHud() -> void:
-	gaugeBar.value = shownGauge()
-	overlay.queue_redraw()
+	for field in [self, partner]:
+		if field:
+			field.gaugeBar.value = shownGauge()
+			field.overlay.queue_redraw()
 
 # A key pressed without a note to hit: an empty POOR if a note comes soon, it only hurts the gauge
 func emptyPress(i : int) -> void:
@@ -685,8 +731,8 @@ func emptyPress(i : int) -> void:
 		next = noteArray[i][0][0] + speed
 	if next - currentSongPos <= Judge.EMPTY_POOR_WINDOW / 1000.0:
 		# Counted in the POORs and the miss count like in IIDX, but it does not break the combo
-		judgeCounts["Poor"] += 1
-		updateGauge("EmptyPoor")
+		scorer.judgeCounts["Poor"] += 1
+		scorer.updateGauge("EmptyPoor")
 		showJudge("Poor")
 
 # Show how early (-) or late (+) a note was hit, measured like the judgement from its y position
@@ -806,10 +852,8 @@ func killGarbage() -> void:
 			if (n.position.y - n.effect.size.y >= 600 and not queue[i-1].has(n)):
 				n.free()
 
-# Store this player's results, then show them (or wait for the other player in versus)
-func finish(failed : bool) -> void:
-	if done:
-		return
+# Stop playing and clear the lanes
+func stop() -> void:
 	done = true
 	set_process(false)
 	pressed.fill(false)
@@ -820,6 +864,19 @@ func finish(failed : bool) -> void:
 		for n in get_node("container" + str(i)).get_children():
 			n.queue_free()
 	queue = [[], [], [], [], [], [], [], []]
+
+# Store this player's results, then show them (or wait for the other player in versus)
+func finish(failed : bool) -> void:
+	# In double play the 1P side ends the play of both sides
+	if scorer != self:
+		scorer.finish(failed)
+		return
+	if done:
+		return
+	stop()
+	if partner:
+		partner.stop()
+	var double : bool = partner != null
 	Global.set_player_var(player, "failed", failed)
 	Global.set_player_var(player, "ex_score", exScore)
 	# Rate of the EX score over its maximum (2 per note), gives the grade
@@ -830,9 +887,9 @@ func finish(failed : bool) -> void:
 	Global.set_player_var(player, "result", {
 		"counts": judgeCounts.duplicate(), "fast": fastCount, "slow": slowCount, "combo_break": comboBreak,
 		"miss_count": judgeCounts["Bad"] + judgeCounts["Poor"], "note_count": noteCount,
-		"gauge_history": gaugeHistory, "previous_best": Scores.get_best(Loader.file_path, Loader.chart_difficulty).duplicate(),
+		"gauge_history": gaugeHistory, "previous_best": Scores.get_best(Loader.file_path, Loader.chart_difficulty, double).duplicate(),
 	})
-	Global.song_info = songInfo.merged({"difficulty": Loader.chart_difficulty})
+	Global.song_info = songInfo.merged({"difficulty": Loader.chart_difficulty, "double": double})
 	if netplay:
 		if not AUTOPLAY:
 			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
@@ -854,7 +911,7 @@ func finish(failed : bool) -> void:
 	else:
 		# Only the solo plays are saved, not the autoplay
 		if not AUTOPLAY:
-			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
+			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty, double)
 		if Arcade.active:
 			Arcade.add_stage(player)
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -1035,13 +1092,14 @@ func drawPlate(canvas : CanvasItem) -> void:
 func drawHud(canvas : CanvasItem) -> void:
 	var outer : HorizontalAlignment = HORIZONTAL_ALIGNMENT_RIGHT if mirrored else HORIZONTAL_ALIGNMENT_LEFT
 	var gauge_screen : Rect2 = sideRect(GAUGE_SCREEN)
-	canvas.draw_string(FONT, Vector2(gauge_screen.position.x + 4, GAUGE_LABEL_Y), "P%d GROOVE GAUGE" % player, outer, gauge_screen.size.x - 8, 10, GAUGE_LABEL_COLOR)
+	var gauge_title : String = "DP GROOVE GAUGE" if partner else "P%d GROOVE GAUGE" % player
+	canvas.draw_string(FONT, Vector2(gauge_screen.position.x + 4, GAUGE_LABEL_Y), gauge_title, outer, gauge_screen.size.x - 8, 10, GAUGE_LABEL_COLOR)
 	var percent : Rect2 = sideRect(PERCENT_SCREEN)
 	drawNumber(canvas, Vector2(percent.end.x - 22, percent.position.y + 32), int(shownGauge()), 3, 19)
 	canvas.draw_string(FONT, Vector2(percent.end.x - 19, percent.position.y + 32), "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, NUMBER_COLOR)
 	# Score and max combo: the titles on the outer side, the numbers towards the middle of the screen
 	var score : Rect2 = sideRect(SCORE_SCREEN)
-	var rows : Array = [["SCORE", exScore, 5], ["MAXCOMBO", comboMax, 4]]
+	var rows : Array = [["SCORE", scorer.exScore, 5], ["MAXCOMBO", scorer.comboMax, 4]]
 	for row in range(2):
 		var baseline : float = score.position.y + 33 + row * 37
 		canvas.draw_string(FONT, Vector2(score.position.x + 10, baseline - 6), rows[row][0], outer, score.size.x - 20, 11, LABEL_COLOR)
@@ -1078,8 +1136,8 @@ func drawJudge(canvas : CanvasItem) -> void:
 	if judgeShown == "" or elapsed > JUDGE_TIME:
 		return
 	var text : String = JUDGE_WORDS[judgeShown]
-	if combo > 0 and judgeShown != "Bad" and judgeShown != "Poor":
-		text += " %d" % combo
+	if scorer.combo > 0 and judgeShown != "Bad" and judgeShown != "Poor":
+		text += " %d" % scorer.combo
 	var color : Color
 	if judgeShown == "PGreat":
 		color = PGREAT_COLORS[(Time.get_ticks_msec() / PGREAT_CYCLE_MS) % PGREAT_COLORS.size()]

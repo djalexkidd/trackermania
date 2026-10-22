@@ -2,6 +2,7 @@ class_name Arcade
 
 # ARCADE mode like IIDX: 3 stages, a failed stage is the GAME OVER, a song is played once
 # whatever its difficulty, then the NAME ENTRY and the ranking of the total EX score.
+# The DOUBLE PLAY is chosen before the 1st stage, the single play and double play games have their own rankings.
 
 const STAGES = 3
 const STAGE_NAMES = ["1ST STAGE", "2ND STAGE", "FINAL STAGE"]
@@ -50,8 +51,18 @@ static func add_stage(player: int) -> void:
 		"title": Global.song_info.get("title", ""), "level": Global.song_info.get("level", 0),
 		"ex_score": Global.get_player_var(player, "ex_score"),
 		"max_ex": Global.get_player_var(player, "result").get("note_count", 0) * 2,
-		"lamp": lamp, "failed": lamp == 0,
+		"lamp": lamp, "failed": lamp == 0, "double": Global.is_double_play(),
 	})
+
+# The style of the game is the one of its 1st stage, it cannot be changed after it
+static func is_double() -> bool:
+	return stages[0].get("double", false) if not stages.is_empty() else Global.is_double_play()
+
+static func can_change_style() -> bool:
+	return not active or stages.is_empty()
+
+static func ranking_key(double: bool) -> String:
+	return "entries_dp" if double else "entries"
 
 static func game_over() -> bool:
 	return not stages.is_empty() and stages[-1]["failed"]
@@ -75,15 +86,16 @@ static func total_max_ex() -> int:
 static func total_rate() -> float:
 	return total_ex() * 100.0 / maxi(total_max_ex(), 1)
 
-# Best totals first
-static func load_ranking() -> Array:
+# Best totals first, of the single play or the double play games
+static func load_ranking(double: bool) -> Array:
 	var config = ConfigFile.new()
 	config.load(RANKING_PATH)
-	return config.get_value("ranking", "entries", [])
+	return config.get_value("ranking", ranking_key(double), [])
 
 # Add the game to the ranking, after the name entry
 static func save_ranking(dj_name: String) -> void:
-	var entries = load_ranking()
+	var double = is_double()
+	var entries = load_ranking(double)
 	var entry = {
 		"name": dj_name, "ex_score": total_ex(), "rate": total_rate(),
 		"songs": stages.map(func(stage): return stage["title"]),
@@ -99,6 +111,8 @@ static func save_ranking(dj_name: String) -> void:
 	entries.resize(mini(entries.size(), RANKING_SIZE))
 	if last_rank >= RANKING_SIZE:
 		last_rank = -1
+	# The other ranking is kept
 	var config = ConfigFile.new()
-	config.set_value("ranking", "entries", entries)
+	config.load(RANKING_PATH)
+	config.set_value("ranking", ranking_key(double), entries)
 	config.save(RANKING_PATH)

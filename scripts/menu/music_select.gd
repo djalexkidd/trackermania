@@ -9,6 +9,8 @@ var songs_loading = true
 var song_preview: Node
 # Arcade mode: TIME REMAIN, a song is picked when it runs out
 var arcade_timer: Control
+# Style of the songs shown: the DOUBLE PLAY shows the double play charts only
+var double_play = false
 
 # Opening/closing of the game options: the wheel slides out to the right, then the panel slides in
 const OPTIONS_SLIDE_TIME = 0.15
@@ -21,19 +23,12 @@ func _ready():
 	# The effector stays as it was chosen, also from the game
 	show_effector()
 	
-	for player in [1, 2]:
-		var dj_name = Global.p1_name if player == 1 else Global.p2_name
-		if dj_name != "":
-			var box = get_node("BottomBar/P%dColorRect" % player)
-			box.get_node("P%dLabel" % player).hide()
-			box.get_node("P%dDJPrefixLabel/P%dNameLabel" % [player, player]).text = dj_name
-			box.get_node("P%dDJPrefixLabel" % player).show()
-	
 	netplay = Netplay.active
 	if netplay:
 		Global.p1_joined = true
 		Global.p2_joined = false
 		Netplay.closed.connect(_on_netplay_closed)
+	double_play = Global.is_double_play()
 	update_joined(1)
 	update_joined(2)
 	if Arcade.active:
@@ -61,8 +56,8 @@ func _ready():
 	# Draw the loading screen before the work starts
 	await get_tree().process_frame
 	await load_and_add_songs()
-	# Arcade: every song was already played, the game ends there
-	if Arcade.active and not Arcade.stages.is_empty() and $SongWheel/Categories/AllMusic/MusicList.get_child_count() == 0:
+	# Arcade: every song (of the style of the game) was already played, the game ends there
+	if Arcade.active and not Arcade.stages.is_empty() and not $SongWheel/Categories/AllMusic/MusicList.get_children().any(func(song): return song.available()):
 		get_tree().change_scene_to_file("res://scenes/arcade/name_entry.tscn")
 		return
 	sort_alphabet_categories()
@@ -111,7 +106,7 @@ func load_and_add_songs():
 func add_song_entry(group: Array):
 	var charts = group.map(func(song): return {
 		"path": song["path"], "difficulty_name": song["DifficultyName"],
-		"level": int(song["Difficulty"]), "notes": int(song["Notes"]),
+		"level": int(song["Difficulty"]), "notes": int(song["Notes"]), "double": song["Style"] == "DP",
 	})
 	sort_charts(charts)
 	var title = group_title(group.map(func(song): return song["Title"]))
@@ -208,7 +203,7 @@ func update_category_lamps() -> void:
 	for category in $SongWheel/Categories.get_children():
 		var lamp = -1
 		for song in category.get_node("MusicList").get_children():
-			if song.is_random:
+			if song.is_random or not song.available():
 				continue
 			var song_lamp = song.get_node("ClearLamp").lamp
 			if song_lamp < 0:
@@ -228,14 +223,18 @@ func _process(delta):
 	if Effector.update_button(joined_players().map(func(player): return "p%d_effect" % player)):
 		show_effector()
 	
+	# The DOUBLE PLAY was turned on or off, or the players changed
+	if Global.is_double_play() != double_play:
+		apply_style()
+	
 	# START joins, then hold it for the game options. META leaves.
 	for player in [1, 2]:
 		if netplay and player == 2:
 			continue
 		var prefix = "p%d_" % player
 		if Input.is_action_just_pressed(prefix + "start"):
-			# The arcade mode is played alone
-			if Arcade.active and not is_joined(player):
+			# The arcade mode is played alone, and the DOUBLE PLAY takes both sides
+			if (Arcade.active or Global.is_double_play()) and not is_joined(player):
 				continue
 			if not is_joined(player):
 				set_joined(player, true)
@@ -278,7 +277,7 @@ func change_difficulty() -> void:
 		return
 	for category in $SongWheel/Categories.get_children():
 		for song in category.get_node("MusicList").get_children():
-			if not song.is_random and song != entry:
+			if song.available() and not song.is_random and song != entry:
 				song.select_preferred()
 	update_category_lamps()
 	$SongWheel.refresh()
@@ -309,14 +308,38 @@ func leave() -> void:
 func _on_netplay_closed(_reason: String) -> void:
 	leave()
 
-# Show the player's game options bar, or "PRESS START BUTTON" when the player is out
+# Single play or DOUBLE PLAY: the songs and difficulties of the new style, the lamps and the bottom bar
+func apply_style() -> void:
+	double_play = Global.is_double_play()
+	for category in $SongWheel/Categories.get_children():
+		for song in category.get_node("MusicList").get_children():
+			if not song.is_random:
+				song.apply_style()
+	update_category_lamps()
+	update_joined(1)
+	update_joined(2)
+	if not songs_loading:
+		$SongWheel.apply_style()
+
+# Show the player's game options bar, or "PRESS START BUTTON" when the player is out.
+# In DOUBLE PLAY the box of the other side takes the color of the player and shows DOUBLE.
 func update_joined(player: int) -> void:
+	var double_side = not is_joined(player) and double_play
 	get_node("BottomBar/P%dGameOptions" % player).visible = is_joined(player)
-	get_node("BottomBar/P%dPressStart" % player).visible = not is_joined(player)
+	get_node("BottomBar/P%dPressStart" % player).visible = not is_joined(player) and not double_side
+	var box = get_node("BottomBar/P%dColorRect" % player)
 	if is_joined(player):
-		get_node("BottomBar/P%dColorRect" % player).color = player_colors[player]
+		box.color = player_colors[player]
+	elif double_side:
+		box.color = player_colors[3 - player]
 	else:
-		get_node("BottomBar/P%dColorRect" % player).color = player_colors[0]
+		box.color = player_colors[0]
+	var dj_name = Global.p1_name if player == 1 else Global.p2_name
+	var label = box.get_node("P%dLabel" % player)
+	label.text = "DOUBLE" if double_side else "PLAYER %d" % player
+	label.visible = double_side or dj_name == ""
+	box.get_node("P%dDJPrefixLabel/P%dNameLabel" % [player, player]).text = dj_name
+	box.get_node("P%dDJPrefixLabel" % player).visible = not label.visible
 
 # P1 options panel goes over the song wheel, P2 options panel over the song info
 func game_options(player: int) -> Control:
@@ -385,9 +408,9 @@ func _on_arcade_timeout() -> void:
 		entry._on_pressed()
 		return
 	var category = entry.get_parent() if entry != null else $SongWheel/Categories/AllMusic/MusicList
-	var songs = category.get_children().filter(func(song): return not song.is_random)
+	var songs = category.get_children().filter(func(song): return not song.is_random and song.available())
 	if songs.is_empty():
-		songs = $SongWheel/Categories/AllMusic/MusicList.get_children().filter(func(song): return not song.is_random)
+		songs = $SongWheel/Categories/AllMusic/MusicList.get_children().filter(func(song): return not song.is_random and song.available())
 	if songs.is_empty():
 		leave()
 		return

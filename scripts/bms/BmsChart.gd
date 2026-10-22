@@ -3,14 +3,17 @@ class_name BmsChart
 
 # A keysounded chart for beatmania IIDX simulators: BMS (.bms, .bme, .bml) or bmson.
 # Every sound of the song is a keysound event, the notes of the chart point to theirs, the others are the background music.
-# Only the single play charts are read (5 or 7 keys and the scratch), the double play charts are not playable.
+# Single play (5 or 7 keys and the scratch) and double play charts (both sides, played with the DOUBLE PLAY option).
 
 const EXTENSIONS : Array = ["bms", "bme", "bml", "bmson"]
 # Silence before the song starts (seconds)
 const LEAD_IN : float = 2.0
 const SCRATCH_LANE : int = 7
-# Lane of each 1P channel of the BMS (1x visible notes, 5x long notes): keys 1~5, 6 scratch, 8 and 9 keys 6 and 7
+# Lane of each channel of a side (1x/5x for 1P, 2x/6x for 2P, visible then long notes): keys 1~5, 6 scratch, 8 and 9 keys 6 and 7
 const KEY_CHANNELS : Dictionary = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "8": 5, "9": 6, "6": 7}
+# The 2P side of a double play chart takes the lanes 8~15, in the same order
+const SIDE_LANES : int = 8
+const DOUBLE_LANES : int = 16
 # The foot pedal channel has no lane, its sounds go to the background music
 const PEDAL_CHANNEL : String = "17"
 # Names of the #DIFFICULTY values, 5 is the INSANE of BMS
@@ -24,6 +27,7 @@ const DEFAULT_BPM : float = 130.0
 # bmson pulses per beat when the resolution is missing
 const BMSON_RESOLUTION : float = 240.0
 const BMSON_MODES : Array = ["beat-7k", "beat-5k"]
+const BMSON_DOUBLE_MODES : Array = ["beat-14k", "beat-10k"]
 
 var title : String = ""
 var artist : String = ""
@@ -40,10 +44,12 @@ var volume : float = 1.0
 # All the sounds of the song in time order (seconds, without the lead-in): {time, sound, offset, cut}
 # offset is where the sound starts (sliced bmson sounds), cut stops the sound at the note time if it is not hit (bmson)
 var keysounds : Array = []
-# 8 lanes of notes, [time] or [time, length] for a long note, in seconds with the lead-in
-var noteArray : Array = [[], [], [], [], [], [], [], []]
+# 8 lanes of notes (16 for a double play chart), [time] or [time, length] for a long note, in seconds with the lead-in
+var noteArray : Array = []
 # Index in keysounds of each note of noteArray, -1 for a note without sound
-var keysoundArray : Array = [[], [], [], [], [], [], [], []]
+var keysoundArray : Array = []
+# Double play chart: there are notes on the 2P side
+var double : bool = false
 # Start time of each measure, in seconds with the lead-in
 var measures : Array = []
 var level : int = 1
@@ -64,6 +70,9 @@ static func load_file(path : String, random : bool = true) -> BmsChart:
 	if bytes.is_empty():
 		return null
 	var chart : BmsChart = BmsChart.new()
+	for lane in DOUBLE_LANES:
+		chart.noteArray.append([])
+		chart.keysoundArray.append([])
 	var ok : bool = false
 	if path.get_extension().to_lower() == "bmson":
 		ok = chart.parseBmson(bytes.get_string_from_utf8())
@@ -72,6 +81,11 @@ static func load_file(path : String, random : bool = true) -> BmsChart:
 		ok = chart.parseBms(bytes.get_string_from_ascii(), random)
 	if not ok:
 		return null
+	# Without notes on the 2P side, it is a single play chart
+	chart.double = chart.noteArray.slice(SIDE_LANES).any(func(notes): return not notes.is_empty())
+	if not chart.double:
+		chart.noteArray.resize(SIDE_LANES)
+		chart.keysoundArray.resize(SIDE_LANES)
 	if chart.difficultyName == "":
 		chart.difficultyName = chart.guessDifficulty(path.get_file().get_basename())
 	chart.level = QuaChart.densityLevel(chart.noteArray)
@@ -217,21 +231,21 @@ func parseBms(text : String, random : bool) -> bool:
 					if stops.has(id):
 						timing.append([beat, 1, stops[id] / 48.0])
 				_:
-					if channel[0] in ["2", "6"] and KEY_CHANNELS.has(channel[1]):
-						# Double play chart
-						return false
-					if KEY_CHANNELS.has(channel[1]):
-						if channel[0] == "1":
-							visible[[KEY_CHANNELS[channel[1]], beat]] = id
-						elif channel[0] == "5":
-							long[[KEY_CHANNELS[channel[1]], beat]] = id
+					if KEY_CHANNELS.has(channel[1]) and channel[0] in ["1", "2", "5", "6"]:
+						var lane : int = KEY_CHANNELS[channel[1]] + (SIDE_LANES if channel[0] in ["2", "6"] else 0)
+						if channel[0] in ["1", "2"]:
+							visible[[lane, beat]] = id
+						else:
+							long[[lane, beat]] = id
 	buildTimeline(header.get("#BPM", "").to_float(), timing)
 
 	# [beat, sound id, end beat or -1] of each lane
-	var laneNotes : Array = [[], [], [], [], [], [], [], []]
+	var laneNotes : Array = []
+	for lane in DOUBLE_LANES:
+		laneNotes.append([])
 	for key in visible:
 		laneNotes[key[0]].append([key[1], visible[key], -1.0])
-	for lane in 8:
+	for lane in DOUBLE_LANES:
 		laneNotes[lane].sort()
 		# #LNOBJ: this sound ends the long note started by the previous note of the lane
 		var notes : Array = []
@@ -255,7 +269,7 @@ func parseBms(text : String, random : bool) -> bool:
 	for note in background:
 		if sounds.has(note[1]):
 			events.append([beatToTime(note[0]), sounds[note[1]], -1, 0.0])
-	for lane in 8:
+	for lane in DOUBLE_LANES:
 		for note in laneNotes[lane]:
 			events.append([beatToTime(note[0]), sounds.get(note[1], -1), lane, beatToTime(note[2]) if note[2] >= 0.0 else -1.0])
 	events.sort()
@@ -272,8 +286,9 @@ func parseBmson(text : String) -> bool:
 		return false
 	var info : Dictionary = data["info"]
 	var mode = info.get("mode_hint", "beat-7k")
-	if not mode in BMSON_MODES:
+	if not mode in BMSON_MODES and not mode in BMSON_DOUBLE_MODES:
 		return false
+	var double_mode : bool = mode in BMSON_DOUBLE_MODES
 	title = str(info.get("title", ""))
 	var subtitle : String = str(info.get("subtitle", "")) if info.get("subtitle") != null else ""
 	if subtitle != "":
@@ -317,12 +332,10 @@ func parseBmson(text : String) -> bool:
 			if not n.get("c", false):
 				start = time
 			var x : int = int(n["x"]) if n.get("x") is float else 0
-			# x: 1~7 keys, 8 scratch, the others are the background music
+			# x: 1~7 keys, 8 scratch, then 9~16 on the 2P side of a double play chart, the others are the background music
 			var lane : int = -1
-			if x >= 1 and x <= 7:
+			if x >= 1 and x <= (DOUBLE_LANES if double_mode else SIDE_LANES):
 				lane = x - 1
-			elif x == 8:
-				lane = SCRATCH_LANE
 			var length : float = num(n.get("l")) / resolution
 			var end : float = beatToTime(beat + length) if lane != -1 and length > 0.0 else -1.0
 			events.append([time, sound, lane, end, time - start])

@@ -16,6 +16,8 @@ func _ready() -> void:
 	
 	_on_game_option_settings_update("random", Global.get_player_var(player, "random"))
 	
+	_on_game_option_settings_update("double", Global.get_player_var(player, "double_play"))
+	
 	if Global.get_player_var(player, "gauge_level") != 0:
 		_on_game_option_settings_update("difficulty", Global.get_player_var(player, "gauge_level"))
 

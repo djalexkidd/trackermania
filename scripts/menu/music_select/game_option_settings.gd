@@ -66,6 +66,16 @@ func _process(_delta: float) -> void:
 		emit_signal("update", "auto", get_opt("auto_play"))
 		changed(0)
 
+	if Input.is_action_just_pressed(key("key3")) and can_double():
+		set_opt("double_play", !get_opt("double_play"))
+		emit_signal("update", "double", get_opt("double_play"))
+		changed(2)
+
+	if Input.is_action_just_pressed(key("key5")) and can_battle():
+		Global.battle = !Global.battle
+		emit_signal("update", "battle", Global.battle)
+		changed(4)
+
 	if Input.is_action_just_pressed(key("key2")):
 		set_opt("random", !get_opt("random"))
 		emit_signal("update", "random", get_opt("random"))
@@ -90,6 +100,14 @@ func _process(_delta: float) -> void:
 		set_opt("hispeed", HISPEED_MAX if hispeed < HISPEED_MIN else hispeed)
 		emit_signal("update", "hispeed", get_opt("hispeed"))
 		changed(6)
+
+# DOUBLE PLAY: alone and offline, and in arcade only before the 1st stage (single and double play have their own rankings)
+func can_double() -> bool:
+	return not (Global.p1_joined and Global.p2_joined) and not Netplay.active and Arcade.can_change_style()
+
+# BATTLE replaces it when both players are in game
+func can_battle() -> bool:
+	return Global.p1_joined and Global.p2_joined and not Netplay.active
 
 func changed(i: int) -> void:
 	changed_at[i] = Time.get_ticks_msec()
@@ -183,24 +201,28 @@ func _draw() -> void:
 			draw_box(box, COLUMNS[column][2][choice], choice == selected, flash(i) if choice == selected else 0.0)
 		draw_link(Vector2(rect.get_center().x, rect.end.y + 4), Vector2(key_rect(i).get_center().x, BLACK_KEY_TOP - 4), accent if lit else LINE)
 
-	# White keys: one option under each, keys 3 and 5 have none
+	# White keys: one option under each, [title, value, chosen, available, value shown when not available]
 	var hispeed = get_opt("hispeed")
+	var double = get_opt("double_play")
 	var white_options = {
-		0: ["AUTO PLAY", "ON" if get_opt("auto_play") else "OFF", get_opt("auto_play")],
-		6: ["HI-SPEED", "%.2f" % hispeed, hispeed != HISPEED_MAX],
+		0: ["AUTO PLAY", "ON" if get_opt("auto_play") else "OFF", get_opt("auto_play"), not Arcade.active, "---"],
+		# The DOUBLE PLAY of an arcade game is kept after the 1st stage
+		2: ["DOUBLE", "ON" if double else "OFF", double, can_double(), ("ON" if double else "OFF") if Arcade.active else "---"],
+		4: ["BATTLE", "ON" if Global.battle else "OFF", Global.battle, can_battle(), "---"],
+		6: ["HI-SPEED", "%.2f" % hispeed, hispeed != HISPEED_MAX, true, "---"],
 	}
 	for i in [0, 2, 4, 6]:
 		var box = white_box_rect(i)
 		var lit = Input.is_action_pressed(key("key%d" % (i + 1)))
 		draw_link(Vector2(box.get_center().x, WHITE_KEY_TOP + KEY_SIZE.y + 4), Vector2(box.get_center().x, box.position.y - 4), accent if lit else LINE)
-		if i == 0 and Arcade.active:
-			draw_box(box, "---", false, 0.0, true)
-			draw_text(TITLE_FONT, Rect2(box.position.x - 6, box.end.y + 4, box.size.x + 12, 18), white_options[i][0], 12, LINE)
-		elif white_options.has(i):
-			draw_box(box, white_options[i][1], white_options[i][2], flash(i))
-			draw_text(TITLE_FONT, Rect2(box.position.x - 6, box.end.y + 4, box.size.x + 12, 18), white_options[i][0], 12, ORANGE)
+		var option = white_options[i]
+		var title_rect = Rect2(box.position.x - 6, box.end.y + 4, box.size.x + 12, 18)
+		if option[3]:
+			draw_box(box, option[1], option[2], flash(i))
+			draw_text(TITLE_FONT, title_rect, option[0], 12, ORANGE)
 		else:
-			draw_box(box, "---", false, 0.0, true)
+			draw_box(box, option[4], false, 0.0, true)
+			draw_text(TITLE_FONT, title_rect, option[0], 12, LINE)
 
 	# Keys, lit in the player color while pressed
 	for i in 7:

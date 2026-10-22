@@ -347,12 +347,12 @@ func draw_graph_box() -> void:
 		draw_string(TITLE_FONT, origin, level, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(DJ_LEVEL_COLOR, pop))
 		draw_set_transform(Vector2.ZERO)
 
-	# SP, difficulty, level and number of notes
+	# SP or DP, difficulty, level and number of notes
 	var info : Dictionary = Global.song_info
 	var difficulty = info.get("difficulty", "")
 	var difficulty_color = NetplayUI.DIFFICULTY_COLORS.get(difficulty, Color.WHITE)
 	var x = panel_x + 8
-	draw_badge(Rect2(x, STRIP_TOP, 34, STRIP_H), "SP", Color.WHITE)
+	draw_badge(Rect2(x, STRIP_TOP, 34, STRIP_H), "DP" if info.get("double", false) else "SP", Color.WHITE)
 	draw_badge(Rect2(x + 40, STRIP_TOP, 104, STRIP_H), difficulty.to_upper() if difficulty != "" else "-", difficulty_color, true)
 	draw_badge(Rect2(x + 150, STRIP_TOP, 30, STRIP_H), str(info.get("level", "")), difficulty_color)
 	draw_badge(Rect2(panel_x + PANEL_W - 8 - 120, STRIP_TOP, 120, STRIP_H), "%04d NOTES" % details.get("note_count", 0), Color(0.4, 1, 0.4))

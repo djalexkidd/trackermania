@@ -26,12 +26,16 @@ func _ready() -> void:
 	var versus : bool = Global.p1_joined and Global.p2_joined
 	netplay = not versus and Netplay.in_round()
 	var solo : int = 2 if Global.p2_joined and not Global.p1_joined else 1
-	for player in [1, 2]:
-		var field : Playfield = get_node("P%d" % player)
-		var plays : bool = versus or player == solo
-		field.setup(player, plays, versus, netplay)
+	# DOUBLE PLAY: the player alone plays both sides, with the inputs of both decks
+	var double : bool = not versus and not netplay and Global.is_double_play()
+	for side in [1, 2]:
+		var field : Playfield = get_node("P%d" % side)
+		var plays : bool = versus or double or side == solo
+		field.setup(solo if double else side, plays, versus, netplay, side)
 		if plays:
 			playing.append(field)
+	if double:
+		$P1.pairWith($P2)
 	if versus:
 		$P1.finished.connect(playerFinished)
 		$P2.finished.connect(playerFinished)

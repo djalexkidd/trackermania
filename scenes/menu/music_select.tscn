@@ -188,7 +188,7 @@ anchor_bottom = 1.0
 offset_left = 32.0
 offset_top = 120.0
 offset_right = 512.0
-offset_bottom = -96.0
+offset_bottom = -132.0
 grow_vertical = 2
 
 [node name="SongName" type="Label" parent="SongInfo" unique_id=153584467]
@@ -240,7 +240,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -751.0
 offset_top = 113.0
-offset_bottom = -88.0
+offset_bottom = -124.0
 grow_horizontal = 0
 grow_vertical = 2
 focus_mode = 2
@@ -573,7 +573,7 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -88.0
+offset_top = -124.0
 grow_horizontal = 2
 grow_vertical = 0
 color = Color(0, 0, 0, 1)
@@ -583,10 +583,10 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = -80.0
-offset_right = 264.0
-offset_bottom = -40.0
+offset_left = 12.0
+offset_top = -120.0
+offset_right = 268.0
+offset_bottom = -74.0
 grow_vertical = 0
 color = Color(0, 0.686275, 1, 1)
 
@@ -654,10 +654,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -264.0
-offset_top = -80.0
-offset_right = -8.0
-offset_bottom = -40.0
+offset_left = -268.0
+offset_top = -120.0
+offset_right = -12.0
+offset_bottom = -74.0
 grow_horizontal = 0
 grow_vertical = 0
 color = Color(1, 0.156863, 0, 1)
@@ -721,19 +721,19 @@ text = "######"
 
 [node name="Label" type="Label" parent="BottomBar" unique_id=1525794827]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -11.5
-offset_right = 20.0
-offset_bottom = 11.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -34.0
+offset_right = 200.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("7_q6por")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 24
 text = "effector off"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -743,167 +743,172 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = -40.0
-offset_right = 108.0
-offset_bottom = -8.0
+offset_left = 12.0
+offset_top = -68.0
+offset_right = 624.0
+offset_bottom = -38.0
+theme_override_constants/separation = 2
 grow_vertical = 0
 
 [node name="hispeedColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=325386097]
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
 [node name="Label" type="Label" parent="BottomBar/P1GameOptions/hispeedColorRect" unique_id=1686061806]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -10.5
-offset_right = 21.5
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "HI-S"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/hispeedColorRect" unique_id=1935400442]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="autoColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=700348686]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
 [node name="Label" type="Label" parent="BottomBar/P1GameOptions/autoColorRect" unique_id=591508899]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -10.5
-offset_right = 21.5
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "AUTO"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/autoColorRect" unique_id=608936931]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="difficultyColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=527961295]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
 [node name="Label" type="Label" parent="BottomBar/P1GameOptions/difficultyColorRect" unique_id=198664472]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -10.5
-offset_right = 21.5
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "EASY"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/difficultyColorRect" unique_id=2110514507]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="randomColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=592504437]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
 [node name="Label" type="Label" parent="BottomBar/P1GameOptions/randomColorRect" unique_id=340710729]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -35.0
-offset_top = -10.5
-offset_right = 37.0
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "RANDOM"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/randomColorRect" unique_id=1650252467]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=1129258422]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
 [node name="Label" type="Label" parent="BottomBar/P1GameOptions/ascratchColorRect" unique_id=1569651003]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -35.0
-offset_top = -10.5
-offset_right = 37.0
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "A-SCR"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/ascratchColorRect" unique_id=708042409]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=291126484]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
 
 [node name="Label" type="Label" parent="BottomBar/P1GameOptions/fivekeysColorRect" unique_id=793049988]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -32.0
-offset_top = -10.5
-offset_right = 32.0
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "5-KEYS"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/fivekeysColorRect" unique_id=258213168]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="doubleColorRect" type="ColorRect" parent="BottomBar/P1GameOptions" unique_id=1731906118]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+
+[node name="Label" type="Label" parent="BottomBar/P1GameOptions/doubleColorRect" unique_id=1731906119]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "DP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1GameOptions/doubleColorRect" unique_id=1731906120]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="P2GameOptions" type="HBoxContainer" parent="BottomBar" unique_id=1779547854]
@@ -914,16 +919,17 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -503.0
-offset_top = -40.0
-offset_right = -8.0
-offset_bottom = -8.0
+offset_left = -624.0
+offset_top = -68.0
+offset_right = -12.0
+offset_bottom = -38.0
+theme_override_constants/separation = 2
 grow_horizontal = 0
 grow_vertical = 0
 alignment = 2
 
 [node name="hispeedColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=424721014]
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
@@ -931,26 +937,23 @@ player = 2
 
 [node name="Label" type="Label" parent="BottomBar/P2GameOptions/hispeedColorRect" unique_id=1463350184]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -10.5
-offset_right = 21.5
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "HI-S"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/hispeedColorRect" unique_id=1154559949]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="autoColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=2001893729]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
@@ -958,26 +961,23 @@ player = 2
 
 [node name="Label" type="Label" parent="BottomBar/P2GameOptions/autoColorRect" unique_id=1460797887]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -10.5
-offset_right = 21.5
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "AUTO"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/autoColorRect" unique_id=1764941271]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="difficultyColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=773986544]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
@@ -985,26 +985,23 @@ player = 2
 
 [node name="Label" type="Label" parent="BottomBar/P2GameOptions/difficultyColorRect" unique_id=1349282092]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -21.5
-offset_top = -10.5
-offset_right = 21.5
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "EASY"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/difficultyColorRect" unique_id=1983754599]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="randomColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=500554491]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
@@ -1012,26 +1009,23 @@ player = 2
 
 [node name="Label" type="Label" parent="BottomBar/P2GameOptions/randomColorRect" unique_id=996797971]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -35.0
-offset_top = -10.5
-offset_right = 37.0
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "RANDOM"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/randomColorRect" unique_id=218619501]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="ascratchColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=1924745098]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
@@ -1039,27 +1033,23 @@ player = 2
 
 [node name="Label" type="Label" parent="BottomBar/P2GameOptions/ascratchColorRect" unique_id=2086483553]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -35.0
-offset_top = -10.5
-offset_right = 37.0
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "A-SCR"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/ascratchColorRect" unique_id=846005305]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="fivekeysColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=1466640367]
-custom_minimum_size = Vector2(75, 0)
+custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 color = Color(0.103744, 0.103744, 0.103744, 1)
 script = ExtResource("8_7kb4w")
@@ -1067,22 +1057,43 @@ player = 2
 
 [node name="Label" type="Label" parent="BottomBar/P2GameOptions/fivekeysColorRect" unique_id=1447451981]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -32.0
-offset_top = -10.5
-offset_right = 32.0
-offset_bottom = 14.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("8_qtw6o")
 theme_override_font_sizes/font_size = 24
 text = "5-KEYS"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/fivekeysColorRect" unique_id=221283477]
+libraries/ = SubResource("AnimationLibrary_j4c04")
+
+[node name="doubleColorRect" type="ColorRect" parent="BottomBar/P2GameOptions" unique_id=1731906121]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+color = Color(0.103744, 0.103744, 0.103744, 1)
+script = ExtResource("8_7kb4w")
+player = 2
+
+[node name="Label" type="Label" parent="BottomBar/P2GameOptions/doubleColorRect" unique_id=1731906122]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_qtw6o")
+theme_override_font_sizes/font_size = 24
+text = "DP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2GameOptions/doubleColorRect" unique_id=1731906123]
 libraries/ = SubResource("AnimationLibrary_j4c04")
 
 [node name="P2PressStart" type="Label" parent="BottomBar" unique_id=1608144566]
@@ -1092,13 +1103,16 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -265.0
-offset_top = -35.0
-offset_right = -8.0
+offset_left = -624.0
+offset_top = -70.0
+offset_right = -12.0
+offset_bottom = -36.0
+horizontal_alignment = 2
+vertical_alignment = 1
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("8_qtw6o")
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 30
 text = "PRESS START BUTTON"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P2PressStart" unique_id=1281162993]
@@ -1112,12 +1126,14 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = -35.0
-offset_right = 265.0
+offset_left = 12.0
+offset_top = -70.0
+offset_right = 624.0
+offset_bottom = -36.0
+vertical_alignment = 1
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("8_qtw6o")
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 30
 text = "PRESS START BUTTON"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BottomBar/P1PressStart" unique_id=1539751353]
@@ -1138,7 +1154,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -448.0
 offset_top = 112.0
-offset_bottom = -80.0
+offset_bottom = -116.0
 grow_horizontal = 0
 grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
@@ -1157,7 +1173,7 @@ anchors_preset = 9
 anchor_bottom = 1.0
 offset_top = 112.0
 offset_right = 448.0
-offset_bottom = -80.0
+offset_bottom = -116.0
 grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
 script = ExtResource("9_fxi4t")
@@ -1175,9 +1191,11 @@ stream = ExtResource("11_uuciq")
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/randomColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/ascratchColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettings" to="BottomBar/P1GameOptions/doubleColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/hispeedColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/autoColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/difficultyColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/randomColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/ascratchColorRect" method="_on_game_option_settings_update"]
 [connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/fivekeysColorRect" method="_on_game_option_settings_update"]
+[connection signal="update" from="GameOptionSettingsP2" to="BottomBar/P2GameOptions/doubleColorRect" method="_on_game_option_settings_update"]

@@ -31,13 +31,14 @@ scripts/
     ModPlayer.gd         Lecture audio : une voix par canal, keysounds + BGM
   menu/
     main_menu.gd         Menu principal (MENU SELECT)
-    music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector)
+    music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector).
+                         Barre du bas (`BottomBar`, 124 px) comme sur IIDX : case du joueur, options sur la moitié de l'écran, effector centré dessous
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
                          song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
                          difficulty_panel.gd : cases DIFFICULTY de la musique sous le curseur (voir plus bas)
                          game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :
-                         choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, AUTO PLAY et HI-SPEED sous les touches 1 et 7.
+                         choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, AUTO PLAY, DOUBLE, BATTLE et HI-SPEED sous les touches 1, 3, 5 et 7.
                          Ouverture (music_select.gd) : en P1 la roue sort à droite puis le panneau entre par la droite ; en P2 le panneau entre seul par la gauche
     controller_test/     controller_panel.gd (class_name ControllerPanel) : CONTROLLER SET UP du menu OPTIONS (voir plus bas) ;
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
@@ -109,6 +110,7 @@ MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du m
 
 ### Mode ARCADE (`scripts/arcade/`)
 Comme sur IIDX : 3 stages (`Arcade.STAGES`), puis NAME ENTRY et classement. L'état est dans des variables statiques de `Arcade` (`active`, `stages`, `last_rank`), qui survivent aux changements de scène ; le menu principal l'arrête (`Arcade.stop()`) dans `_ready()`.
+- Le DOUBLE PLAY se choisit avant le 1er stage, le classement SP et le DP sont séparés.
 - `Arcade.start()` coupe l'AUTO PLAY des deux joueurs ; `game_option_settings.gd` ne le laisse pas activer (case « --- ») et `playfield.gd` l'ignore. Le mode se joue seul : l'autre côté ne peut pas rejoindre.
 - Sélection : une musique déjà jouée n'est pas ajoutée, quelle que soit sa difficulté (`Arcade.song_key()` : le chemin pour un .mod, son dossier pour un .qua ou un BMS). `arcade_timer.gd` affiche TIME REMAIN (60 s, `SELECT_TIME`, rouge clignotant sous 10 s) par-dessus les cases OK/EXIT du bandeau, et le stage (1ST, 2ND, FINAL STAGE) à la place de la case OPTIONS, masquée (START ouvre toujours les options). À zéro (`_on_arcade_timeout()`), la musique sous le curseur est lancée, sinon une musique au hasard de la catégorie (ou de ALL MUSIC). Les touches noires et META ne quittent la sélection (et la partie) qu'avant le 1er stage (`can_leave()`). S'il ne reste aucune musique, on passe au NAME ENTRY.
 - Fin d'une partie solo : `playfield.finish()` appelle `Arcade.add_stage()` (musique, EX-Score, EX max, lampe ; FAILED si la lampe vaut 0, donc aussi une jauge NORMAL/EASY sous 80 % ou un abandon). L'écran de résultats titre « 1ST STAGE RESULT »… puis, à la sortie : GAME OVER (3 s, retour au menu principal) après un stage échoué, NAME ENTRY après le dernier, sinon la sélection.
@@ -126,7 +128,15 @@ Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme 
 
 ### Options des joueurs (`Global.gd`)
 Les variables de P1 n'ont pas de préfixe, celles de P2 sont préfixées par `p2_` : passer par `Global.get_player_var(player, name)` et `set_player_var`.
-Options : `hispeed` (temps de chute d'une note, en secondes, de 0.45 à 1.0), `keys_mode` (7 ou 5), `random`, `auto_play`, `auto_scratch`, `gauge_level` (0 normal, 1 easy, 2 hard).
+Options : `hispeed` (temps de chute d'une note, en secondes, de 0.45 à 1.0), `keys_mode` (7 ou 5), `random`, `auto_play`, `auto_scratch`, `gauge_level` (0 normal, 1 easy, 2 hard), `double_play`.
+`Global.battle` est commun aux deux joueurs. `Global.is_double_play()` (le joueur seul a `double_play`, hors netplay) et `Global.is_battle()` (les deux joueurs) disent ce qui s'applique vraiment.
+
+### DOUBLE PLAY et BATTLE
+- DOUBLE (touche 3 du panneau OPTION SETTING) : 14 touches sur les deux platines comme sur IIDX, pour les modules et les BMS. Indisponible à deux (case « --- »), en netplay, et en ARCADE après le 1er stage (la valeur reste affichée, grisée). BATTLE (touche 5) le remplace à deux : le côté 2P joue la chart en miroir (touches inversées, scratch fixe).
+- Charts DP : 16 lanes, 0~7 pour le côté 1P (touches puis scratch), 8~15 pour le 2P. `BmsChart.double` quand il y a des notes 2P (canaux 2x/6x, bmson `beat-14k`/`beat-10k`, x 9~16), sinon `noteArray` garde 8 lanes. `ModChart.new(module, difficulté, keys, true)` répartit les instruments sur `keyLanes` (14 touches), les deux sons les plus rares vont sur les scratchs, densité × `DOUBLE_NPS_FACTOR` et accords + `DOUBLE_EXTRA_CHORD`.
+- Catalogue : `Style` (SP/DP) par chart, un module donne ses 3 difficultés dans chaque style. Dans la sélection, `song_entry.charts` ne garde que celles du style joué (`all_charts` les a toutes, `available()`), la roue cache les musiques et catégories sans chart dans ce style (`song_wheel.apply_style()`), appelé par `music_select.apply_style()` quand `Global.is_double_play()` change. En DP l'autre côté ne peut pas rejoindre ; sa case du bas prend la couleur du joueur et affiche DOUBLE, la case DP de la barre d'options s'allume.
+- En jeu (`main.gd`), les deux terrains jouent (`setup(joueur, …, côté)` : `side` donne le layout et les actions p1_/p2_, `player` les options et les résultats) et `$P1.pairWith($P2)` : le 2P prend les lanes 8~15 (`laneOffset`, `sideLanes()`), son `scorer` est le terrain 1P qui compte EX-Score, jauge, combo et notes des deux (`addJudge()` -> `scorer.countJudge()`, le jugement s'affiche du côté de la note). Les deux finissent ensemble (`endPos` commun, `finish()` du 2P renvoie au 1P qui arrête l'autre avec `stop()`).
+- Scores à part : `Scores.key()` préfixe la difficulté par `DP_`. Résultats : badge DP, `Global.song_info["double"]`. ARCADE : le style de la partie est celui du 1er stage (`Arcade.is_double()`), classements séparés (`entries` et `entries_dp` dans arcade_ranking.cfg).
 
 ### Beatmaps Quaver (`QuaChart.gd`)
 Chaque `.qua` de `user://songs` est une difficulté de la musique de son dossier. `QuaChart.load_file()` lit le petit sous-ensemble YAML écrit par Quaver (champs du haut, listes `TimingPoints` et `HitObjects`, le reste comme les `KeySounds` est ignoré) et renvoie `null` si le mode n'est pas jouable.
@@ -211,13 +221,13 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 
 ## BMS keysoundés (`scripts/bms/`)
 
-Chaque fichier .bms, .bme, .bml ou .bmson est une difficulté de la musique de son dossier (catégorie BMS). Seul le SP est lu : un chart avec des notes 2P (canaux 2x/6x, bmson `beat-14k`) ou un autre mode (pop'n…) est refusé (`null`).
+Chaque fichier .bms, .bme, .bml ou .bmson est une difficulté de la musique de son dossier (catégorie BMS). Le SP et le DP sont lus (voir DOUBLE PLAY) : un autre mode (pop'n…) est refusé (`null`).
 
 ### `BmsChart` : lecture
 - `BmsChart.load_file(path, random)` : les octets sont lus en Latin-1 (`get_string_from_ascii`, un caractère par octet). Les textes (`#TITLE` + `#SUBTITLE`, `#ARTIST`, noms des `#WAV`) passent par `ShiftJIS.decode()` : ASCII tel quel, UTF-8 s'il est valide, sinon CP932 (table `assets/shift_jis.tres`).
 - BMS : `#WAVxx`, `#BPM`, `#BPMxx` + canal 08, canal 03 (hex), `#STOPxx` + canal 09 (en 1/192 de mesure), canal 02 (longueur de mesure), `#LNOBJ`, canaux 5x (LNTYPE 1 : un objet ouvre, le suivant ferme), `#VOLWAV`, `#BASE 62`.
   `#RANDOM`/`#SETRANDOM`/`#IF`/`#ELSEIF`/`#ELSE`/`#ENDIF`/`#ENDRANDOM` : branche au hasard en jeu, la première pour la sélection (`random = false`).
-  Lanes : canaux 11~15 -> touches 1~5, 18/19 -> touches 6/7, 16 -> scratch. Le canal 01 (BGM) et la pédale 17 vont dans la BGM. Notes invisibles (3x) et mines (Dx/Ex) ignorées.
+  Lanes : canaux 11~15 -> touches 1~5, 18/19 -> touches 6/7, 16 -> scratch, et 21~29 de même sur les lanes 8~15 (DP). Le canal 01 (BGM) et la pédale 17 vont dans la BGM. Notes invisibles (3x) et mines (Dx/Ex) ignorées.
 - bmson : `info` (`title`, `subtitle`, `artist`, `level`, `chart_name`, `resolution`, `init_bpm`, `mode_hint` beat-7k ou beat-5k), `bpm_events`, `stop_events`, `lines`, `sound_channels`.
   `x` 1~7 touches, 8 scratch, le reste BGM ; `l` donne une note longue. Un son de canal est découpé en tranches : une note sans `c` le relance, une note avec `c` le reprend à `offset` = temps depuis la dernière relance.
 - Le temps vient d'une ligne de temps (`buildTimeline`, `beatToTime`) : un changement de BPM s'applique avant un STOP au même temps, une note sur un STOP est jouée au début du STOP.
@@ -232,7 +242,7 @@ Chaque fichier .bms, .bme, .bml ou .bmson est une difficulté de la musique de s
 - `length` : fin du dernier son (coupé par la reprise suivante du même son) + `LEAD_IN`.
 
 ### Limites
-- Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines ; pas de DP.
+- Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines.
 - Godot transforme `\` en `/` dans les chemins : un dossier dont le nom contient un `\` (mojibake de zip) n'est pas lisible.
 - Les titres japonais demandent une police système avec ces glyphes (`allow_system_fallback`).
 

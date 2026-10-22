@@ -15,6 +15,8 @@ var hispeed = 1.0
 var auto_play = false
 var auto_scratch = false
 var random = false
+# DOUBLE PLAY (14 keys on both decks), only when this player is alone
+var double_play = false
 
 # Players in game on this machine (START joins, META leaves in the music select)
 var p1_joined = true
@@ -34,6 +36,10 @@ var p2_hispeed = 1.0
 var p2_auto_play = false
 var p2_auto_scratch = false
 var p2_random = false
+var p2_double_play = false
+
+# BATTLE (two players): the 2P side plays the chart mirrored
+var battle = false
 
 # Song of the last play: title, artist, difficulty, level
 var song_info = {}
@@ -166,6 +172,16 @@ func get_player_var(player: int, var_name: String):
 
 func set_player_var(player: int, var_name: String, value) -> void:
 	set(var_name if player == 1 else "p2_" + var_name, value)
+
+# DOUBLE PLAY of the player alone in game, never in versus or netplay
+func is_double_play() -> bool:
+	if p1_joined == p2_joined or Netplay.active:
+		return false
+	return get_player_var(1 if p1_joined else 2, "double_play")
+
+# BATTLE needs both players
+func is_battle() -> bool:
+	return battle and p1_joined and p2_joined and not Netplay.active
 
 # Versus outcome for a player, decided by the highest score
 func get_versus_result(player: int) -> String:

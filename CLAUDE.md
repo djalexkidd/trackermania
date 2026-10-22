@@ -41,9 +41,8 @@ scripts/
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs
   result/                result.gd (écran de résultats unique, solo et versus) et result_panel.gd (panneau d'un joueur)
 scenes/
-  game/main.gd + .tscn   Terrain de jeu d'un joueur (le coeur du gameplay)
-  game/main_p2.tscn      main.tscn côté 2P seul (player = 2)
-  game/main_2p.gd/.tscn  Versus local : deux main.tscn côte à côte, un AudioStreamPlayer partagé
+  game/main.gd + .tscn   Scène de jeu unique (1P, 2P, versus) : deux terrains P1/P2 toujours affichés, un AudioStreamPlayer partagé, barre de progression, BPM
+  game/playfield.gd/.tscn Un terrain (class_name Playfield) : chart, notes, jugement, layout (lanes, touches, jauge, HUD) ; le côté non joué reste grisé
   game/note.gd           Une note (normale ou longue) qui descend
   game/judge.gd          Règles IIDX : fenêtres, EX-Score, jauge (class_name Judge)
   menu/                  Scènes des menus
@@ -57,7 +56,7 @@ Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous 
 
 ### Flux des scènes
 Menu titre -> sélection des musiques -> `song_entry._on_pressed()` règle `Loader.file_path` et `Loader.chart_difficulty`, puis ouvre :
-- `main.tscn` (P1 seul), `main_p2.tscn` (P2 seul) ou `main_2p.tscn` (versus) ;
+- `main.tscn` dans tous les cas (P1 seul, P2 seul ou versus) : `main.gd` règle quel terrain joue d'après `Global.p1_joined`/`p2_joined` ;
 - en netplay, la sélection est ouverte depuis le lobby (choix de l'hôte), le round lance `main.tscn` sur chaque machine (voir Netplay).
 
 `main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats (`scenes/result/result.tscn`, aussi pour le versus local).
@@ -110,7 +109,7 @@ Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load
 - **POOR vide** (`emptyPress()`) : une touche pressée sans note à frapper, alors qu'une note de la lane arrive dans moins de 500 ms, abîme la jauge sans casser le combo.
 - L'horloge est `songPosition() - AudioServer.get_output_latency()` ; pour un MP3/OGG, `songPosition()` ajoute `AudioServer.get_time_since_last_mix()`, sinon elle avance par saccades de la taille d'un mixage (fatal avec des fenêtres de ±16 ms).
 - RANDOM mélange seulement les touches (0~6, ou 0~4 en 5 touches) ; le scratch ne bouge jamais, comme sur IIDX. En 5 touches, les lanes 5 et 6 sont vidées au chargement.
-- Les touches enfoncées s'allument en rouge comme sur IIDX (`createKeyLights()`) : une copie teintée de chaque touche de `p1_frame.png` (zones `KEY_WHITE_RECT`/`KEY_BLACK_RECT`, une touche tous les `KEY_SPACING` px), enfant de `P1Frame`.
+- Les touches (`p1_frame.png`, scratch `p1_frame_scratch.png` + disque) et la jauge (`groove_gauge.png` / `progress.png`, `_hard` en HARD) viennent des assets, à l'échelle `KEY_SCALE` (0.4, donc des lanes de 40 px) et `SCRATCH_SCALE` (0.6, platine plus haute que les touches comme sur IIDX). Les touches enfoncées s'allument en rouge en redessinant leur zone teintée (`drawKeys()`, `KEY_WHITE_RECT`/`KEY_BLACK_RECT`, une touche tous les `KEY_SPACING` px). Touches, jauge et HUD sont dessinés dans `Overlay`, au-dessus des notes.
 - Côté 2P (`mirrored`) l'interface est inversée, avec le scratch à droite.
 
 ## Modules Amiga keysoundés (`scripts/mod/`)

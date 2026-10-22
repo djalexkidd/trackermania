@@ -33,6 +33,8 @@ var previewTime : float = -1.0
 var noteArray : Array = [[], [], [], [], [], [], [], []]
 # Start time of each measure, in seconds with the lead-in
 var measures : Array = []
+# Tempo changes as [time, bpm], the time includes LEAD_IN
+var bpmChanges : Array = []
 var level : int = 1
 
 # Read a .qua file, null if it is not a chart TrackerMania can play
@@ -127,6 +129,7 @@ func buildMeasures(timingPoints : Array, end : float) -> void:
 	for k in points.size():
 		var beats : int = SIGNATURES.get(points[k].get("Signature", ""), 4)
 		var length : float = 60.0 / points[k]["Bpm"].to_float() * beats
+		bpmChanges.append([points[k].get("StartTime", "0").to_float() / 1000.0 + LEAD_IN, points[k]["Bpm"].to_float()])
 		if length < MIN_MEASURE:
 			continue
 		var time : float = points[k].get("StartTime", "0").to_float() / 1000.0

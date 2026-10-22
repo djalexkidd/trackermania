@@ -19,8 +19,6 @@ var speed : float
 var effect : Object
 # Scratch notes are shown in green when auto scratch is on
 var autoScratch : bool = Global.auto_scratch
-# 2P side: the scratch lane is on the right of the keys
-var scratchOnRight : bool = false
 # Keysound played when the note is hit (Amiga modules only)
 var keysound : int = -1
 # Song time when the note reaches perfectYpos, the note then follows the song time instead of the frames
@@ -29,12 +27,16 @@ var perfectYpos : float
 # Score when long note is pressed
 var longnoteScore : String = ""
 
-func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTime : float = -1.0) -> void:
+# The note is centered on its lane, width is the width of the lane
+func setNote(_channel : int, _speed : float, _coordPerFrame : float, width : float, _longnoteTime : float = -1.0) -> void:
 	self.position.y = 0.0
 	channel = _channel
 	speed = _speed
 	coordPerFrame = _coordPerFrame
 	effect = $LN_Effect
+	for part in [$bar, $LN_Effect, $LN_EffectEnd]:
+		part.size.x = width
+		part.position.x = -width / 2.0
 	# Long note settings
 	if (_longnoteTime != -1.0):
 		isLongnote = true
@@ -44,6 +46,8 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 		$LN_Effect.size.y = size
 		$LN_EffectEnd.position.y = -size
 		$LN_EffectEnd.visible = true
+		# The body of a long note is a soft blue instead of plain grey
+		$LN_Effect.color = Color(0.3, 0.6, 1.0, 0.45)
 	# Color the note in blue if it's on the upper keys like in beatmania.
 	if channel in [2, 4, 6]:
 		$bar.color = Color(0, 0, 1)
@@ -54,8 +58,6 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, _longnoteTi
 			$bar.color = Color(1, 0, 0)
 		else:
 			$bar.color = Color(0, 1, 0)
-		$bar.size.x = 132
-		$bar.position.x = 3 if scratchOnRight else -35
 
 func longnoteStart():
 	longnoteScore = score

@@ -46,11 +46,8 @@ func _on_pressed() -> void:
 		else:
 			Netplay.suggest_song(song_name, difficulty_name)
 		get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn")
-	elif Global.p1_joined and Global.p2_joined:
-		get_tree().change_scene_to_file("res://scenes/game/main_2p.tscn")
-	elif Global.p2_joined:
-		get_tree().change_scene_to_file("res://scenes/game/main_p2.tscn")
 	else:
+		# One scene for 1P, 2P and versus, main.gd picks the playing sides from Global
 		get_tree().change_scene_to_file("res://scenes/game/main.tscn")
 
 func _on_focus_entered() -> void:

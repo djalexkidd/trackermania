@@ -257,11 +257,13 @@ func panel_options(player: int) -> Array:
 		[["EASY or HARD", "EASY", "HARD"][gauge], gauge != 0],
 		["RANDOM", Global.get_player_var(player, "random")],
 		["5KEYS", Global.get_player_var(player, "keys_mode") == 5],
-		["AUTO PLAY", Global.get_player_var(player, "auto_play") and not Arcade.active],
+		["AUTO PLAY", Global.is_auto_play(player)],
 		["BATTLE", Global.is_battle()],
 		["DOUBLE", Global.is_double_play() and Global.get_player_var(player, "double_play")],
 		["MIRROR", Global.get_player_var(player, "mirror")],
 		["AUTO SCRATCH", Global.get_player_var(player, "auto_scratch")],
+		["SUDDEN+", Global.has_sudden(player)],
+		["LIFT", Global.has_lift(player)],
 		[Effector.current_name() if effector else "EFFECTOR", effector],
 	]
 
@@ -271,17 +273,19 @@ func draw_cell(rect: Rect2, text: String, lit: bool, flash: float, color: Color,
 	draw_rect(Rect2(rect.position, Vector2(CAP_WIDTH, rect.size.y)), Color(color, alpha))
 	draw_rect(Rect2(rect.end.x - CAP_WIDTH, rect.position.y, CAP_WIDTH, rect.size.y), Color(color, alpha))
 	var segment = Rect2(rect.position.x + CAP_WIDTH + 2, rect.position.y, rect.size.x - 2 * (CAP_WIDTH + 2), rect.size.y)
+	# The text fits the height of the cells too
+	var text_size = mini(26, int(rect.size.y))
 	if not lit:
 		draw_rect(segment, Color(SEGMENT, alpha))
 		draw_rect(Rect2(segment.position, Vector2(segment.size.x, 1)), Color(1, 1, 1, 0.08 * alpha))
-		draw_fitted(STRIP_FONT, segment, text, 26, Color(SEGMENT_TEXT, alpha), Color(0, 0, 0, alpha))
+		draw_fitted(STRIP_FONT, segment, text, text_size, Color(SEGMENT_TEXT, alpha), Color(0, 0, 0, alpha))
 		return
 	var top = LIT_TOP.lerp(Color.WHITE, flash)
 	var bottom = ORANGE.lerp(Color.WHITE, flash)
 	draw_polygon(PackedVector2Array([segment.position, Vector2(segment.end.x, segment.position.y), segment.end, Vector2(segment.position.x, segment.end.y)]),
 		PackedColorArray([Color(top, alpha), Color(top, alpha), Color(bottom, alpha), Color(bottom, alpha)]))
 	draw_rect(segment, Color(LIT_BORDER, alpha), false, 1.0)
-	draw_fitted(STRIP_FONT, segment, text, 26, Color(1, 1, 1, alpha), Color(0.45, 0.12, 0, alpha))
+	draw_fitted(STRIP_FONT, segment, text, text_size, Color(1, 1, 1, alpha), Color(0.45, 0.12, 0, alpha))
 
 # Largest size up to font_size where the text fits in width
 func fit_size(font: Font, text: String, font_size: int, width: float) -> int:

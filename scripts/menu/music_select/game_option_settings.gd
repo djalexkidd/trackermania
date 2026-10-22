@@ -40,15 +40,18 @@ const WHITE_KEY_TOP = 318.0
 const WHITE_BOX_TOP = 420.0
 const WHITE_BOX_SIZE = Vector2(96, 30)
 
+# AUTO PLAY is a cheat code: the 3rd black key (STYLE) held this long, a shorter press changes the STYLE
+const AUTO_HOLD_MSEC = 1000
+
 const FLASH_MSEC = 250.0
-const HISPEED_MIN = 0.45
-const HISPEED_MAX = 1.0
-const HISPEED_STEP = 0.05
 
 # Last change of each key, for the flash of its option
 var changed_at := {}
 # Held open by START, set by music_select; the panel still shows while sliding out
 var open := false
+# When the 3rd black key was pressed (-1 when released), and whether its hold already switched AUTO PLAY
+var style_pressed_at := -1
+var auto_switched := false
 
 func _ready():
 	color = Color(0.02, 0.03, 0.06, 0.94)
@@ -59,11 +62,11 @@ func _process(_delta: float) -> void:
 	# Redrawn every frame for the key lights and the flashes
 	queue_redraw()
 	if not open:
+		style_pressed_at = -1
 		return
-	# No AUTO PLAY in arcade
-	if Input.is_action_just_pressed(key("key1")) and not Arcade.active:
-		set_opt("auto_play", !get_opt("auto_play"))
-		emit_signal("update", "auto", get_opt("auto_play"))
+	if Input.is_action_just_pressed(key("key1")) and can_battle():
+		Global.battle = !Global.battle
+		emit_signal("update", "battle", Global.battle)
 		changed(0)
 
 	if Input.is_action_just_pressed(key("key3")) and can_double():
@@ -71,9 +74,9 @@ func _process(_delta: float) -> void:
 		emit_signal("update", "double", get_opt("double_play"))
 		changed(2)
 
-	if Input.is_action_just_pressed(key("key5")) and can_battle():
-		Global.battle = !Global.battle
-		emit_signal("update", "battle", Global.battle)
+	if Input.is_action_just_pressed(key("key5")):
+		# RANGE: OFF -> SUDDEN+ -> LIFT -> LIFT SUD+
+		set_opt("lane_cover", (get_opt("lane_cover") + 1) % Global.LANE_COVERS.size())
 		changed(4)
 
 	if Input.is_action_just_pressed(key("key2")):
@@ -90,17 +93,28 @@ func _process(_delta: float) -> void:
 		changed(3)
 
 	if Input.is_action_just_pressed(key("key6")):
-		# 7 keys -> 5 keys -> auto scratch -> 5 keys with auto scratch
-		var style = (style_index() + 1) % 4
-		set_opt("keys_mode", 5 if style % 2 == 1 else 7)
-		set_opt("auto_scratch", style >= 2)
-		emit_signal("update", "five", style % 2 == 1)
-		emit_signal("update", "ascratch", style >= 2)
-		changed(5)
+		style_pressed_at = Time.get_ticks_msec()
+		auto_switched = false
+	if style_pressed_at >= 0 and Input.is_action_pressed(key("key6")):
+		# Held: AUTO PLAY, never in arcade and netplay
+		if not auto_switched and Time.get_ticks_msec() - style_pressed_at >= AUTO_HOLD_MSEC and Global.can_auto_play():
+			auto_switched = true
+			set_opt("auto_play", !get_opt("auto_play"))
+			emit_signal("update", "auto", get_opt("auto_play"))
+	elif style_pressed_at >= 0:
+		# A short press: 7 keys -> 5 keys -> auto scratch -> 5 keys with auto scratch
+		if Time.get_ticks_msec() - style_pressed_at < AUTO_HOLD_MSEC:
+			var style = (style_index() + 1) % 4
+			set_opt("keys_mode", 5 if style % 2 == 1 else 7)
+			set_opt("auto_scratch", style >= 2)
+			emit_signal("update", "five", style % 2 == 1)
+			emit_signal("update", "ascratch", style >= 2)
+			changed(5)
+		style_pressed_at = -1
 
 	if Input.is_action_just_pressed(key("key7")):
-		var hispeed = snappedf(get_opt("hispeed") - HISPEED_STEP, 0.01)
-		set_opt("hispeed", HISPEED_MAX if hispeed < HISPEED_MIN else hispeed)
+		var hispeed = snappedf(get_opt("hispeed") - Global.HISPEED_STEP, 0.01)
+		set_opt("hispeed", Global.HISPEED_MAX if hispeed < Global.HISPEED_MIN else hispeed)
 		emit_signal("update", "hispeed", get_opt("hispeed"))
 		changed(6)
 
@@ -188,6 +202,9 @@ func _draw() -> void:
 	draw_rect(tag, Color.BLACK)
 	draw_text(TITLE_FONT, tag, "OPTION", 18, Color.WHITE)
 	draw_text(TITLE_FONT, Rect2(tag.end.x, tag.position.y, 140, tag.size.y), "SETTING", 18, Color.WHITE)
+	# The AUTO PLAY of the cheat code is only shown here
+	if Global.is_auto_play(player):
+		draw_text(TITLE_FONT, Rect2(tag.end.x + 136, tag.position.y, size.x - 72 - tag.end.x - 136, tag.size.y), "AUTO", 14, Color.BLACK)
 	var side = Rect2(size.x - 62, 7, 52, HEADER_HEIGHT - 14)
 	draw_rect(side, Color(0.05, 0.05, 0.08))
 	draw_text(TITLE_FONT, side, "%dP" % player, 18, accent)
@@ -207,12 +224,13 @@ func _draw() -> void:
 	# White keys: one option under each, [title, value, chosen, available, value shown when not available]
 	var hispeed = get_opt("hispeed")
 	var double = get_opt("double_play")
+	var cover = get_opt("lane_cover")
 	var white_options = {
-		0: ["AUTO PLAY", "ON" if get_opt("auto_play") else "OFF", get_opt("auto_play"), not Arcade.active, "---"],
+		0: ["BATTLE", "ON" if Global.battle else "OFF", Global.battle, can_battle(), "---"],
 		# The DOUBLE PLAY of an arcade game is kept after the 1st stage
 		2: ["DOUBLE", "ON" if double else "OFF", double, can_double(), ("ON" if double else "OFF") if Arcade.active else "---"],
-		4: ["BATTLE", "ON" if Global.battle else "OFF", Global.battle, can_battle(), "---"],
-		6: ["HI-SPEED", "%.2f" % hispeed, hispeed != HISPEED_MAX, true, "---"],
+		4: ["RANGE", Global.LANE_COVERS[cover], cover != 0, true, "---"],
+		6: ["HI-SPEED", "%.2f" % hispeed, hispeed != Global.HISPEED_MAX, true, "---"],
 	}
 	for i in [0, 2, 4, 6]:
 		var box = white_box_rect(i)

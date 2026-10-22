@@ -59,6 +59,22 @@ const PGREAT_CYCLE_MS : int = 40
 const JUDGE_WORDS : Dictionary = {"PGreat": "GREAT", "Great": "GREAT", "Good": "GOOD", "Bad": "BAD", "Poor": "POOR"}
 const JUDGE_COLORS : Dictionary = {"Great": Color(1, 0.85, 0.1), "Good": Color(0.35, 1, 0.4), "Bad": Color(1, 0.25, 0.45), "Poor": Color(0.7, 0.7, 0.75)}
 const PGREAT_COLORS : Array = [Color(1, 1, 1), Color(0.55, 1, 1), Color(1, 0.95, 0.45), Color(1, 0.65, 0.95)]
+# SUDDEN+ cover and LIFT, moved with START + turntable: px per second with the digital turntable, px per unit of the analog one.
+# At least COVER_MIN_VISIBLE px of the lanes stay visible, the LIFT goes up to LIFT_MAX
+const COVER_SPEED : float = 250.0
+const COVER_ANALOG_PX : float = 400.0
+const COVER_MIN_VISIBLE : float = 60.0
+const LIFT_MAX : float = 300.0
+# START pressed twice within this time shows or hides the SUDDEN+ cover, like on IIDX (ms)
+const DOUBLE_START_MS : int = 300
+const COVER_TOP : Color = Color(0.2, 0.21, 0.24)
+const COVER_BOTTOM : Color = Color(0.09, 0.09, 0.11)
+const COVER_STRIPE : Color = Color(1, 1, 1, 0.03)
+const COVER_TEXT : Color = Color(0.5, 0.52, 0.58)
+const JUDGE_LINE_COLOR : Color = Color(0.95, 0.1, 0.1)
+# Green number of IIDX: the time a note stays visible, in 1/600 s
+const GREEN_PER_SECOND : float = 600.0
+const GREEN_COLOR : Color = Color(0.3, 1, 0.4)
 # After the last note is finished, wait for this margin and then the game ends.
 const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing when the chart has no measures (sec)
@@ -124,8 +140,15 @@ var keycodes : PackedStringArray
 @export_node_path("AudioStreamPlayer") var audio
 # Preload note scene
 @onready var noteScene : Note = preload("res://scenes/game/note.tscn").instantiate()
-# The time it takes for a note to descend from (y=0) to (y=PERFECT_YPOS)
+# The time it takes for a note to descend from (y=0) to (y=PERFECT_YPOS), the hi-speed which can change while playing
 var speed : float
+# START held while playing: the keys change the hi-speed, the turntable moves the covers, nothing is judged
+var adjusting      : bool    = false
+# SUDDEN+ cover shown, START pressed twice hides it and the turntable then moves the LIFT (kept by the scorer in double play)
+var suddenShown    : bool    = true
+var lastStartMs    : int     = -DOUBLE_START_MS
+# Analog turntable position of the last frame, for the covers
+var coverAnalog    : float   = 0.0
 # Note information corresponding to 7 channels
 var noteArray      : Array = []
 # Keysound of each note of noteArray (Amiga modules and BMS)
@@ -149,8 +172,6 @@ var musicStarted   : bool    = false
 var decide         : Control = null
 # Current audio playback time (seconds)
 var currentSongPos : float   = 0.0
-# The y-coordinate at which the note descends per frame
-var coordPerFrame  : float
 # Time until game ends (in seconds)
 var endPos         : float   = 0.0
 
@@ -245,7 +266,7 @@ func pairWith(other : Playfield) -> void:
 func start() -> void:
 	if not active:
 		return
-	AUTOPLAY = opt("auto_play") and not Arcade.active
+	AUTOPLAY = Global.is_auto_play(player)
 	AUTOSCRATCH = opt("auto_scratch")
 	speed = opt("hispeed")
 	# The 6th and 7th keys are not played in 5 keys mode, greyed out before the game starts
@@ -327,11 +348,7 @@ func start() -> void:
 	if (keysoundPlayer == null and get_node(audio).stream == null):
 		OS.alert("Please assign a music")
 	for i in range(0, 8):
-		noteArray[i] = getCorrectArr(noteArray[i], speed)
-	coordPerFrame = getCoordPerFrame(speed, PERFECT_YPOS)
-	for i in range(0, 8):
-		if getEndPos(noteArray[i], speed, ENDPOS_BIAS) > endPos:
-			endPos = getEndPos(noteArray[i], speed, ENDPOS_BIAS)
+		endPos = maxf(endPos, getEndPos(noteArray[i], ENDPOS_BIAS))
 	if keysoundPlayer:
 		# The background music goes on after the last note
 		endPos = maxf(endPos, keysoundPlayer.length + ENDPOS_BIAS)
@@ -342,9 +359,9 @@ func start() -> void:
 	if scorer == self:
 		gaugeHistory.append(Vector2(0.0, shownGauge()))
 	if measures:
-		subLineArray = getLineArr(measures, speed)
+		subLineArray = getLineArr(measures)
 	else:
-		subLineArray = getSubLineArr(endPos, speed, SUBLINE_LENGTH)
+		subLineArray = getSubLineArr(endPos, SUBLINE_LENGTH)
 	if keysoundPlayer:
 		# Auto played notes are played on time by the background music
 		for i in range(0, 8):
@@ -369,7 +386,7 @@ func start() -> void:
 	set_process(true)
 
 # Gets the end value of the note time information.
-func getEndPos(array : Array, sp : float, bias : float) -> float:
+func getEndPos(array : Array, bias : float) -> float:
 	var result : float  = -1.0
 	for noteInfo in array:
 		if (len(noteInfo) == 1):
@@ -378,35 +395,19 @@ func getEndPos(array : Array, sp : float, bias : float) -> float:
 		elif (len(noteInfo) == 2):
 			if (result < noteInfo[0] + noteInfo[1]):
 				result = noteInfo[0] + noteInfo[1]
-	return result + sp + bias
-# Get the coordinates at which the note should drop per frame.
-func getCoordPerFrame(sp : float, perfectYpos : float) -> float:
-	if (sp != 1.0):
-		perfectYpos /= sp
-		sp          /= sp
-	perfectYpos /= Engine.get_frames_per_second()
-	return perfectYpos
-# Subtract the speed value from all note time information.
-func getCorrectArr(array : Array, sp : float) -> Array:
-	var result : Array = []
-	for noteInfo in array:
-		noteInfo[0] -= sp
-		result.append(noteInfo)
-	return result
+	return result + bias
 # Get a list of auxiliary lines.
-func getSubLineArr(endpos : float, sp : float, sec : float) -> Array:
+func getSubLineArr(endpos : float, sec : float) -> Array:
 	var arr : Array = []
 	var index : float = sec
 	while (index < endpos):
 		arr.append(index)
 		index += sec
-	return getLineArr(arr, sp)
-# Shift line times like the notes, dropping the lines too early to come from the top
-func getLineArr(times : Array, sp : float) -> Array:
+	return getLineArr(arr)
+# Line times, dropping the lines too early to come from the top
+func getLineArr(times : Array) -> Array:
 	var arr : Array = times.duplicate()
-	for i in range(len(arr)):
-		arr[i] -= sp
-	while (arr and arr[0] < sp):
+	while (arr and arr[0] < speed):
 		arr.pop_front()
 	return arr
 
@@ -547,6 +548,8 @@ func _process(delta) -> void:
 	if (currentSongPos >= endPos):
 		finish(false)
 		return
+	adjustOptions(delta)
+	speed = opt("hispeed")
 	if netplay:
 		Netplay.send_live(exScore, noteCount * 2, int(shownGauge()), combo)
 	if Time.get_ticks_msec() - gaugeFlickerMs >= GAUGE_FLICKER_MS:
@@ -561,32 +564,31 @@ func _process(delta) -> void:
 		elif currentSongPos - shouldPressEnd[i] > Judge.BAD_WINDOW / 1000.0:
 			# Still held long after the end
 			endLongnote(i, "Bad", currentSongPos - shouldPressEnd[i])
-	# Create a note
+	# Create the notes coming from the top, several at once when the hi-speed was just made faster
 	for i in range(0, 8):
-		if (noteArray[i] and noteArray[i][0][0] <= currentSongPos):
+		while (noteArray[i] and noteArray[i][0][0] - speed <= currentSongPos):
 			var note : Note = noteScene.duplicate()
 			note.autoScratch = AUTOSCRATCH
 			if keysoundArray[i]:
 				note.keysound = keysoundArray[i].pop_front()
 				lastKeysound[i] = note.keysound
 			var info : Array = noteArray[i].pop_front()
-			note.hitTime = info[0] + speed
-			note.perfectYpos = PERFECT_YPOS
+			note.hitTime = info[0]
 			if (len(info) == 1):
 				# Create a general note
-				note.setNote(i+1, speed, coordPerFrame, laneWidth[i] - 2 * NOTE_MARGIN)
+				note.setNote(i+1, scrollSpeed(), laneWidth[i] - 2 * NOTE_MARGIN)
 			else:
 				# Create long note
-				note.setNote(i+1, speed, coordPerFrame, laneWidth[i] - 2 * NOTE_MARGIN, info[1])
+				note.setNote(i+1, scrollSpeed(), laneWidth[i] - 2 * NOTE_MARGIN, info[1])
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
 			container.get_child(container.get_child_count()-1).position.x = laneX(i)
 			container.get_child(container.get_child_count()-1).position.y = notePosition(note.hitTime)
 			queue[i].append(container.get_child(container.get_child_count()-1))
 	# Create auxiliary line
-	if (subLineArray and subLineArray[0] <= currentSongPos):
+	if (subLineArray and subLineArray[0] - speed <= currentSongPos):
 		var line : Line2D = Line2D.new()
-		line.set_meta("time", subLineArray.pop_front() + speed)
+		line.set_meta("time", subLineArray.pop_front())
 		line.width = 1
 		line.default_color = MEASURE_COLOR
 		line.points = [Vector2(0, 0), Vector2(PLAYFIELD_WIDTH, 0)]
@@ -594,7 +596,7 @@ func _process(delta) -> void:
 	# Move & Delete Auxiliary Lines
 	for line in $sublinecontainer.get_children():
 		line.position.y = notePosition(line.get_meta("time"))
-		if line.position.y >= PERFECT_YPOS:
+		if line.position.y >= judgeY():
 			line.queue_free()
 	# Give up (works in auto play too)
 	if Input.is_action_just_pressed(prefix + "meta"):
@@ -736,7 +738,7 @@ func emptyPress(i : int) -> void:
 			next = n.hitTime
 			break
 	if next == INF and noteArray[i]:
-		next = noteArray[i][0][0] + speed
+		next = noteArray[i][0][0]
 	if next - currentSongPos <= Judge.EMPTY_POOR_WINDOW / 1000.0:
 		# Counted in the POORs and the miss count like in IIDX, but it does not break the combo
 		scorer.judgeCounts["Poor"] += 1
@@ -786,9 +788,56 @@ func endLongnote(i : int, judgement : String, offset : float = 0.0) -> void:
 	shouldPress[i] = false
 	shouldPressEnd[i] = -1.0
 
-# Y position of a note at the current time, it reaches PERFECT_YPOS at its time
+# Y position of a note at the current time, it reaches the judge line at its time
 func notePosition(time : float) -> float:
-	return PERFECT_YPOS * (1.0 - (time - currentSongPos) / speed)
+	return judgeY() - (time - currentSongPos) * scrollSpeed()
+
+# Speed of the notes in px per second: a note falls from the top to PERFECT_YPOS in the hi-speed time
+func scrollSpeed() -> float:
+	return PERFECT_YPOS / speed
+
+# The judge line, raised by the LIFT
+func judgeY() -> float:
+	return PERFECT_YPOS - liftHeight()
+
+func liftHeight() -> float:
+	return opt("lift_height") if Global.has_lift(player) else 0.0
+
+# Height of the SUDDEN+ cover, it always leaves some of the lanes visible
+func suddenHeight() -> float:
+	if not Global.has_sudden(player) or not scorer.suddenShown:
+		return 0.0
+	return minf(opt("sudden_height"), judgeY() - COVER_MIN_VISIBLE)
+
+# START held while playing, like on IIDX: the white keys make the hi-speed faster, the black keys slower,
+# the turntable moves the SUDDEN+ cover, or the LIFT when there is no cover. START twice shows or hides the cover
+func adjustOptions(delta : float) -> void:
+	var analog : float = Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
+	var motion : float = wrapf(analog - coverAnalog, -1.0, 1.0)
+	coverAnalog = analog
+	if Input.is_action_just_pressed(prefix + "start"):
+		if Time.get_ticks_msec() - lastStartMs <= DOUBLE_START_MS and Global.has_sudden(player):
+			scorer.suddenShown = not scorer.suddenShown
+		lastStartMs = Time.get_ticks_msec()
+	adjusting = Input.is_action_pressed(prefix + "start")
+	if not adjusting:
+		return
+	for i in range(7):
+		if Input.is_action_just_pressed(keycodes[i]):
+			var step : float = -Global.HISPEED_STEP if i % 2 == 0 else Global.HISPEED_STEP
+			Global.set_player_var(player, "hispeed", clampf(snappedf(opt("hispeed") + step, 0.01), Global.HISPEED_MIN, Global.HISPEED_MAX))
+	# Clockwise moves the covers down
+	var move : float = motion * COVER_ANALOG_PX
+	if Input.is_action_pressed(prefix + "digital_turntable_fwd"):
+		move += COVER_SPEED * delta
+	if Input.is_action_pressed(prefix + "digital_turntable_rew"):
+		move -= COVER_SPEED * delta
+	if move == 0.0:
+		return
+	if Global.has_sudden(player) and scorer.suddenShown:
+		Global.set_player_var(player, "sudden_height", clampf(suddenHeight() + move, 0.0, judgeY() - COVER_MIN_VISIBLE))
+	elif Global.has_lift(player):
+		Global.set_player_var(player, "lift_height", clampf(liftHeight() - move, 0.0, LIFT_MAX))
 
 # Turn the disc: slowly clockwise, faster with Scratch+, backwards with Scratch-
 func spinDisc(delta : float) -> void:
@@ -804,6 +853,9 @@ func spinDisc(delta : float) -> void:
 func updateInputState() -> void:
 	# Get the current analog value from the turntable
 	var current_value := Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
+	# START held: the turntable moves the covers and the keys change the hi-speed, nothing is hit
+	if adjusting:
+		previous_value = current_value
 	# Check if the analog value has changed since the last frame
 	if current_value != previous_value:
 		keyPressed(7)
@@ -814,16 +866,16 @@ func updateInputState() -> void:
 		# Update the previous value to the current one
 		previous_value = current_value
 
-	if (Input.is_action_just_pressed(prefix + "digital_turntable_rew")):
+	if (Input.is_action_just_pressed(prefix + "digital_turntable_rew")) and not adjusting:
 		if not keyPressed(7):
 			emptyPress(7)
 
 	# Scratch held while a digital direction is held or just after the analog turntable moved
-	pressed[7] = Input.is_action_pressed(prefix + "digital_turntable_fwd") or Input.is_action_pressed(prefix + "digital_turntable_rew") \
-		or Time.get_ticks_msec() - lastScratchMove < SCRATCH_LIGHT_MS
+	pressed[7] = not adjusting and (Input.is_action_pressed(prefix + "digital_turntable_fwd") or Input.is_action_pressed(prefix + "digital_turntable_rew") \
+		or Time.get_ticks_msec() - lastScratchMove < SCRATCH_LIGHT_MS)
 
 	for i in range(0, 8):
-		if (Input.is_action_just_pressed(keycodes[i])):
+		if (Input.is_action_just_pressed(keycodes[i])) and not adjusting:
 			if i != 7:
 				pressed[i] = true
 			if not keyPressed(i):
@@ -1050,8 +1102,9 @@ func drawLanes() -> void:
 		if i < 7 and i % 2 == 1:
 			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), LANE_BLACK_KEY_COLOR)
 		if pressed[i] and not disabled[i]:
-			var top : float = PERFECT_YPOS - LANE_LIGHT_HEIGHT
-			draw_polygon(PackedVector2Array([Vector2(left, top), Vector2(right, top), Vector2(right, PERFECT_YPOS), Vector2(left, PERFECT_YPOS)]),
+			var bottom : float = judgeY()
+			var top : float = bottom - LANE_LIGHT_HEIGHT
+			draw_polygon(PackedVector2Array([Vector2(left, top), Vector2(right, top), Vector2(right, bottom), Vector2(left, bottom)]),
 				PackedColorArray([Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.65), Color(BEAM_COLOR, 0.65)]))
 		if disabled[i]:
 			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), Color(0.12, 0.12, 0.14))
@@ -1141,7 +1194,7 @@ func drawBursts(canvas : CanvasItem) -> void:
 		var f : float = hitFlash[i]
 		if f <= 0.0:
 			continue
-		var center := Vector2(laneX(i), PERFECT_YPOS)
+		var center := Vector2(laneX(i), judgeY())
 		var radius : float = laneWidth[i] * (0.35 + 0.5 * (1.0 - f))
 		canvas.draw_circle(center, radius * 1.5, Color(BURST_COLOR, 0.15 * f))
 		canvas.draw_circle(center, radius, Color(BURST_COLOR, 0.35 * f))
@@ -1165,14 +1218,55 @@ func drawJudge(canvas : CanvasItem) -> void:
 	# Narrowed to fit the key lanes, and bigger for a moment when it appears
 	var zoom : float = minf(1.0, (7 * KEY_WIDTH - 8) / width) * (1.0 + 0.25 * maxf(0.0, 1.0 - elapsed / JUDGE_POP_TIME))
 	var origin := Vector2(-width / 2.0, JUDGE_SIZE / 2.0)
-	canvas.draw_set_transform(Vector2(keysCenter(), JUDGE_Y), 0.0, Vector2(zoom, zoom))
+	# The judgement goes up with the LIFT
+	var judgeTop : float = JUDGE_Y - liftHeight()
+	canvas.draw_set_transform(Vector2(keysCenter(), judgeTop), 0.0, Vector2(zoom, zoom))
 	canvas.draw_string_outline(FONT, origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1, JUDGE_SIZE, 8, Color.BLACK)
 	canvas.draw_string(FONT, origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1, JUDGE_SIZE, color)
 	canvas.draw_set_transform(Vector2.ZERO)
 	if timingText != "":
-		var timing := Vector2(keysCenter() - 100, JUDGE_Y + JUDGE_SIZE / 2.0 + 22)
+		var timing := Vector2(keysCenter() - 100, judgeTop + JUDGE_SIZE / 2.0 + 22)
 		canvas.draw_string_outline(FONT, timing, timingText, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, 4, Color.BLACK)
 		canvas.draw_string(FONT, timing, timingText, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, timingColor)
+
+# SUDDEN+ cover on top of the lanes, LIFT cover under the raised judge line, and the numbers while START is held
+func drawCovers(canvas : CanvasItem) -> void:
+	var lift : float = liftHeight()
+	if lift > 0.0:
+		drawCover(canvas, Rect2(0, judgeY(), PLAYFIELD_WIDTH, lift), "LIFT", false)
+		canvas.draw_rect(Rect2(0, judgeY() - 2, PLAYFIELD_WIDTH, 4), JUDGE_LINE_COLOR)
+	var sudden : float = suddenHeight()
+	if sudden > 0.0:
+		drawCover(canvas, Rect2(0, 0, PLAYFIELD_WIDTH, sudden), "SUDDEN+", true)
+	if not adjusting:
+		return
+	# Like on IIDX: the hi-speed, the green number (time a note is visible) and the white numbers (covers in 1/1000 of the lanes)
+	var green : int = roundi((judgeY() - sudden) / scrollSpeed() * GREEN_PER_SECOND)
+	var white : String = ""
+	if Global.has_sudden(player):
+		white += "SUD+ %d  " % roundi(sudden / PERFECT_YPOS * 1000.0)
+	if Global.has_lift(player):
+		white += "LIFT %d" % roundi(lift / PERFECT_YPOS * 1000.0)
+	var top : float = maxf(sudden - 46.0, 6.0)
+	var box := Rect2(keysCenter() - 3.5 * KEY_WIDTH + 4, top, 7 * KEY_WIDTH - 8, 40)
+	canvas.draw_rect(box, Color(0, 0, 0, 0.75))
+	canvas.draw_rect(box, LABEL_COLOR, false, 1.0)
+	canvas.draw_string(FONT, Vector2(box.position.x + 6, top + 16), "HI-SPEED %.2f" % speed, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
+	canvas.draw_string(FONT, Vector2(box.position.x, top + 16), str(green), HORIZONTAL_ALIGNMENT_RIGHT, box.size.x - 6, 14, GREEN_COLOR)
+	canvas.draw_string(FONT, Vector2(box.position.x, top + 34), white.strip_edges(), HORIZONTAL_ALIGNMENT_CENTER, box.size.x, 12, Color.WHITE)
+
+# A lane cover: dark metal with faint lines, a light edge on the side of the notes
+func drawCover(canvas : CanvasItem, rect : Rect2, text : String, edgeAtBottom : bool) -> void:
+	canvas.draw_polygon(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]),
+		PackedColorArray([COVER_TOP, COVER_TOP, COVER_BOTTOM, COVER_BOTTOM]))
+	var y : float = rect.position.y + 4.0
+	while y < rect.end.y:
+		canvas.draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), COVER_STRIPE, 2.0)
+		y += 8.0
+	var edge : float = rect.end.y - 2 if edgeAtBottom else rect.position.y
+	canvas.draw_rect(Rect2(rect.position.x, edge, rect.size.x, 2), METAL_LIGHT)
+	if rect.size.y >= 24.0:
+		canvas.draw_string(FONT, Vector2(keysCenter() - 100, rect.get_center().y + 6), text, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, COVER_TEXT)
 
 # Key frame and scratch frame of the game art, the held keys are drawn again in red over it
 func drawKeys(canvas : CanvasItem) -> void:
@@ -1270,6 +1364,8 @@ class Overlay extends Node2D:
 	var field : Playfield
 
 	func _draw() -> void:
+		if field.active:
+			field.drawCovers(self)
 		field.drawPlate(self)
 		field.drawKeys(self)
 		if field.active:

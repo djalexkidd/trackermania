@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="4_banner"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="5_title"]
 [ext_resource type="AudioStream" uid="uid://cty44ubltpwwk" path="res://assets/bgm/music_select.ogg" id="6_bgm"]
+[ext_resource type="Script" uid="uid://mmou6ix3nudg" path="res://scripts/menu/music_select/game_option_settings.gd" id="7_options"]
+[ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="8_open"]
+[ext_resource type="AudioStream" uid="uid://csvkylr0deve0" path="res://assets/music_select/close.ogg" id="9_close"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scroll"]
 shader = ExtResource("2_scroll")
@@ -67,3 +70,24 @@ color = Color(0, 0, 0, 1)
 [node name="BGM" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_bgm")
 volume_db = -4.0
+
+[node name="GameOptionSettings" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -448.0
+offset_top = 112.0
+offset_bottom = -88.0
+grow_horizontal = 0
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
+script = ExtResource("7_options")
+
+[node name="OpenAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
+stream = ExtResource("8_open")
+
+[node name="CloseAudio" type="AudioStreamPlayer" parent="GameOptionSettings"]
+stream = ExtResource("9_close")

@@ -3,9 +3,10 @@ extends Control
 # Netplay lobby. Without a room: the DJ name, the rooms found on the LAN, host a room or join one by address.
 # In a room: the song chosen by the host, the DJs with their state, the chat, READY and START.
 # The controller works like in the music select: turntable to move, white keys to confirm,
-# black keys to go back, START to get ready (or start the round for the host).
+# black keys to go back, START held for the game options like in the music select.
 
 const ANALOG_STEP = 0.08
+const OPTIONS_SLIDE_TIME = 0.15
 const STATE_NAMES = {"lobby": "LOBBY", "loading": "LOADING", "playing": "PLAYING"}
 
 var browser: Control
@@ -42,6 +43,9 @@ var room_hint: Label
 var analog_previous := 0.0
 var analog_remainder := 0.0
 var blink := 0.0
+# OPTION SETTING panel of P1, over the right column
+var options_x := 0.0
+var options_tween: Tween
 
 func _ready() -> void:
 	# BGM disabled for now
@@ -50,6 +54,9 @@ func _ready() -> void:
 	#$BGM.play()
 	build_browser()
 	build_room()
+	# The panel goes over the views built above
+	move_child($GameOptionSettings, -1)
+	options_x = $GameOptionSettings.position.x
 	Netplay.opened.connect(show_view)
 	Netplay.closed.connect(_on_closed)
 	Netplay.players_changed.connect(refresh_room)
@@ -275,6 +282,8 @@ func build_room() -> void:
 #region Views
 
 func show_view() -> void:
+	if not Netplay.active and $GameOptionSettings.open:
+		close_game_options()
 	browser.visible = not Netplay.active
 	room_view.visible = Netplay.active
 	if Netplay.active:
@@ -485,7 +494,7 @@ func refresh_buttons() -> void:
 	ready_button.text = "CANCEL" if me.get("ready", false) else "READY"
 	start_button.visible = Netplay.is_host
 	start_button.disabled = not Netplay.can_start()
-	room_hint.text = ("START: START THE ROUND" if Netplay.is_host else "START: READY") + "   BLACK KEYS: LEAVE"
+	room_hint.text = "HOLD START: OPTIONS   BLACK KEYS: LEAVE"
 
 func _on_chat(entry: Dictionary) -> void:
 	if not room_view.visible:
@@ -533,9 +542,7 @@ func join_address(address: String) -> void:
 	set_status("Connecting to %s…" % address, NetplayUI.WARNING)
 
 func toggle_ready() -> void:
-	if Netplay.is_host:
-		Netplay.start_round()
-	elif not ready_button.disabled:
+	if not ready_button.disabled:
 		Netplay.update_me({"ready": not Netplay.me().get("ready", false)})
 
 func _on_select_pressed() -> void:
@@ -568,8 +575,14 @@ func _process(delta: float) -> void:
 	# Typing: the keys mapped on the keyboard write in the field
 	if focused is LineEdit and focused.is_editing():
 		return
+	# START held: the game options, the panel takes the keys and the turntable
 	if Input.is_action_just_pressed("p1_start") and room_view.visible:
-		toggle_ready()
+		open_game_options()
+	if Input.is_action_just_released("p1_start") and $GameOptionSettings.open:
+		close_game_options()
+	if $GameOptionSettings.open:
+		analog_previous = analog_value()
+		return
 	for key in ["key2", "key4", "key6"]:
 		if Input.is_action_just_pressed("p1_" + key):
 			go_back()
@@ -595,6 +608,30 @@ func _process(delta: float) -> void:
 	steps += analog_steps
 	if steps != 0:
 		move_focus(signi(steps))
+
+func open_game_options() -> void:
+	var panel = $GameOptionSettings
+	panel.open = true
+	panel.get_node("OpenAudio").play()
+	if not panel.visible:
+		panel.position.x = size.x
+		panel.show()
+	slide_game_options(options_x, Tween.EASE_OUT)
+
+func close_game_options() -> void:
+	var panel = $GameOptionSettings
+	panel.open = false
+	panel.get_node("CloseAudio").play()
+	slide_game_options(size.x, Tween.EASE_IN).tween_callback(panel.hide)
+
+# A new slide replaces the one running, from where it stopped
+func slide_game_options(x: float, ease_type: Tween.EaseType) -> Tween:
+	if options_tween:
+		options_tween.kill()
+	options_tween = create_tween()
+	options_tween.tween_property($GameOptionSettings, "position:x", x, OPTIONS_SLIDE_TIME)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(ease_type)
+	return options_tween
 
 func analog_value() -> float:
 	return Input.get_action_strength("p1_analog_turntable_fwd") - Input.get_action_strength("p1_analog_turntable_rew")

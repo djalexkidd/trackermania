@@ -4,7 +4,7 @@ extends ColorRect
 @export var player : int = 1
 
 func _ready() -> void:
-	_on_game_option_settings_update("auto", Global.get_player_var(player, "auto_play"))
+	_on_game_option_settings_update("auto", Global.is_auto_play(player))
 	
 	_on_game_option_settings_update("ascratch", Global.get_player_var(player, "auto_scratch"))
 	

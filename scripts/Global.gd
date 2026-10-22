@@ -19,6 +19,11 @@ var random = false
 var mirror = false
 # DOUBLE PLAY (14 keys on both decks), only when this player is alone
 var double_play = false
+# RANGE (lane covers), an index of LANE_COVERS
+var lane_cover = 0
+# Height of the SUDDEN+ cover and of the LIFT in px, moved with START + turntable while playing
+var sudden_height = 150.0
+var lift_height = 80.0
 
 # Players in game on this machine (START joins, META leaves in the music select)
 var p1_joined = true
@@ -40,6 +45,16 @@ var p2_auto_scratch = false
 var p2_random = false
 var p2_mirror = false
 var p2_double_play = false
+var p2_lane_cover = 0
+var p2_sudden_height = 150.0
+var p2_lift_height = 80.0
+
+# Hi-speed is the falling time of a note in seconds, changed by steps in the OPTION SETTING panel and while playing
+const HISPEED_MIN = 0.45
+const HISPEED_MAX = 1.0
+const HISPEED_STEP = 0.05
+# RANGE: SUDDEN+ covers the top of the lanes, LIFT raises the judge line
+const LANE_COVERS = ["OFF", "SUDDEN+", "LIFT", "LIFT SUD+"]
 
 # BATTLE (two players): the 2P side plays the chart mirrored
 var battle = false
@@ -185,6 +200,19 @@ func is_double_play() -> bool:
 # BATTLE needs both players
 func is_battle() -> bool:
 	return battle and p1_joined and p2_joined and not Netplay.active
+
+# No AUTO PLAY in arcade and netplay
+func can_auto_play() -> bool:
+	return not Arcade.active and not Netplay.active
+
+func is_auto_play(player: int) -> bool:
+	return get_player_var(player, "auto_play") and can_auto_play()
+
+func has_sudden(player: int) -> bool:
+	return get_player_var(player, "lane_cover") in [1, 3]
+
+func has_lift(player: int) -> bool:
+	return get_player_var(player, "lane_cover") >= 2
 
 # Versus outcome for a player, decided by the highest score
 func get_versus_result(player: int) -> String:

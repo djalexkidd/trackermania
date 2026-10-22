@@ -104,13 +104,15 @@ func strip_options(player: int) -> Array:
 	var mirror = Global.get_player_var(player, "mirror")
 	return [
 		["HI-S %.2f" % hispeed, hispeed != 1.0, 1.5],
-		["AUTO", Global.get_player_var(player, "auto_play"), 1.0],
+		["AUTO", Global.is_auto_play(player), 1.0],
 		["BTL", Global.is_battle(), 1.0],
 		["HARD" if gauge == 2 else "EASY", gauge != 0, 1.0],
 		["MIR" if mirror else "RAN", mirror or Global.get_player_var(player, "random"), 1.0],
 		["A-SCR", Global.get_player_var(player, "auto_scratch"), 1.0],
 		["5KEY", Global.get_player_var(player, "keys_mode") == 5, 1.0],
 		["DP", Global.get_player_var(player, "double_play"), 1.0],
+		["SUD+", Global.has_sudden(player), 1.0],
+		["LIFT", Global.has_lift(player), 1.0],
 	]
 
 # Metal frame with caps of the player color, a lit segment per option chosen

@@ -162,8 +162,12 @@ func _draw() -> void:
 		options.append("5KEYS")
 	if Global.get_player_var(player, "auto_scratch"):
 		options.append("A-SCR")
-	if Global.get_player_var(player, "auto_play"):
+	if Global.is_auto_play(player):
 		options.append("AUTO PLAY")
+	if Global.has_sudden(player):
+		options.append("SUDDEN+")
+	if Global.has_lift(player):
+		options.append("LIFT")
 
 	# CLEAR TYPE, DJ LEVEL, EX SCORE, MISS COUNT: best before this play, then this play
 	var played = not best.is_empty()

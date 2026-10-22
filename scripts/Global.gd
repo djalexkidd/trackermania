@@ -15,6 +15,8 @@ var hispeed = 1.0
 var auto_play = false
 var auto_scratch = false
 var random = false
+# MIRROR (keys reversed), never with RANDOM
+var mirror = false
 # DOUBLE PLAY (14 keys on both decks), only when this player is alone
 var double_play = false
 
@@ -36,6 +38,7 @@ var p2_hispeed = 1.0
 var p2_auto_play = false
 var p2_auto_scratch = false
 var p2_random = false
+var p2_mirror = false
 var p2_double_play = false
 
 # BATTLE (two players): the 2P side plays the chart mirrored

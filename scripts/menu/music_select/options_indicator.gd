@@ -14,7 +14,7 @@ func _ready() -> void:
 	if Global.get_player_var(player, "hispeed") != 1.0:
 		_on_game_option_settings_update("hispeed", Global.get_player_var(player, "hispeed"))
 	
-	_on_game_option_settings_update("random", Global.get_player_var(player, "random"))
+	_on_game_option_settings_update("random", Global.get_player_var(player, "random") or Global.get_player_var(player, "mirror"))
 	
 	_on_game_option_settings_update("double", Global.get_player_var(player, "double_play"))
 	
@@ -31,6 +31,9 @@ func _on_game_option_settings_update(option, status) -> void:
 		if Global.get_player_var(player, "hispeed") == 1.0:
 			$AnimationPlayer.play("RESET")
 		$Label.text = str("HI-S   " + str(Global.get_player_var(player, "hispeed")))
+	
+	if name == "randomColorRect":
+		$Label.text = "MIRROR" if Global.get_player_var(player, "mirror") else "RANDOM"
 	
 	if name == "difficultyColorRect":
 		if Global.get_player_var(player, "gauge_level") < 2:

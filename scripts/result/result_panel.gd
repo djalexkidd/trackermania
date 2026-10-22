@@ -156,6 +156,8 @@ func _draw() -> void:
 	var options = [GAUGES[Global.get_player_var(player, "gauge_level")]]
 	if Global.get_player_var(player, "random"):
 		options.append("RANDOM")
+	if Global.get_player_var(player, "mirror"):
+		options.append("MIRROR")
 	if Global.get_player_var(player, "keys_mode") == 5:
 		options.append("5KEYS")
 	if Global.get_player_var(player, "auto_scratch"):

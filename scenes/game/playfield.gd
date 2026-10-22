@@ -275,8 +275,8 @@ func start() -> void:
 	scorer.noteCount += Judge.noteCount(noteArray)
 	Global.set_player_var(player, "combo_max_top", scorer.noteCount)
 
-	# BATTLE: the 2P side plays the chart mirrored, like on IIDX
-	if versus and Global.is_battle() and side == 2:
+	# MIRROR, and BATTLE where the 2P side plays the chart mirrored, like on IIDX (both cancel out)
+	if opt("mirror") != (versus and Global.is_battle() and side == 2):
 		var flippedNotes : Array = noteArray.duplicate()
 		var flippedKeysounds : Array = keysoundArray.duplicate()
 		for i in lanes.size():

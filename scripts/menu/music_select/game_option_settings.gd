@@ -22,7 +22,7 @@ const P2_COLOR = Color(1, 0.156863, 0)
 const HEADER_HEIGHT = 44.0
 # Black key columns: [key, title, choices]
 const COLUMNS = [
-	[1, "RANDOM", ["OFF", "RANDOM"]],
+	[1, "RANDOM", ["OFF", "RANDOM", "MIRROR"]],
 	[3, "GAUGE", ["NORMAL", "EASY", "HARD"]],
 	[5, "STYLE", ["7KEYS", "5KEYS", "A-SCR", "5K A-SCR"]],
 ]
@@ -77,8 +77,11 @@ func _process(_delta: float) -> void:
 		changed(4)
 
 	if Input.is_action_just_pressed(key("key2")):
-		set_opt("random", !get_opt("random"))
-		emit_signal("update", "random", get_opt("random"))
+		# OFF -> RANDOM -> MIRROR
+		var lane_option = (selected_choice(0) + 1) % 3
+		set_opt("random", lane_option == 1)
+		set_opt("mirror", lane_option == 2)
+		emit_signal("update", "random", lane_option != 0)
 		changed(1)
 
 	if Input.is_action_just_pressed(key("key4")):
@@ -117,7 +120,7 @@ func style_index() -> int:
 
 func selected_choice(column: int) -> int:
 	match column:
-		0: return 1 if get_opt("random") else 0
+		0: return 1 if get_opt("random") else (2 if get_opt("mirror") else 0)
 		1: return get_opt("gauge_level")
 		_: return style_index()
 

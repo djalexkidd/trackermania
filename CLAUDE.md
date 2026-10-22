@@ -128,7 +128,7 @@ Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme 
 
 ### Options des joueurs (`Global.gd`)
 Les variables de P1 n'ont pas de préfixe, celles de P2 sont préfixées par `p2_` : passer par `Global.get_player_var(player, name)` et `set_player_var`.
-Options : `hispeed` (temps de chute d'une note, en secondes, de 0.45 à 1.0), `keys_mode` (7 ou 5), `random`, `auto_play`, `auto_scratch`, `gauge_level` (0 normal, 1 easy, 2 hard), `double_play`.
+Options : `hispeed` (temps de chute d'une note, en secondes, de 0.45 à 1.0), `keys_mode` (7 ou 5), `random`, `mirror` (jamais avec `random` : la colonne RANDOM du panneau passe OFF -> RANDOM -> MIRROR), `auto_play`, `auto_scratch`, `gauge_level` (0 normal, 1 easy, 2 hard), `double_play`.
 `Global.battle` est commun aux deux joueurs. `Global.is_double_play()` (le joueur seul a `double_play`, hors netplay) et `Global.is_battle()` (les deux joueurs) disent ce qui s'applique vraiment.
 
 ### DOUBLE PLAY et BATTLE
@@ -162,6 +162,7 @@ Chaque `.qua` de `user://songs` est une difficulté de la musique de son dossier
   - Le dernier segment rempli reste allumé, les 2 d'avant clignotent (0 à 2 allumés depuis la gauche, tirés au hasard toutes les 50 ms, `flickerGauge()`), comme sur IIDX.
 - **POOR vide** (`emptyPress()`) : une touche pressée sans note à frapper, alors qu'une note de la lane arrive dans moins de 500 ms, abîme la jauge sans casser le combo.
 - L'horloge est `songPosition() - AudioServer.get_output_latency()` ; pour un MP3/OGG, `songPosition()` ajoute `AudioServer.get_time_since_last_mix()`, sinon elle avance par saccades de la taille d'un mixage (fatal avec des fenêtres de ±16 ms).
+- MIRROR inverse les touches (pas le scratch), comme BATTLE pour le 2P : les deux s'annulent.
 - RANDOM mélange seulement les touches (0~6, ou 0~4 en 5 touches) ; le scratch ne bouge jamais, comme sur IIDX. En 5 touches, les lanes 5 et 6 sont vidées au chargement.
 - Les touches (`p1_frame.png`, scratch `p1_frame_scratch.png` + disque) et la jauge (`groove_gauge.png` / `progress.png`, `_hard` en HARD) viennent des assets, à l'échelle `KEY_SCALE` (0.4, donc des lanes de 40 px) et `SCRATCH_SCALE` (0.6, platine plus haute que les touches comme sur IIDX). Les touches enfoncées s'allument en rouge en redessinant leur zone teintée (`drawKeys()`, `KEY_WHITE_RECT`/`KEY_BLACK_RECT`, une touche tous les `KEY_SPACING` px). Touches, jauge et HUD sont dessinés dans `Overlay`, au-dessus des notes.
 - Habillage façon IIDX (`playfield.gd`, rectangles du côté 1P, inversés par `sideRect()`/`sideX()` en 2P) : lanes noires, rails métalliques de chaque côté (la progression de la chanson descend dans le rail extérieur), la bande rouge du haut des touches sert de ligne de jugement (`KEYS_TOP` = 497). Sous les lanes, une plaque métallique (`drawPlate()`) porte des écrans noirs (`drawScreen()`) : pourcentage de la jauge, jauge (« P1 GROOVE GAUGE »), SCORE / MAXCOMBO et difficulté + niveau, chiffres en 7 segments avec les segments éteints (`drawNumber()`, police digitalix). `drawMetal()`, `drawScreen()` et `drawNumber()` sont statiques : `main.gd` s'en sert pour la plaque centrale (titre, BPM).

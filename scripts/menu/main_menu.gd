@@ -302,17 +302,9 @@ func draw_body() -> void:
 	draw_rect(Rect2(right - 6, top + 14, 6, 38), Color.BLACK)
 	draw_text(Vector2((banner_left + right) / 2, top + 40), help, fit_size(help, 14, right - banner_left - 30), Color.BLACK, HORIZONTAL_ALIGNMENT_CENTER)
 
-	# INFORMATION box with its corner brackets
-	var info = Rect2(40, top + 18, 520, 66)
-	draw_corners(info, 12.0, Color.WHITE)
-	draw_text(info.position + Vector2(14, 24), "INFORMATION", 16, Color.WHITE)
-	draw_rect(Rect2(info.position + Vector2(178, 21), Vector2(30, 3)), Color.WHITE)
-	draw_rect(Rect2(info.position + Vector2(16, 36), Vector2(16, 16)), Color.WHITE, false, 2.0)
-	draw_rect(Rect2(info.position + Vector2(20, 40), Vector2(8, 8)), Color.WHITE)
+	# Notice (coming soon, exit), top left
 	if Time.get_ticks_msec() < notice_until:
-		draw_text(info.position + Vector2(42, 52), notice, 12, YELLOW)
-	else:
-		draw_text(info.position + Vector2(42, 52), "SELECT A MENU", 12, Color.WHITE)
+		draw_text(Vector2(56, top + 42), notice, 12, YELLOW)
 
 	draw_rect(Rect2(0, body_bottom() - 7, size.x, 3), ORANGE)
 

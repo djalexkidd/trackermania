@@ -17,10 +17,13 @@ const PANEL_TOP = 74.0
 # Rings turning behind the middle, in place of the IIDX character art
 const RING_CENTER = Vector2(640, 360)
 const RING_RADII = [70.0, 105.0, 140.0, 175.0]
+const GAME_OVER_TIME = 3.0
 
 var panels : Array = []
 var elapsed := 0.0
 var versus := false
+# Arcade: time of the GAME OVER after a failed stage, negative before
+var game_over_at := -1.0
 
 func _ready() -> void:
 	versus = Global.p1_joined and Global.p2_joined
@@ -47,6 +50,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not confirm:
 		return
 	get_viewport().set_input_as_handled()
+	if game_over_at >= 0.0:
+		return
 	# The first press ends the reveal, the next one leaves
 	if not panels.all(func(panel): return panel.revealed()):
 		for panel in panels:
@@ -56,7 +61,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		Global.set_player_var(player, "score", 0)
 		Global.set_player_var(player, "ex_score", 0)
 		Global.set_player_var(player, "combo_max", 0)
-	get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")
+	if Arcade.active and Arcade.game_over():
+		game_over()
+	elif Arcade.active and Arcade.finished():
+		get_tree().change_scene_to_file("res://scenes/arcade/name_entry.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")
+
+# A failed stage ends the arcade game, back to the title menu
+func game_over() -> void:
+	game_over_at = elapsed
+	Arcade.stop()
+	# The panels are drawn over the screen, they fade out under GAME OVER
+	for panel in panels:
+		create_tween().tween_property(panel, "modulate:a", 0.15, 0.4)
+	await get_tree().create_timer(GAME_OVER_TIME).timeout
+	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 
 func _draw() -> void:
 	# Background: a dark gradient and slanted stripes
@@ -77,6 +97,8 @@ func _draw() -> void:
 
 	# Title
 	var title = "STAGE RESULT" if not Netplay.active else "RESULT"
+	if (Arcade.active or game_over_at >= 0.0) and not Arcade.stages.is_empty():
+		title = Arcade.stage_name(Arcade.stages.size() - 1) + " RESULT"
 	var title_size = 32
 	var title_width = TITLE_FONT.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x
 	var title_pos = Vector2((size.x - title_width) / 2, 50)
@@ -103,6 +125,17 @@ func _draw() -> void:
 	draw_centered(SONG_FONT, Rect2(middle.position + Vector2(0, 38), middle.size), info.get("artist", ""), 24, TEXT_DIM)
 	if panels.all(func(panel): return panel.revealed()) and Time.get_ticks_msec() % 1000 < 650:
 		draw_centered(TITLE_FONT, Rect2(470, 684, 340, 24), "PRESS START", 14, Color(1, 0.85, 0.2))
+
+	if game_over_at >= 0.0:
+		draw_game_over(elapsed - game_over_at)
+
+# The screen goes dark and GAME OVER comes down
+func draw_game_over(time: float) -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, clampf(time / 0.4, 0.0, 0.85)))
+	var drop = 1.0 - ease(clampf((time - 0.2) / 0.5, 0.0, 1.0), 0.3)
+	var band = Rect2(0, size.y / 2 - 60 - drop * 200, size.x, 120)
+	draw_rect(band, Color(0.5, 0, 0, 0.6 * (1.0 - drop)))
+	draw_centered(TITLE_FONT, band, "GAME OVER", 72, Color(1, 0.15, 0.1, 1.0 - drop), 12, Color(0.2, 0, 0, 1.0 - drop))
 
 # Text centered in a box, made smaller if it does not fit
 func draw_centered(font: Font, rect: Rect2, text: String, font_size: int, color: Color, outline := 0, outline_color := Color.BLACK) -> void:

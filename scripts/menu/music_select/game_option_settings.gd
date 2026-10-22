@@ -60,7 +60,8 @@ func _process(_delta: float) -> void:
 	queue_redraw()
 	if not open:
 		return
-	if Input.is_action_just_pressed(key("key1")):
+	# No AUTO PLAY in arcade
+	if Input.is_action_just_pressed(key("key1")) and not Arcade.active:
 		set_opt("auto_play", !get_opt("auto_play"))
 		emit_signal("update", "auto", get_opt("auto_play"))
 		changed(0)
@@ -192,7 +193,10 @@ func _draw() -> void:
 		var box = white_box_rect(i)
 		var lit = Input.is_action_pressed(key("key%d" % (i + 1)))
 		draw_link(Vector2(box.get_center().x, WHITE_KEY_TOP + KEY_SIZE.y + 4), Vector2(box.get_center().x, box.position.y - 4), accent if lit else LINE)
-		if white_options.has(i):
+		if i == 0 and Arcade.active:
+			draw_box(box, "---", false, 0.0, true)
+			draw_text(TITLE_FONT, Rect2(box.position.x - 6, box.end.y + 4, box.size.x + 12, 18), white_options[i][0], 12, LINE)
+		elif white_options.has(i):
 			draw_box(box, white_options[i][1], white_options[i][2], flash(i))
 			draw_text(TITLE_FONT, Rect2(box.position.x - 6, box.end.y + 4, box.size.x + 12, 18), white_options[i][0], 12, ORANGE)
 		else:

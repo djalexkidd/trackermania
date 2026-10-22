@@ -35,7 +35,7 @@ const SOUND_VOLUME_DB = -10.0
 const BGM_VOLUME_DB = -6.0
 
 var modes = [
-	{"name": "ARCADE", "short": "ARCADE", "icon": "arcade", "desc": "PLAY SEVERAL STAGES IN A ROW."},
+	{"name": "ARCADE", "short": "ARCADE", "icon": "arcade", "scene": "res://scenes/menu/music_select.tscn", "arcade": true, "desc": "PLAY 3 STAGES IN A ROW, THEN ENTER THE RANKING."},
 	{"name": "FREE", "short": "FREE", "icon": "free", "scene": "res://scenes/menu/music_select.tscn", "desc": "PLAY THE SONGS YOU WANT, FREELY."},
 	{"name": "NETPLAY", "short": "NET", "icon": "netplay", "scene": "res://scenes/netplay/lobby.tscn", "desc": "PLAY AGAINST OTHER DJS ON THE NETWORK."},
 	{"name": "OPTIONS", "short": "OPTION", "icon": "options", "scene": "res://scenes/menu/options.tscn", "desc": "DISPLAY, SOUND, DJ NAME AND CONTROLLERS."},
@@ -81,6 +81,7 @@ func _ready() -> void:
 	# Back to the default: player 1 only, player 2 has to press start in the music select
 	Global.p1_joined = true
 	Global.p2_joined = false
+	Arcade.stop()
 
 	scroll_sound = add_sound(preload("res://assets/music_select/scroll.wav"))
 	decide_sound = add_sound(preload("res://assets/music_select/decide.wav"))
@@ -211,6 +212,8 @@ func decide() -> void:
 		return
 	decide_sound.play()
 	leaving = true
+	if mode.get("arcade", false):
+		Arcade.start()
 	await get_tree().create_timer(LEAVE_TIME).timeout
 	get_tree().change_scene_to_file(mode["scene"])
 

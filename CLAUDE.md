@@ -18,6 +18,8 @@ scripts/
   QuaChart.gd            Lecture d'une beatmap Quaver .qua (class_name QuaChart)
   netplay/               Netplay.gd (autoload réseau), NetplayUI.gd (style des écrans), lobby.gd, scoreboard.gd, netplay_result.gd
   Scores.gd              Meilleurs scores en solo (user://scores.cfg), lampes de clear et rangs (class_name Scores)
+  arcade/                Mode ARCADE (voir plus bas) : Arcade.gd (class_name Arcade, état statique et classement),
+                         arcade_timer.gd (TIME REMAIN), name_entry.gd, ranking.gd
   mod/                   Modules Amiga keysoundés (voir plus bas)
   bms/                   BMS et bmson keysoundés (voir plus bas)
     BmsChart.gd          Lecture d'un BMS/bmson -> événements sonores, notes, mesures
@@ -48,6 +50,7 @@ scenes/
   game/judge.gd          Règles IIDX : fenêtres, EX-Score, jauge (class_name Judge)
   menu/                  Scènes des menus
   result/result.tscn     Écran de résultats (solo et versus local)
+  arcade/                name_entry.tscn, ranking.tscn
   netplay/               lobby.tscn (salles et salle), result.tscn (résultats du round), img/crown.png
 ```
 
@@ -83,8 +86,16 @@ Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est ch
 
 ### Menu principal (`main_menu.gd`)
 MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).
-- Modes dans `modes` : ARCADE (pas encore codé, sans `scene`), FREE (sélection), NETPLAY (lobby), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
+- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
 - Platine (ou flèches, molette) : choisir, en boucle ; touche blanche : valider ; touche noire deux fois : quitter (rien en web).
+
+### Mode ARCADE (`scripts/arcade/`)
+Comme sur IIDX : 3 stages (`Arcade.STAGES`), puis NAME ENTRY et classement. L'état est dans des variables statiques de `Arcade` (`active`, `stages`, `last_rank`), qui survivent aux changements de scène ; le menu principal l'arrête (`Arcade.stop()`) dans `_ready()`.
+- `Arcade.start()` coupe l'AUTO PLAY des deux joueurs ; `game_option_settings.gd` ne le laisse pas activer (case « --- ») et `playfield.gd` l'ignore. Le mode se joue seul : l'autre côté ne peut pas rejoindre.
+- Sélection : une musique déjà jouée n'est pas ajoutée, quelle que soit sa difficulté (`Arcade.song_key()` : le chemin pour un .mod, son dossier pour un .qua ou un BMS). `arcade_timer.gd` affiche TIME REMAIN (60 s, `SELECT_TIME`, rouge clignotant sous 10 s) par-dessus les cases OK/EXIT du bandeau, et le stage (1ST, 2ND, FINAL STAGE) à la place de la case OPTIONS, masquée (START ouvre toujours les options). À zéro (`_on_arcade_timeout()`), la musique sous le curseur est lancée, sinon une musique au hasard de la catégorie (ou de ALL MUSIC). Les touches noires et META ne quittent la sélection (et la partie) qu'avant le 1er stage (`can_leave()`). S'il ne reste aucune musique, on passe au NAME ENTRY.
+- Fin d'une partie solo : `playfield.finish()` appelle `Arcade.add_stage()` (musique, EX-Score, EX max, lampe ; FAILED si la lampe vaut 0, donc aussi une jauge NORMAL/EASY sous 80 % ou un abandon). L'écran de résultats titre « 1ST STAGE RESULT »… puis, à la sortie : GAME OVER (3 s, retour au menu principal) après un stage échoué, NAME ENTRY après le dernier, sinon la sélection.
+- NAME ENTRY (`name_entry.gd`, `scenes/arcade/name_entry.tscn`) : 6 lettres pré-remplies avec le DJ NAME, platine : lettre, touche blanche : suivante (valide sur la dernière), touche noire : précédente, START : valide ; clavier aussi. Timer de 30 s (`NAME_ENTRY_TIME`) qui valide. Affiche les 3 stages et le total EX avec son DJ LEVEL.
+- Classement (`ranking.gd`) : `user://arcade_ranking.cfg`, liste `entries` triée par total EX (`name`, `ex_score`, `rate`, `songs`, `date`, 100 au plus). Les 10 premiers, la nouvelle partie clignote (en 11e ligne si elle est plus bas). Une touche ou 20 s ramène au menu principal.
 
 ### Menu OPTIONS (`options_menu.gd`)
 Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme les menus IIDX console : roue des catégories à gauche, titre et réglages à droite, aide en bas. Thème sombre de la sélection : grille animée (`Background`, `show_behind_parent`) et bandeau `music_select_info.png` en haut, dont la case OPTIONS/START est recouverte par DEFAULT/EFFECT.

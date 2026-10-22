@@ -13,6 +13,8 @@ var effect_state = 0
 var netplay = false
 var songs_loading = true
 var song_preview: Node
+# Arcade mode: TIME REMAIN, a song is picked when it runs out
+var arcade_timer: Control
 
 # Opening/closing of the game options: the wheel slides out to the right, then the panel slides in
 const OPTIONS_SLIDE_TIME = 0.15
@@ -39,6 +41,13 @@ func _ready():
 		Netplay.closed.connect(_on_netplay_closed)
 	update_joined(1)
 	update_joined(2)
+	if Arcade.active:
+		arcade_timer = preload("res://scripts/arcade/arcade_timer.gd").new()
+		arcade_timer.caption = Arcade.current_stage_name()
+		arcade_timer.time_left = Arcade.SELECT_TIME
+		arcade_timer.timeout.connect(_on_arcade_timeout)
+		add_child(arcade_timer)
+		move_child(arcade_timer, $TextureRect.get_index() + 1)
 	
 	# NOW LOADING screen over everything until the wheel is built
 	var loading_screen = preload("res://scripts/menu/loading_screen.gd").new()
@@ -57,6 +66,10 @@ func _ready():
 	# Draw the loading screen before the work starts
 	await get_tree().process_frame
 	await load_and_add_songs()
+	# Arcade: every song was already played, the game ends there
+	if Arcade.active and not Arcade.stages.is_empty() and $SongWheel/Categories/AllMusic/MusicList.get_child_count() == 0:
+		get_tree().change_scene_to_file("res://scenes/arcade/name_entry.tscn")
+		return
 	sort_alphabet_categories()
 	add_random_entries()
 	add_category_lamps()
@@ -69,6 +82,8 @@ func _ready():
 	await loading_screen.finish()
 	$AudioStreamPlayer.play()
 	songs_loading = false
+	if arcade_timer:
+		arcade_timer.start(Arcade.SELECT_TIME)
 
 	# Slide animation for song wheel, while the loading screen leaves
 
@@ -82,6 +97,9 @@ func load_and_add_songs():
 	var songs = await Loader.get_song_catalog()
 	var batch_start = Time.get_ticks_msec()
 	for song in songs:
+		# Arcade: a song is played once, whatever its difficulty
+		if Arcade.active and Arcade.is_played(song["path"]):
+			continue
 		# Small batches keep the loading screen animated
 		if Time.get_ticks_msec() - batch_start >= 8:
 			await get_tree().process_frame
@@ -206,6 +224,9 @@ func _process(delta):
 			continue
 		var prefix = "p%d_" % player
 		if Input.is_action_just_pressed(prefix + "start"):
+			# The arcade mode is played alone
+			if Arcade.active and not is_joined(player):
+				continue
 			if not is_joined(player):
 				set_joined(player, true)
 			else:
@@ -214,7 +235,7 @@ func _process(delta):
 		if Input.is_action_just_released(prefix + "start") and game_options(player).open:
 			close_game_options(player)
 		
-		if Input.is_action_just_pressed(prefix + "meta") and is_joined(player) and not netplay:
+		if Input.is_action_just_pressed(prefix + "meta") and is_joined(player) and not netplay and can_leave():
 			if game_options(player).open:
 				close_game_options(player)
 			set_joined(player, false)
@@ -233,7 +254,7 @@ func _process(delta):
 		# Black keys first return to the categories, then leave music select.
 		for key in ["key2", "key4", "key6"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
-				if not $SongWheel.visible or $SongWheel.close_category():
+				if not $SongWheel.visible or $SongWheel.close_category() or not can_leave():
 					return
 				leave()
 				return
@@ -251,8 +272,13 @@ func set_joined(player: int, joined: bool) -> void:
 	if joined_players().is_empty():
 		leave()
 
+# Arcade: the game can only be given up before the 1st stage
+func can_leave() -> bool:
+	return not Arcade.active or Arcade.stages.is_empty()
+
 # Back to the title menu, or to the netplay lobby
 func leave() -> void:
+	Arcade.stop()
 	get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn" if netplay else "res://scenes/menu/main_menu.tscn")
 
 # The room was closed while choosing, the lobby tells why
@@ -349,6 +375,22 @@ func _cycle_audio_effects():
 		_:
 			# All effects are off (default state)
 			$BottomBar/Label.text = "effector off"
+
+# Time is up: the song under the cursor, or a random song from a category
+func _on_arcade_timeout() -> void:
+	var wheel = $SongWheel
+	var entry = wheel.entries[wheel.selected_index] if wheel.opened_category != null and wheel.selected_index > 0 else null
+	if entry != null and not entry.is_random:
+		entry._on_pressed()
+		return
+	var category = entry.get_parent() if entry != null else $SongWheel/Categories/AllMusic/MusicList
+	var songs = category.get_children().filter(func(song): return not song.is_random)
+	if songs.is_empty():
+		songs = $SongWheel/Categories/AllMusic/MusicList.get_children().filter(func(song): return not song.is_random)
+	if songs.is_empty():
+		leave()
+		return
+	songs.pick_random()._on_pressed()
 
 func _on_song_entry_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/game/main.tscn")

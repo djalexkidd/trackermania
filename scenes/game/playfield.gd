@@ -228,7 +228,7 @@ func setup(p : int, plays : bool, both : bool, online : bool) -> void:
 func start() -> void:
 	if not active:
 		return
-	AUTOPLAY = opt("auto_play")
+	AUTOPLAY = opt("auto_play") and not Arcade.active
 	AUTOSCRATCH = opt("auto_scratch")
 	speed = opt("hispeed")
 	if netplay:
@@ -855,6 +855,8 @@ func finish(failed : bool) -> void:
 		# Only the solo plays are saved, not the autoplay
 		if not AUTOPLAY:
 			Scores.save_play(player, Loader.file_path, Loader.chart_difficulty)
+		if Arcade.active:
+			Arcade.add_stage(player)
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		get_tree().change_scene_to_file("res://scenes/result/result.tscn")
 

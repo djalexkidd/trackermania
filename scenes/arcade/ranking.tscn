@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/arcade/ranking.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="2_scroll"]
+[ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="3_grid"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_grid"]
+shader = ExtResource("2_scroll")
+shader_parameter/speed = 0.1
+
+[node name="Ranking" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+show_behind_parent = true
+texture_repeat = 2
+material = SubResource("ShaderMaterial_grid")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_grid")

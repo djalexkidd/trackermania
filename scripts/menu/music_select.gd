@@ -1,6 +1,5 @@
 extends Control
 
-const player_colors = [Color(0.305, 0.305, 0.305, 1.0), Color(0.0, 0.686, 1.0), Color(1.0, 0.157, 0.0)]
 const ALPHABET_CATEGORIES = ["ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWXYZ", "OTHERS"]
 
 # Opened from the netplay lobby: only P1 plays, the chosen song goes to the room
@@ -20,17 +19,12 @@ var options_x := {}
 var options_tweens := {}
 
 func _ready():
-	# The effector stays as it was chosen, also from the game
-	show_effector()
-	
 	netplay = Netplay.active
 	if netplay:
 		Global.p1_joined = true
 		Global.p2_joined = false
 		Netplay.closed.connect(_on_netplay_closed)
 	double_play = Global.is_double_play()
-	update_joined(1)
-	update_joined(2)
 	if Arcade.active:
 		arcade_timer = preload("res://scripts/arcade/arcade_timer.gd").new()
 		arcade_timer.caption = Arcade.current_stage_name()
@@ -220,8 +214,7 @@ func _process(delta):
 	if songs_loading:
 		return
 	# Check if the effector button is pressed (shared by both players), held it turns the effector off
-	if Effector.update_button(joined_players().map(func(player): return "p%d_effect" % player)):
-		show_effector()
+	Effector.update_button(joined_players().map(func(player): return "p%d_effect" % player))
 	
 	# The DOUBLE PLAY was turned on or off, or the players changed
 	if Global.is_double_play() != double_play:
@@ -290,7 +283,6 @@ func joined_players() -> Array:
 
 func set_joined(player: int, joined: bool) -> void:
 	Global.set("p%d_joined" % player, joined)
-	update_joined(player)
 	# Nobody left, back to the title menu
 	if joined_players().is_empty():
 		leave()
@@ -308,7 +300,7 @@ func leave() -> void:
 func _on_netplay_closed(_reason: String) -> void:
 	leave()
 
-# Single play or DOUBLE PLAY: the songs and difficulties of the new style, the lamps and the bottom bar
+# Single play or DOUBLE PLAY: the songs and difficulties of the new style and the lamps
 func apply_style() -> void:
 	double_play = Global.is_double_play()
 	for category in $SongWheel/Categories.get_children():
@@ -316,30 +308,8 @@ func apply_style() -> void:
 			if not song.is_random:
 				song.apply_style()
 	update_category_lamps()
-	update_joined(1)
-	update_joined(2)
 	if not songs_loading:
 		$SongWheel.apply_style()
-
-# Show the player's game options bar, or "PRESS START BUTTON" when the player is out.
-# In DOUBLE PLAY the box of the other side takes the color of the player and shows DOUBLE.
-func update_joined(player: int) -> void:
-	var double_side = not is_joined(player) and double_play
-	get_node("BottomBar/P%dGameOptions" % player).visible = is_joined(player)
-	get_node("BottomBar/P%dPressStart" % player).visible = not is_joined(player) and not double_side
-	var box = get_node("BottomBar/P%dColorRect" % player)
-	if is_joined(player):
-		box.color = player_colors[player]
-	elif double_side:
-		box.color = player_colors[3 - player]
-	else:
-		box.color = player_colors[0]
-	var dj_name = Global.p1_name if player == 1 else Global.p2_name
-	var label = box.get_node("P%dLabel" % player)
-	label.text = "DOUBLE" if double_side else "PLAYER %d" % player
-	label.visible = double_side or dj_name == ""
-	box.get_node("P%dDJPrefixLabel/P%dNameLabel" % [player, player]).text = dj_name
-	box.get_node("P%dDJPrefixLabel" % player).visible = not label.visible
 
 # P1 options panel goes over the song wheel, P2 options panel over the song info
 func game_options(player: int) -> Control:
@@ -396,9 +366,6 @@ func options_tween(player: int) -> Tween:
 		options_tweens[player].kill()
 	options_tweens[player] = create_tween()
 	return options_tweens[player]
-
-func show_effector():
-	$BottomBar/Label.text = Effector.current_name().to_lower()
 
 # Time is up: the song under the cursor, or a random song from a category
 func _on_arcade_timeout() -> void:

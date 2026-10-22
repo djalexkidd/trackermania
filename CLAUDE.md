@@ -32,9 +32,9 @@ scripts/
   menu/
     main_menu.gd         Menu principal (MENU SELECT)
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector).
-                         Barre du bas (`BottomBar`, 124 px) comme sur IIDX : case du joueur, options sur la moitié de l'écran, effector centré dessous
+                         Barre du bas (`BottomBar`, 76 px, `music_select/bottom_bar.gd`) dessinée dans `_draw()` comme sur IIDX RED : plaques PLAYER 1/2 (ou DJ NAME, DOUBLE) et plaque de l'effector au centre (bleue si un effet est actif), puis une bande d'options par joueur sur fond rouge (segments orange quand l'option est choisie, AUTO clignote) ; PRESS START BUTTON remplace les options d'un joueur absent
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
-    music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
+    music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, bottom_bar.gd
                          song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
                          difficulty_panel.gd : cases DIFFICULTY de la musique sous le curseur (voir plus bas)
                          game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :

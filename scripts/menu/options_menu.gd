@@ -47,10 +47,10 @@ const CALIBRATION_MIN_PRESSES = 4
 # Letters of the DJ name, chosen with the turntable
 const NAME_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.!?*#&$@"
 
-enum Level { CATEGORIES, ITEMS, EDIT, NAME, CALIBRATION }
+enum Level { CATEGORIES, ITEMS, EDIT, NAME, CALIBRATION, CONTROLLER }
 
 # Items: "var" is a Global setting; "type" bool, int (min, max, step, format), choice (values, labels),
-# action (calls "action"), name (DJ name entry). A category with "scene" opens it.
+# action (calls "action"), name (DJ name entry). The "controller" category is the CONTROLLER SET UP (controller_panel.gd).
 var categories = [
 	{"title": ["DISPLAY", "SETTINGS"], "icon": "display", "desc": "Window and judgement display.", "items": [
 		{"name": "FULL SCREEN", "var": "fullscreen", "type": "bool", "desc": "Play in a window or in full screen."},
@@ -63,10 +63,11 @@ var categories = [
 		{"name": "AUTO CALIBRATION", "type": "action", "action": "start_calibration", "desc": "Press a key on each click to measure the audio offset."},
 		{"name": "MUSIC SELECT BGM", "var": "custom_music_select_bgm", "type": "choice", "values": [""], "labels": ["DEFAULT"], "desc": "BGM of the music select, from the music_select_bgm folder."},
 	]},
-	{"title": ["DJ NAME"], "icon": "name", "desc": "Your DJ name, shown in the music select and in netplay.", "items": [
-		{"name": "DJ NAME", "type": "name", "desc": "6 letters, chosen with the turntable."},
+	{"title": ["DJ NAME"], "icon": "name", "desc": "DJ names of the players, shown in the music select.", "items": [
+		{"name": "1P DJ NAME", "type": "name", "player": 1, "desc": "6 letters, chosen with the turntable. Also the name in netplay."},
+		{"name": "2P DJ NAME", "type": "name", "player": 2, "desc": "6 letters, chosen with the turntable."},
 	]},
-	{"title": ["CONTROLLER", "SET UP"], "icon": "controller", "scene": "res://scenes/menu/test_controller.tscn", "desc": "Test and remap the keys of the controllers."},
+	{"title": ["CONTROLLER", "SET UP"], "icon": "controller", "controller": true, "desc": "Test and remap the keys of the controllers."},
 ]
 
 var level = Level.CATEGORIES
@@ -98,6 +99,7 @@ var decide_sound: AudioStreamPlayer
 var cancel_sound: AudioStreamPlayer
 var click_sound: AudioStreamPlayer
 var bgm: AudioStreamPlayer
+var controller: ControllerPanel
 
 func _ready() -> void:
 	# Full screen only exists on desktop
@@ -115,6 +117,9 @@ func _ready() -> void:
 	click_sound.volume_db = 0.0
 	bgm = add_sound(null)
 	bgm.volume_db = BGM_VOLUME_DB
+	controller = ControllerPanel.new()
+	controller.assigned.connect(decide_sound.play)
+	add_child(controller)
 	# BGM disabled for now
 	#play_bgm()
 	for player in [1, 2]:
@@ -145,12 +150,15 @@ func _process(delta: float) -> void:
 	if level == Level.CALIBRATION:
 		process_calibration()
 		return
+	# The controller set up is waiting for an input
+	if level == Level.CONTROLLER and controller.busy():
+		return
 	if steps != 0:
 		turn(steps)
 	for player in [1, 2]:
 		for key in ["key1", "key3", "key5", "key7"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
-				decide()
+				decide(player)
 				return
 		for key in ["key2", "key4", "key6"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
@@ -214,9 +222,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_LEFT:
 			if level in [Level.EDIT, Level.NAME]:
 				turn(-1)
+			elif level == Level.CONTROLLER:
+				turn(-ControllerPanel.ROWS_PER_COLUMN)
 		KEY_RIGHT:
 			if level in [Level.EDIT, Level.NAME]:
 				turn(1)
+			elif level == Level.CONTROLLER:
+				turn(ControllerPanel.ROWS_PER_COLUMN)
 		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: decide()
 		KEY_ESCAPE, KEY_BACKSPACE: back()
 		KEY_DELETE: restore_default()
@@ -243,9 +255,14 @@ func click(at: Vector2) -> void:
 						decide()
 				else:
 					close_edit()
+					controller.stop_listening()
 					level = Level.CATEGORIES
 					turn(i - category_index)
 				return
+	elif categories[category_index].has("controller") and level in [Level.CATEGORIES, Level.CONTROLLER]:
+		if controller.click(at):
+			decide_sound.play()
+			level = Level.CONTROLLER
 	elif level in [Level.ITEMS, Level.EDIT]:
 		var items = current_items()
 		for i in items.size():
@@ -280,6 +297,9 @@ func turn(steps: int) -> void:
 			if index != item_index:
 				item_index = index
 				scroll_sound.play()
+		Level.CONTROLLER:
+			if controller.move(steps):
+				scroll_sound.play()
 		Level.EDIT:
 			var item = current_item()
 			var value = step_value(item, Global.get(item["var"]), steps)
@@ -291,13 +311,15 @@ func turn(steps: int) -> void:
 			name_chars[name_cursor] = NAME_CHARS[posmod(index + steps, NAME_CHARS.length())]
 			scroll_sound.play()
 
-func decide() -> void:
+# player: the side whose key decided, 0 for the keyboard or the mouse
+func decide(player := 0) -> void:
 	match level:
 		Level.CATEGORIES:
 			decide_sound.play()
-			var category = categories[category_index]
-			if category.has("scene"):
-				get_tree().change_scene_to_file(category["scene"])
+			if categories[category_index].has("controller"):
+				# The controller of the side that decided
+				controller.set_player(player)
+				level = Level.CONTROLLER
 				return
 			level = Level.ITEMS
 			item_index = 0
@@ -312,6 +334,9 @@ func decide() -> void:
 				_:
 					edit_backup = Global.get(item["var"])
 					level = Level.EDIT
+		Level.CONTROLLER:
+			decide_sound.play()
+			controller.decide()
 		Level.EDIT:
 			decide_sound.play()
 			Global.save_settings()
@@ -327,7 +352,7 @@ func back() -> void:
 		Level.CATEGORIES:
 			cancel_sound.play()
 			get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
-		Level.ITEMS:
+		Level.ITEMS, Level.CONTROLLER:
 			cancel_sound.play()
 			level = Level.CATEGORIES
 		Level.EDIT:
@@ -347,18 +372,27 @@ func close_edit() -> void:
 
 # EFFECT: the item under the cursor, or the whole category
 func restore_default() -> void:
+	if level in [Level.CATEGORIES, Level.CONTROLLER] and categories[category_index].has("controller"):
+		decide_sound.play()
+		controller.restore_default(level == Level.CATEGORIES)
+		show_notice("DEFAULT KEYS RESTORED")
+		return
 	var items = []
 	match level:
 		Level.CATEGORIES:
 			items = current_items()
-		Level.ITEMS, Level.EDIT:
+		Level.ITEMS, Level.EDIT, Level.NAME:
 			items = [current_item()]
-	items = items.filter(func(item): return item.has("var"))
+	items = items.filter(func(item): return item.has("var") or item["type"] == "name")
 	if items.is_empty():
 		return
 	decide_sound.play()
 	for item in items:
-		set_setting(item, Global.SETTING_DEFAULTS[item["var"]])
+		if item["type"] == "name":
+			set_dj_name(item["player"], "")
+			level = Level.ITEMS if level == Level.NAME else level
+		else:
+			set_setting(item, Global.SETTING_DEFAULTS[item["var"]])
 	if level != Level.EDIT:
 		Global.save_settings()
 	show_notice("DEFAULT SETTINGS RESTORED")
@@ -389,7 +423,8 @@ func value_text(item: Dictionary) -> String:
 		"choice":
 			return item["labels"][maxi(0, item["values"].find(Global.get(item["var"])))]
 		"name":
-			return Netplay.dj_name
+			var dj_name = get_dj_name(item["player"])
+			return dj_name if dj_name != "" else "---"
 	return ""
 
 func show_notice(text: String) -> void:
@@ -410,24 +445,33 @@ func animate_title() -> void:
 	title_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	title_tween.tween_property(self, "title_slide", 0.0, TITLE_SLIDE_TIME)
 
-# DJ name
+# DJ names: 1P is the netplay name, 2P a setting
+
+func get_dj_name(player: int) -> String:
+	return Netplay.dj_name if player == 1 else Global.p2_name
+
+func set_dj_name(player: int, text: String) -> void:
+	if player == 1:
+		Netplay.set_dj_name(text)
+	else:
+		Global.p2_name = Netplay.clean_name(text)
+		Global.save_settings()
 
 func start_name_entry() -> void:
 	name_chars.clear()
+	var dj_name = get_dj_name(current_item()["player"])
 	for i in Netplay.NAME_LENGTH:
-		var letter = Netplay.dj_name[i] if i < Netplay.dj_name.length() else " "
+		var letter = dj_name[i] if i < dj_name.length() else " "
 		name_chars.append(letter if NAME_CHARS.contains(letter) else " ")
 	name_cursor = 0
 	level = Level.NAME
 
 func finish_name_entry() -> void:
 	level = Level.ITEMS
+	# An empty name is kept, as in the netplay lobby
 	var dj_name = Netplay.clean_name("".join(name_chars))
-	if dj_name == "":
-		show_notice("THE NAME IS EMPTY")
-		return
-	Netplay.set_dj_name(dj_name)
-	show_notice("DJ NAME SAVED")
+	set_dj_name(current_item()["player"], dj_name)
+	show_notice("DJ NAME SAVED" if dj_name != "" else "DJ NAME CLEARED")
 
 # Calibration: clicks at a steady beat, the player presses a key on each click
 
@@ -627,11 +671,19 @@ func draw_panel() -> void:
 		Level.EDIT: help = "TURNTABLE: CHANGE    WHITE: OK    BLACK: CANCEL"
 		Level.NAME: help = "TURNTABLE: LETTER    WHITE: NEXT    BLACK: BACK"
 		Level.CALIBRATION: help = "PRESS A KEY ON EACH CLICK"
+		Level.CONTROLLER:
+			help = "PRESS THE NEW INPUT    ESC: CANCEL" if controller.listening >= 0 else "TURNTABLE: SELECT    WHITE: ASSIGN    BLACK: BACK"
 	var banner_left = right - 600
 	draw_colored_polygon([Vector2(banner_left - 40, top + 4), Vector2(right, top + 4), Vector2(right, top + 42), Vector2(banner_left, top + 42)], YELLOW)
 	draw_colored_polygon([Vector2(banner_left - 70, top + 4), Vector2(banner_left - 52, top + 4), Vector2(banner_left - 12, top + 42), Vector2(banner_left - 30, top + 42)], ORANGE)
 	draw_rect(Rect2(right - 6, top + 4, 6, 38), Color.BLACK)
 	draw_text(TITLE_FONT, Vector2((banner_left + right) / 2, top + 30), help, fit_size(TITLE_FONT, help, 14, right - banner_left - 30), Color.BLACK, HORIZONTAL_ALIGNMENT_CENTER)
+
+	# The controller set up takes the whole panel
+	if categories[category_index].has("controller"):
+		var area = Rect2(PANEL_LEFT + 16, top, size.x - PANEL_LEFT - 80, body_bottom() - top)
+		controller.draw(self, area, level == Level.CONTROLLER, notice if Time.get_ticks_msec() < notice_until else "")
+		return
 
 	# INFORMATION box with its corner brackets
 	var info = Rect2(PANEL_LEFT + 30, top + 62, mini(700, right - PANEL_LEFT - 60), 66)
@@ -747,7 +799,9 @@ func draw_footer() -> void:
 	var bar = Rect2(20, body_bottom() + 10, size.x - 40, FOOTER_HEIGHT - 8)
 	draw_rect(bar, TAG_BORDER, false, 2.0)
 	var text = categories[category_index]["desc"]
-	if level != Level.CATEGORIES and not current_items().is_empty():
+	if level == Level.CONTROLLER:
+		text = controller.description()
+	elif level != Level.CATEGORIES and not current_items().is_empty():
 		text = current_item()["desc"]
 	var font_size = fit_size(FONT, text, 32, bar.size.x - 40)
 	draw_text(FONT, Vector2(bar.get_center().x, bar.get_center().y + font_size * 0.35), text, font_size, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)

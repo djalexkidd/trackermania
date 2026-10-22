@@ -20,6 +20,7 @@
 [ext_resource type="Script" uid="uid://bn0nxnvoi20f3" path="res://scripts/menu/music_select/song_wheel.gd" id="20_wheel"]
 [ext_resource type="Texture2D" uid="uid://bd6bcg8yqaho8" path="res://assets/music_select/alphabet.png" id="21_alphabet"]
 [ext_resource type="Texture2D" uid="uid://8bxcwuyj5as8" path="res://assets/music_select/file_type.png" id="22_file_type"]
+[ext_resource type="Script" uid="uid://dffipdpnu5gwn" path="res://scripts/menu/music_select/difficulty_panel.gd" id="23_difficulty"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i76ow"]
 shader = ExtResource("1_y1sfi")
@@ -206,13 +207,10 @@ theme_override_font_sizes/font_size = 48
 horizontal_alignment = 2
 text_overrun_behavior = 3
 
-[node name="DifficultyName" type="Label" parent="SongInfo" unique_id=1924513875]
+[node name="Difficulties" type="Control" parent="SongInfo" unique_id=1924513875]
+custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 1, 1)
-theme_override_fonts/font = ExtResource("1_mbwtn")
-theme_override_font_sizes/font_size = 48
-horizontal_alignment = 2
-uppercase = true
+script = ExtResource("23_difficulty")
 
 [node name="BestScore" type="VBoxContainer" parent="SongInfo" unique_id=2140062738]
 layout_mode = 2
@@ -682,6 +680,44 @@ theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 24
 text = "PLAYER 2"
 horizontal_alignment = 1
+
+[node name="P2DJPrefixLabel" type="Label" parent="BottomBar/P2ColorRect" unique_id=1354842197]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.0
+offset_top = -4.0
+offset_right = -71.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 16
+text = "DJ"
+horizontal_alignment = 1
+
+[node name="P2NameLabel" type="Label" parent="BottomBar/P2ColorRect/P2DJPrefixLabel" unique_id=1129360197]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 44.0
+offset_top = -12.0
+offset_right = 209.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_mbwtn")
+theme_override_font_sizes/font_size = 20
+text = "######"
 
 [node name="Label" type="Label" parent="BottomBar" unique_id=1525794827]
 layout_mode = 1

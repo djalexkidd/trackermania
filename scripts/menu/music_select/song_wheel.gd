@@ -152,7 +152,7 @@ func _update_song_info() -> void:
 		return
 	info_entry = selected
 	# Songs are previewed, the categories and the random entries play the music select BGM
-	get_parent().song_preview.select(selected.path if selected != null and not selected.is_random else "")
+	get_parent().song_preview.select(selected.preview_path() if selected != null and not selected.is_random else "")
 	preview_songs.clear()
 	preview_time = 0.0
 	preview_index = 0
@@ -165,6 +165,20 @@ func _update_song_info() -> void:
 			preview_songs[0].update_song_info(false)
 			return
 	selected.update_song_info()
+
+# Song under the cursor, null on a category or a random entry
+func selected_song() -> Control:
+	if opened_category == null or selected_index == 0 or entries[selected_index].is_random:
+		return null
+	return entries[selected_index]
+
+# The entries changed their difficulty: rebuild the rows and the song info
+func refresh() -> void:
+	scroll_sound.play()
+	for row in rows:
+		row.remove_meta("source")
+	info_entry = null
+	_render()
 
 func _process(delta: float) -> void:
 	if not is_visible_in_tree():

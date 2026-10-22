@@ -15,7 +15,7 @@ assets/                  Images, polices, sons (bgm de la sélection, frames, gr
 scripts/
   Global.gd              Autoload : options et résultats des 2 joueurs, touches remappées, réglages système (user://settings.cfg)
   Effector.gd            Autoload : effector (presets d'effets sur le bus Master), voir plus bas
-  Loader.gd              Autoload : chart choisie (file_path, chart_difficulty), scan de fichiers, cache JSON de la sélection
+  Loader.gd              Autoload : chart choisie (file_path, chart_difficulty, difficulty_slot), scan de fichiers, cache JSON de la sélection
   QuaChart.gd            Lecture d'une beatmap Quaver .qua (class_name QuaChart)
   netplay/               Netplay.gd (autoload réseau), NetplayUI.gd (style des écrans), lobby.gd, scoreboard.gd, netplay_result.gd
   Scores.gd              Meilleurs scores en solo (user://scores.cfg), lampes de clear et rangs (class_name Scores)
@@ -35,10 +35,11 @@ scripts/
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
                          song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
+                         difficulty_panel.gd : cases DIFFICULTY de la musique sous le curseur (voir plus bas)
                          game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :
                          choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, AUTO PLAY et HI-SPEED sous les touches 1 et 7.
                          Ouverture (music_select.gd) : en P1 la roue sort à droite puis le panneau entre par la droite ; en P2 le panneau entre seul par la gauche
-    controller_test/     CONTROLLER SETUP : controller_panel.gd (platine IIDX dessinée d'un joueur, test et remappage) ;
+    controller_test/     controller_panel.gd (class_name ControllerPanel) : CONTROLLER SET UP du menu OPTIONS (voir plus bas) ;
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
     options_menu.gd      Menu OPTIONS façon IIDX console (voir plus bas), scène scenes/menu/options.tscn
@@ -65,7 +66,7 @@ Menu principal (FREE) -> sélection des musiques -> `song_entry._on_pressed()` r
 - en netplay, la sélection est ouverte depuis le lobby (choix de l'hôte), le round lance `main.tscn` sur chaque machine (voir Netplay).
 
 `main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats (`scenes/result/result.tscn`, aussi pour le versus local).
-En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après la difficulté (`SongInfo/BestScore`).
+En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après les difficultés (`SongInfo/BestScore`).
 
 ### Écran de résultats (`scripts/result/`)
 Un seul écran comme sur IIDX : 1P à gauche, 2P à droite (un seul panneau en solo, du côté du joueur), la musique au milieu, WIN/LOSE en versus. Pas d'image de fond pour l'instant.
@@ -73,6 +74,14 @@ Un seul écran comme sur IIDX : 1P à gauche, 2P à droite (un seul panneau en s
 - `result_panel.gd` dessine tout dans `_draw()` : le graphe de la jauge (zone rouge au-dessus de 80 %, ligne verte puis rouge, rouge en HARD) avec le DJ LEVEL par-dessus, SP / difficulté / niveau / notes, puis CLEAR TYPE, DJ LEVEL, EX SCORE et MISS COUNT (meilleur | cette partie, flèches UP!/DOWN et écarts vers le milieu), TARGET (pacemaker du DJ LEVEL suivant, MAX après AAA, avec les options de la partie), les jugements, COMBO BREAK, MAX COMBO, FAST/SLOW, le taux et la barre FAST/SLOW.
 - Apparition : la ligne de la jauge se dessine, le DJ LEVEL apparaît, les lignes arrivent une à une et les nombres défilent. Une première pression (START, touche 1 ou 7, Entrée, clic) termine l'animation, la suivante ramène à la sélection.
 - `Scores.save_play()` garde aussi le plus petit `miss_count`, sauf pour une partie échouée.
+
+### Difficultés dans la sélection
+Comme sur IIDX, une musique est **une seule entrée** avec toutes ses difficultés : `music_select.gd` regroupe les charts du catalogue par `Arcade.song_key()` (le dossier d'un .qua ou d'un BMS, le fichier d'un .mod).
+- `song_entry.gd` garde `charts` (`{path, difficulty_name, level}`, du plus facile au plus dur) et `chart_index` ; `path` et `difficulty_name` sont ceux de la difficulté choisie. Ordre : celui d'IIDX (Beginner, Normal, Hyper, Another, Leggendaria) si tous les noms en sont, sinon par niveau puis nombre de notes (`Notes` du cache).
+- Titre : la partie commune des titres, sans le crochet ouvert (« Song [SP ANOTHER] » -> « Song »).
+- **E3 (VEFX)** passe à la difficulté suivante, en boucle (`change_difficulty()`). Le choix est gardé pour toutes les musiques (`Loader.chart_difficulty`, `Loader.difficulty_slot`) : même nom, sinon même place. La roue affiche le niveau et la lampe de la difficulté choisie, les catégories la pire lampe de ces difficultés.
+- Une catégorie LEVEL n'a que les difficultés de son niveau.
+- `difficulty_panel.gd` (`SongInfo/Difficulties`) dessine à gauche une case par difficulté (niveau, nom, lampe), la choisie surélevée ; au-delà de 5 elles défilent. L'aperçu reste le même d'une difficulté à l'autre (`preview_path()`).
 
 ### Chargement de la sélection (`loading_screen.gd`)
 `music_select.gd` pose l'écran en premier, construit les entrées par lots (une image toutes les 8 ms) pour qu'il reste animé, puis `await loading_screen.finish()`.
@@ -110,7 +119,9 @@ Comme sur IIDX : 3 stages (`Arcade.STAGES`), puis NAME ENTRY et classement. L'é
 Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme les menus IIDX console : roue des catégories à gauche, titre et réglages à droite, aide en bas. Thème sombre de la sélection : grille animée (`Background`, `show_behind_parent`) et bandeau `music_select_info.png` en haut, dont la case OPTIONS/START est recouverte par DEFAULT/EFFECT.
 - Platine : choisir ; touche blanche : valider (OK) ; touche noire : retour / annuler (EXIT) ; EFFECT : valeurs par défaut (du réglage, ou de la catégorie sur la roue). Clavier (flèches, Entrée, Échap, Suppr) et souris aussi.
 - Niveaux : catégories -> réglages -> édition (la valeur change en direct, une touche noire remet l'ancienne). Les réglages sont décrits dans `categories` (`var` de Global, type bool/int/choice/action/name).
-- DISPLAY (plein écran, V-SYNC, timing en ms), SOUND (volume, audio offset, calibration, BGM de la sélection ; la musique des menus est coupée pour l’instant), DJ NAME (6 lettres à la platine, `Netplay.set_dj_name()`), CONTROLLER SET UP (ouvre `test_controller.tscn`).
+- DISPLAY (plein écran, V-SYNC, timing en ms), SOUND (volume, audio offset, calibration, BGM de la sélection ; la musique des menus est coupée pour l’instant), DJ NAME (1P et 2P, 6 lettres à la platine ; 1P est le nom du netplay, `Netplay.set_dj_name()` copié dans `Global.p1_name`, 2P est `Global.p2_name` dans settings.cfg ; un nom vide est gardé comme dans le lobby, EFFECT l'efface ; vides par défaut. La sélection les affiche dans les cases P1/P2 du bas, le NAME ENTRY de l'ARCADE part de celui du côté qui joue), CONTROLLER SET UP.
+- CONTROLLER SET UP (`controller_panel.gd`, nœud enfant `ControllerPanel` que `options_menu.gd` dessine dans son panneau et à qui il passe les commandes, niveau `Level.CONTROLLER`) : onglets 1P/2P et manette utilisée, platine du côté choisi qui s'allume avec les entrées (cliquer un élément l'assigne), puis 16 lignes sur 2 colonnes : touches 1~7, ASSIGN ALL, TT UP/DOWN, ANALOG TT, E1~E4, PLAYER SIDE.
+  Le côté est celui du joueur qui a validé la catégorie. Touche blanche sur une ligne : attend l'entrée (Échap ou clic droit annule, une touche passe ANALOG TT) ; pendant ce temps et `ASSIGN_GUARD_MS` après, le menu ignore les manettes (`busy()`). EFFECT : la touche sous le curseur, le côté entier sur ASSIGN ALL / PLAYER SIDE, les deux côtés depuis la roue. Une entrée utilisée deux fois s'affiche en rouge.
 - `Global.SETTING_DEFAULTS` liste les réglages sauvés dans `user://settings.cfg` (`save_settings()`, `load_settings()` au démarrage, `apply_settings()` pour la fenêtre, la V-SYNC et le volume du bus Master).
 
 ### Options des joueurs (`Global.gd`)
@@ -118,7 +129,7 @@ Les variables de P1 n'ont pas de préfixe, celles de P2 sont préfixées par `p2
 Options : `hispeed` (temps de chute d'une note, en secondes, de 0.45 à 1.0), `keys_mode` (7 ou 5), `random`, `auto_play`, `auto_scratch`, `gauge_level` (0 normal, 1 easy, 2 hard).
 
 ### Beatmaps Quaver (`QuaChart.gd`)
-Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load_file()` lit le petit sous-ensemble YAML écrit par Quaver (champs du haut, listes `TimingPoints` et `HitObjects`, le reste comme les `KeySounds` est ignoré) et renvoie `null` si le mode n'est pas jouable.
+Chaque `.qua` de `user://songs` est une difficulté de la musique de son dossier. `QuaChart.load_file()` lit le petit sous-ensemble YAML écrit par Quaver (champs du haut, listes `TimingPoints` et `HitObjects`, le reste comme les `KeySounds` est ignoré) et renvoie `null` si le mode n'est pas jouable.
 - Champs utilisés : `Title`, `Artist`, `DifficultyName` (libre, couleur seulement pour Beginner/Normal/Hyper/Another/Leggendaria), `AudioFile` (mp3 ou ogg, à côté du .qua), `Mode`, `HasScratchKey`.
 - Lanes : `Keys7` va sur les touches 1~7, `Keys4` sur les touches 2~5 ; avec `HasScratchKey`, la dernière lane Quaver est le scratch (lane 7).
 - Une note `StartTime` (absent = 0) en ms, une note longue a un `EndTime`. Résultat : `noteArray`, 8 lanes, `[temps]` ou `[temps, durée]` en secondes, triées.
@@ -149,7 +160,7 @@ Chaque `.qua` de `user://songs` est une entrée de la sélection. `QuaChart.load
 
 ## Modules Amiga keysoundés (`scripts/mod/`)
 
-Un fichier `.mod` dans `user://songs` crée **3 entrées** (Normal, Hyper, Another) dans la sélection. Leur niveau est calculé.
+Un fichier `.mod` dans `user://songs` est une entrée de la sélection avec **3 difficultés** (Normal, Hyper, Another). Leur niveau est calculé.
 Dans `main.gd`, `loadModule()` remplace `loadQuaChart()` quand l'extension est `mod`.
 
 ### 1. `ModModule` : lecture et replay
@@ -200,7 +211,7 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 
 ## BMS keysoundés (`scripts/bms/`)
 
-Chaque fichier .bms, .bme, .bml ou .bmson est une entrée de la sélection (catégorie BMS). Seul le SP est lu : un chart avec des notes 2P (canaux 2x/6x, bmson `beat-14k`) ou un autre mode (pop'n…) est refusé (`null`).
+Chaque fichier .bms, .bme, .bml ou .bmson est une difficulté de la musique de son dossier (catégorie BMS). Seul le SP est lu : un chart avec des notes 2P (canaux 2x/6x, bmson `beat-14k`) ou un autre mode (pop'n…) est refusé (`null`).
 
 ### `BmsChart` : lecture
 - `BmsChart.load_file(path, random)` : les octets sont lus en Latin-1 (`get_string_from_ascii`, un caractère par octet). Les textes (`#TITLE` + `#SUBTITLE`, `#ARTIST`, noms des `#WAV`) passent par `ShiftJIS.decode()` : ASCII tel quel, UTF-8 s'il est valide, sinon CP932 (table `assets/shift_jis.tres`).

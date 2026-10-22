@@ -38,8 +38,10 @@ var decide_sound: AudioStreamPlayer
 var cancel_sound: AudioStreamPlayer
 
 func _ready() -> void:
+	# The name of the side that plays
+	var dj_name = Global.p2_name if Global.p2_joined and not Global.p1_joined else Netplay.dj_name
 	for i in Netplay.NAME_LENGTH:
-		var letter = Netplay.dj_name[i] if i < Netplay.dj_name.length() else " "
+		var letter = dj_name[i] if i < dj_name.length() else " "
 		name_chars.append(letter if NAME_CHARS.contains(letter) else " ")
 	scroll_sound = add_sound(preload("res://assets/music_select/scroll.wav"))
 	decide_sound = add_sound(preload("res://assets/music_select/decide.wav"))

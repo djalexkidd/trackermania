@@ -21,10 +21,13 @@ func _ready():
 	# The effector stays as it was chosen, also from the game
 	show_effector()
 	
-	if Global.p1_name != "":
-		$BottomBar/P1ColorRect/P1Label.hide()
-		$BottomBar/P1ColorRect/P1DJPrefixLabel/P1NameLabel.text = Global.p1_name
-		$BottomBar/P1ColorRect/P1DJPrefixLabel.show()
+	for player in [1, 2]:
+		var dj_name = Global.p1_name if player == 1 else Global.p2_name
+		if dj_name != "":
+			var box = get_node("BottomBar/P%dColorRect" % player)
+			box.get_node("P%dLabel" % player).hide()
+			box.get_node("P%dDJPrefixLabel/P%dNameLabel" % [player, player]).text = dj_name
+			box.get_node("P%dDJPrefixLabel" % player).show()
 	
 	netplay = Netplay.active
 	if netplay:
@@ -64,7 +67,7 @@ func _ready():
 		return
 	sort_alphabet_categories()
 	add_random_entries()
-	add_category_lamps()
+	update_category_lamps()
 
 	# Built behind the loading screen, out of the screen on the right
 	var target_position = $SongWheel.position
@@ -84,81 +87,94 @@ func _ready():
 		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_OUT)
 
-# Function to load and add song entries
+# Function to load and add song entries, one per song with all its difficulties
 func load_and_add_songs():
 	var songs = await Loader.get_song_catalog()
-	var batch_start = Time.get_ticks_msec()
+	var groups := {}
 	for song in songs:
 		# Arcade: a song is played once, whatever its difficulty
 		if Arcade.active and Arcade.is_played(song["path"]):
 			continue
+		# The charts of a folder are the difficulties of one song, a module makes its own
+		var key = Arcade.song_key(song["path"])
+		if not groups.has(key):
+			groups[key] = []
+		groups[key].append(song)
+	var batch_start = Time.get_ticks_msec()
+	for key in groups:
 		# Small batches keep the loading screen animated
 		if Time.get_ticks_msec() - batch_start >= 8:
 			await get_tree().process_frame
 			batch_start = Time.get_ticks_msec()
-		add_song_entry(song["path"], song["Title"], song["Artist"], int(song["Difficulty"]), song["DifficultyName"])
+		add_song_entry(groups[key])
 
-func add_song_entry(file_path: String, title: String, artist: String, difficulty: int, difficulty_name: String):
-	var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
-	song_entry.path = file_path
-	song_entry.song_name = title
-	song_entry.creator = artist
-	song_entry.difficulty_name = difficulty_name
-	song_entry.get_node("Label").text = title
-	song_entry.get_node("Label2").text = str(difficulty)
-
-	var label2 = song_entry.get_node("Label2")
-	var color_map = {
-		"Beginner": Color(0.3, 1, 0.3),
-		"Normal": Color(0.5, 0.5, 1),
-		"Hyper": Color(1, 1, 0),
-		"Another": Color(1, 0.3, 0.3),
-		"Leggendaria": Color(0.8, 0.3, 1),
-	}
-	if difficulty_name in color_map:
-		label2.add_theme_color_override("font_color", color_map[difficulty_name])
-	ClearLamp.attach(song_entry, Scores.get_best(file_path, difficulty_name).get("lamp", -1))
-
-	$SongWheel/Categories/AllMusic/MusicList.add_child(song_entry)
-
-	for category in ["Official", "Downloaded"]:
-		if (category == "Official" and file_path.contains("official")) or (category == "Downloaded" and not file_path.contains("official")):
-			var copied_node = song_entry.duplicate()
-			copied_node.path = file_path
-			copied_node.song_name = title
-			copied_node.creator = artist
-			copied_node.difficulty_name = difficulty_name
-			$SongWheel.get_node("Categories/" + category + "/MusicList").add_child(copied_node)
-
-	var level_path = "SongWheel/Categories/Level" + str(difficulty)
-	get_node(level_path).show()
-	var copied_node = song_entry.duplicate()
-	copied_node.path = file_path
-	copied_node.song_name = title
-	copied_node.creator = artist
-	copied_node.difficulty_name = difficulty_name
-	get_node(level_path + "/MusicList").add_child(copied_node)
-
-	var alphabet_entry = song_entry.duplicate()
-	alphabet_entry.path = file_path
-	alphabet_entry.song_name = title
-	alphabet_entry.creator = artist
-	alphabet_entry.difficulty_name = difficulty_name
-	$SongWheel.get_node("Categories/" + alphabet_category(title) + "/MusicList").add_child(alphabet_entry)
+func add_song_entry(group: Array):
+	var charts = group.map(func(song): return {
+		"path": song["path"], "difficulty_name": song["DifficultyName"],
+		"level": int(song["Difficulty"]), "notes": int(song["Notes"]),
+	})
+	sort_charts(charts)
+	var title = group_title(group.map(func(song): return song["Title"]))
+	var artist: String = group[0]["Artist"]
+	for song in group:
+		if song["Artist"].length() < artist.length():
+			artist = song["Artist"]
+	var file_path: String = charts[0]["path"]
 
 	var file_type = "QUAVER"
 	if file_path.get_extension().to_lower() == "mod":
 		file_type = "MODULE"
 	elif BmsChart.is_bms(file_path):
 		file_type = "BMS"
-	var file_type_category = $SongWheel.get_node("Categories/" + file_type)
-	file_type_category.show()
-	var file_type_entry = song_entry.duplicate()
-	file_type_entry.path = file_path
-	file_type_entry.song_name = title
-	file_type_entry.creator = artist
-	file_type_entry.difficulty_name = difficulty_name
-	file_type_category.get_node("MusicList").add_child(file_type_entry)
+	$SongWheel.get_node("Categories/" + file_type).show()
+	var lists = ["AllMusic", "Official" if file_path.contains("official") else "Downloaded", alphabet_category(title), file_type]
+	for category in lists:
+		$SongWheel.get_node("Categories/" + category + "/MusicList").add_child(new_song_entry(title, artist, charts))
+
+	# A level category only has the difficulties of its level
+	var levels = []
+	for chart in charts:
+		if chart["level"] not in levels:
+			levels.append(chart["level"])
+	for level in levels:
+		var level_path = "SongWheel/Categories/Level" + str(level)
+		get_node(level_path).show()
+		get_node(level_path + "/MusicList").add_child(new_song_entry(title, artist, charts.filter(func(chart): return chart["level"] == level)))
+
+func new_song_entry(title: String, artist: String, charts: Array) -> Control:
+	var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()
+	song_entry.setup(title, artist, charts)
+	return song_entry
+
+# IIDX order when every difficulty has an IIDX name, else by level then by number of notes
+func sort_charts(charts: Array) -> void:
+	var order = ["Beginner", "Normal", "Hyper", "Another", "Leggendaria"]
+	var by_name = charts.all(func(chart): return chart["difficulty_name"] in order)
+	charts.sort_custom(func(a, b):
+		if by_name and a["difficulty_name"] != b["difficulty_name"]:
+			return order.find(a["difficulty_name"]) < order.find(b["difficulty_name"])
+		if a["level"] != b["level"]:
+			return a["level"] < b["level"]
+		if a["notes"] != b["notes"]:
+			return a["notes"] < b["notes"]
+		return a["difficulty_name"].naturalnocasecmp_to(b["difficulty_name"]) < 0)
+
+# The charts of a BMS often add their difficulty to the title ("Song [SP ANOTHER]"): keep the common part
+func group_title(titles: Array) -> String:
+	var title: String = titles[0]
+	if titles.size() == 1:
+		return title
+	for other in titles:
+		var length = 0
+		while length < mini(title.length(), other.length()) and title[length] == other[length]:
+			length += 1
+		title = title.left(length)
+	for brackets in [["[", "]"], ["(", ")"]]:
+		var open = title.rfind(brackets[0])
+		if open >= 0 and title.find(brackets[1], open) < 0:
+			title = title.left(open)
+	title = title.strip_edges().trim_suffix("\u3000").strip_edges()
+	return title if title != "" else titles[0]
 
 func alphabet_category(title: String) -> String:
 	var initial = title.left(1).to_upper()
@@ -187,8 +203,8 @@ func add_random_entries() -> void:
 		music_list.move_child(entry, 0)
 		entry.setup_random_title()
 
-# A category shows the worst lamp of its songs like in IIDX, none while one is not played
-func add_category_lamps() -> void:
+# A category shows the worst lamp of its songs at their chosen difficulty like in IIDX, none while one is not played
+func update_category_lamps() -> void:
 	for category in $SongWheel/Categories.get_children():
 		var lamp = -1
 		for song in category.get_node("MusicList").get_children():
@@ -199,7 +215,11 @@ func add_category_lamps() -> void:
 				lamp = -1
 				break
 			lamp = song_lamp if lamp < 0 else mini(lamp, song_lamp)
-		ClearLamp.attach(category.get_node("Category"), lamp)
+		var category_lamp = category.get_node("Category").get_node_or_null("ClearLamp")
+		if category_lamp != null:
+			category_lamp.set_lamp(lamp)
+		else:
+			ClearLamp.attach(category.get_node("Category"), lamp)
 
 func _process(delta):
 	if songs_loading:
@@ -235,6 +255,8 @@ func _process(delta):
 	# P1's panel covers the wheel and temporarily suspends navigation for both players.
 	$SongWheel.poll_navigation(delta, navigating_players if $SongWheel.visible else [])
 	for player in navigating_players:
+		if Input.is_action_just_pressed("p%d_vefx" % player) and $SongWheel.visible:
+			change_difficulty()
 		for key in ["key1", "key3", "key5", "key7"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
 				if $SongWheel.visible:
@@ -248,6 +270,18 @@ func _process(delta):
 					return
 				leave()
 				return
+
+# E3 (VEFX) like the SELECT button of IIDX: next difficulty of the song, kept for the other songs
+func change_difficulty() -> void:
+	var entry = $SongWheel.selected_song()
+	if entry == null or not entry.next_difficulty():
+		return
+	for category in $SongWheel/Categories.get_children():
+		for song in category.get_node("MusicList").get_children():
+			if not song.is_random and song != entry:
+				song.select_preferred()
+	update_category_lamps()
+	$SongWheel.refresh()
 
 func is_joined(player: int) -> bool:
 	return Global.get("p%d_joined" % player)

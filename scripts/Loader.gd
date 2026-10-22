@@ -3,10 +3,12 @@ extends Node
 var file_path = ""
 # Difficulty of the chart generated from an Amiga module
 var chart_difficulty = ""
+# Place of chart_difficulty among the difficulties of its song, for the songs without that name
+var difficulty_slot = 0
 
 const SONG_CACHE_PATH = "user://song_catalog.json"
 # Bump when selection metadata or module chart generation changes.
-const SONG_CACHE_VERSION = 3
+const SONG_CACHE_VERSION = 4
 
 # Chart files of the music select
 const SONG_EXTENSIONS = ["qua", "mod"] + BmsChart.EXTENSIONS
@@ -42,6 +44,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 				"Artist": chart.artist,
 				"Difficulty": chart.level,
 				"DifficultyName": chart.difficultyName,
+				"Notes": note_count(chart.noteArray),
 			}
 			if is_song_metadata(entry):
 				songs.append(entry)
@@ -56,6 +59,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 				"Artist": bms.artist,
 				"Difficulty": bms.level,
 				"DifficultyName": bms.difficultyName,
+				"Notes": note_count(bms.noteArray),
 			}
 			if is_song_metadata(entry):
 				songs.append(entry)
@@ -69,6 +73,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 				songs.append({
 					"path": song_path, "Title": title, "Artist": "Amiga module",
 					"Difficulty": chart.level, "DifficultyName": difficulty_name,
+					"Notes": note_count(chart.noteArray),
 				})
 
 	var file = FileAccess.open(SONG_CACHE_PATH, FileAccess.WRITE)
@@ -84,6 +89,13 @@ func clear_song_catalog() -> void:
 	if FileAccess.file_exists(SONG_CACHE_PATH):
 		DirAccess.remove_absolute(SONG_CACHE_PATH)
 
+# Orders the difficulties of a song when their levels are equal
+func note_count(lanes: Array) -> int:
+	var count = 0
+	for notes in lanes:
+		count += notes.size()
+	return count
+
 func is_song_metadata(entry: Variant) -> bool:
 	if not entry is Dictionary:
 		return false
@@ -92,6 +104,9 @@ func is_song_metadata(entry: Variant) -> bool:
 			return false
 	var difficulty = entry.get("Difficulty")
 	if not (difficulty is float or difficulty is int):
+		return false
+	var notes = entry.get("Notes")
+	if not (notes is float or notes is int):
 		return false
 	return difficulty >= 1 and difficulty <= 8 and difficulty == int(difficulty) \
 		and entry["path"].begins_with("user://songs/") \

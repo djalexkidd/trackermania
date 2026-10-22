@@ -84,12 +84,9 @@ var listener: PacketPeerUDP
 func _ready() -> void:
 	var config = ConfigFile.new()
 	config.load(CONFIG_PATH)
-	dj_name = clean_name(config.get_value("netplay", "name", Global.p1_name))
+	dj_name = clean_name(config.get_value("netplay", "name", ""))
+	Global.p1_name = dj_name
 	last_address = config.get_value("netplay", "address", "")
-	if dj_name == "":
-		dj_name = clean_name(OS.get_environment("USER") if OS.has_environment("USER") else OS.get_environment("USERNAME"))
-	if dj_name == "":
-		dj_name = "DJ%03d" % randi_range(0, 999)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_connected)
 	multiplayer.connection_failed.connect(_on_connection_failed)

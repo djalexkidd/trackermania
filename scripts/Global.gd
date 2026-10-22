@@ -61,6 +61,8 @@ const SETTING_DEFAULTS = {
 	"master_volume": 100,
 	"audio_offset": 0,
 	"custom_music_select_bgm": "",
+	# The 1P name is the netplay name, saved by Netplay
+	"p2_name": "",
 }
 
 func _ready():

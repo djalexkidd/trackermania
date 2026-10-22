@@ -44,9 +44,10 @@ var analog_remainder := 0.0
 var blink := 0.0
 
 func _ready() -> void:
-	if Global.custom_music_select_bgm != "":
-		$BGM.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
-	$BGM.play()
+	# BGM disabled for now
+	#if Global.custom_music_select_bgm != "":
+	#	$BGM.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
+	#$BGM.play()
 	build_browser()
 	build_room()
 	Netplay.opened.connect(show_view)
@@ -551,7 +552,7 @@ func go_back() -> void:
 		set_status("", NetplayUI.ERROR)
 		return
 	Netplay.stop_discovery()
-	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 
 #endregion
 

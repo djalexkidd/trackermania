@@ -40,7 +40,7 @@ func _on_audio_offset_value_changed(value: float) -> void:
 	Global.save_settings()
 
 func _on_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 
 # Short 1 kHz beep with a fast decay
 func make_click() -> AudioStreamWAV:

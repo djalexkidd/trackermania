@@ -17,4 +17,4 @@ func _unhandled_input(event: InputEvent) -> void:
 		back()
 
 func back() -> void:
-	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")

@@ -115,7 +115,8 @@ func _ready() -> void:
 	click_sound.volume_db = 0.0
 	bgm = add_sound(null)
 	bgm.volume_db = BGM_VOLUME_DB
-	play_bgm()
+	# BGM disabled for now
+	#play_bgm()
 	for player in [1, 2]:
 		analog_previous[player - 1] = analog_value(player)
 
@@ -325,7 +326,7 @@ func back() -> void:
 	match level:
 		Level.CATEGORIES:
 			cancel_sound.play()
-			get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+			get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 		Level.ITEMS:
 			cancel_sound.play()
 			level = Level.CATEGORIES
@@ -365,8 +366,8 @@ func restore_default() -> void:
 func set_setting(item: Dictionary, value) -> void:
 	Global.set(item["var"], value)
 	Global.apply_settings()
-	if item["var"] == "custom_music_select_bgm":
-		play_bgm()
+	#if item["var"] == "custom_music_select_bgm":
+	#	play_bgm()
 
 func step_value(item: Dictionary, value, steps: int):
 	match item["type"]:

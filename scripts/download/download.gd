@@ -59,7 +59,7 @@ func _on_button_pressed() -> void:
 		set_busy(false)
 
 func _on_button_2_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 
 func _on_http_request_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:

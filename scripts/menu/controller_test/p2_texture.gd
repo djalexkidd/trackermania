@@ -87,7 +87,7 @@ func _process(delta: float) -> void:
 		$Turntable2.hide()
 	
 	if Input.is_action_pressed("p2_start") and Input.is_action_pressed("p2_effect"):
-		get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")
+		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 	
 	# Get the current analog value from the turntable
 	var current_value := Input.get_action_strength("p2_analog_turntable_fwd") - Input.get_action_strength("p2_analog_turntable_rew")

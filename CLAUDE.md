@@ -1,7 +1,7 @@
 # TrackerMania
 
 Jeu de rythme libre inspiré de beatmania IIDX (7 touches + scratch), écrit en GDScript avec **Godot 4.7** (`/usr/bin/godot`).
-Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/test_menu.tscn`.
+Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/main_menu.tscn`.
 
 L'objectif d'origine : jouer directement des **modules Amiga (.MOD)**, le module étant la chart, avec des **keysounds** comme sur IIDX.
 Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues directement ; elles cohabitent avec les modules et les **BMS** (.bms, .bme, .bml, .bmson), keysoundés eux aussi. Les PMS (pop'n music, 9 touches) sont hors sujet.
@@ -27,7 +27,7 @@ scripts/
     ModChart.gd          Génération de la chart (lanes, difficultés, niveau)
     ModPlayer.gd         Lecture audio : une voix par canal, keysounds + BGM
   menu/
-    test_menu.gd         Menu titre
+    main_menu.gd         Menu principal (MENU SELECT)
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector)
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, options_indicator.gd
@@ -56,7 +56,7 @@ Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous 
 ## Fonctionnement du jeu
 
 ### Flux des scènes
-Menu titre -> sélection des musiques -> `song_entry._on_pressed()` règle `Loader.file_path` et `Loader.chart_difficulty`, puis ouvre :
+Menu principal (FREE) -> sélection des musiques -> `song_entry._on_pressed()` règle `Loader.file_path` et `Loader.chart_difficulty`, puis ouvre :
 - `main.tscn` dans tous les cas (P1 seul, P2 seul ou versus) : `main.gd` règle quel terrain joue d'après `Global.p1_joined`/`p2_joined` ;
 - en netplay, la sélection est ouverte depuis le lobby (choix de l'hôte), le round lance `main.tscn` sur chaque machine (voir Netplay).
 
@@ -81,11 +81,16 @@ Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est ch
 - .mod : un `ModPlayer` sans chart (tout en BGM, bus `ModLeftPreview`/`ModRightPreview`), lancé par `play_from()` à la mesure la plus proche du tiers.
 - BMS : le fichier `#PREVIEW` ou `preview_music` (`BmsChart.previewFile`) s'il existe, sinon un `BmsPlayer` comme pour un module.
 
+### Menu principal (`main_menu.gd`)
+MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).
+- Modes dans `modes` : ARCADE (pas encore codé, sans `scene`), FREE (sélection), NETPLAY (lobby), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
+- Platine (ou flèches, molette) : choisir, en boucle ; touche blanche : valider ; touche noire deux fois : quitter (rien en web).
+
 ### Menu OPTIONS (`options_menu.gd`)
-Ouvert depuis le bouton Options du menu titre. Tout est dessiné dans `_draw()` comme les menus IIDX console : roue des catégories à gauche, titre et réglages à droite, aide en bas. Thème sombre de la sélection : grille animée (`Background`, `show_behind_parent`) et bandeau `music_select_info.png` en haut, dont la case OPTIONS/START est recouverte par DEFAULT/EFFECT.
+Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme les menus IIDX console : roue des catégories à gauche, titre et réglages à droite, aide en bas. Thème sombre de la sélection : grille animée (`Background`, `show_behind_parent`) et bandeau `music_select_info.png` en haut, dont la case OPTIONS/START est recouverte par DEFAULT/EFFECT.
 - Platine : choisir ; touche blanche : valider (OK) ; touche noire : retour / annuler (EXIT) ; EFFECT : valeurs par défaut (du réglage, ou de la catégorie sur la roue). Clavier (flèches, Entrée, Échap, Suppr) et souris aussi.
 - Niveaux : catégories -> réglages -> édition (la valeur change en direct, une touche noire remet l'ancienne). Les réglages sont décrits dans `categories` (`var` de Global, type bool/int/choice/action/name).
-- DISPLAY (plein écran, V-SYNC, timing en ms), SOUND (volume, audio offset, calibration, BGM de la sélection jouée en fond), DJ NAME (6 lettres à la platine, `Netplay.set_dj_name()`), CONTROLLER SET UP (ouvre `test_controller.tscn`).
+- DISPLAY (plein écran, V-SYNC, timing en ms), SOUND (volume, audio offset, calibration, BGM de la sélection ; la musique des menus est coupée pour l’instant), DJ NAME (6 lettres à la platine, `Netplay.set_dj_name()`), CONTROLLER SET UP (ouvre `test_controller.tscn`).
 - `Global.SETTING_DEFAULTS` liste les réglages sauvés dans `user://settings.cfg` (`save_settings()`, `load_settings()` au démarrage, `apply_settings()` pour la fenêtre, la V-SYNC et le volume du bus Master).
 
 ### Options des joueurs (`Global.gd`)

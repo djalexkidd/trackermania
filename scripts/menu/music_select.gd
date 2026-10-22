@@ -253,7 +253,7 @@ func set_joined(player: int, joined: bool) -> void:
 
 # Back to the title menu, or to the netplay lobby
 func leave() -> void:
-	get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn" if netplay else "res://scenes/menu/test_menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn" if netplay else "res://scenes/menu/main_menu.tscn")
 
 # The room was closed while choosing, the lobby tells why
 func _on_netplay_closed(_reason: String) -> void:

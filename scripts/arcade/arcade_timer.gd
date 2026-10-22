@@ -5,13 +5,13 @@ extends Control
 
 signal timeout
 
-const TITLE_FONT = preload("res://assets/font/04B_20__.TTF")
+const TITLE_FONT = preload("res://assets/font/digitalix.ttf")
 const LEFT = -380.0
 const WIDTH = 380.0
-# Right end of the stage name, in place of the OPTIONS tag
-const CAPTION_RIGHT = -20.0
 # OPTIONS tag of the info bar, hidden in arcade
 const OPTIONS_TAG = Rect2(-205, 0, 210, 98)
+# Left end of the stage name on the screen, under MUSIC SELECT, lined up with the song info
+const CAPTION_LEFT = 32.0
 const DIGIT_SIZE = 44
 const HUNDREDTHS_SIZE = 22
 const HURRY_TIME = 10.0
@@ -62,7 +62,7 @@ func _draw() -> void:
 	draw_text(Vector2(label.get_center().x, label.end.y - 5), "TIME REMAIN", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
 
 	if caption != "":
-		draw_text(Vector2(CAPTION_RIGHT, 88), caption, 28, STAGE_COLOR, HORIZONTAL_ALIGNMENT_RIGHT, 8, STAGE_OUTLINE)
+		draw_text(Vector2(CAPTION_LEFT - position.x, 88), caption, 28, STAGE_COLOR, HORIZONTAL_ALIGNMENT_LEFT, 8, STAGE_OUTLINE)
 
 # Each digit centered in a cell as wide as the widest digit, returns the left end
 func draw_digits(right: float, digits: String, font_size: int, digit_color: Color, outline: int) -> float:
@@ -78,6 +78,9 @@ func draw_text(at: Vector2, text: String, font_size: int, text_color: Color, ali
 	var width = TITLE_FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	# Whole pixels for the pixel font
 	var x = roundf(at.x - (width if alignment == HORIZONTAL_ALIGNMENT_RIGHT else width / 2 if alignment == HORIZONTAL_ALIGNMENT_CENTER else 0.0))
+	# The segments of digitalix leave a thin horizontal gap: drawn again 1 px lower to fill it
 	if outline > 0:
-		draw_string_outline(TITLE_FONT, Vector2(x, at.y), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline, outline_color)
-	draw_string(TITLE_FONT, Vector2(x, at.y), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color)
+		for dy in 2:
+			draw_string_outline(TITLE_FONT, Vector2(x, at.y + dy), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline, outline_color)
+	for dy in 2:
+		draw_string(TITLE_FONT, Vector2(x, at.y + dy), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color)

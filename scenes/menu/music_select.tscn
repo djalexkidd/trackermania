@@ -1,9 +1,6 @@
 [gd_scene format=3 uid="uid://dv67rp7a6aimn"]
 
 [ext_resource type="Script" uid="uid://dirg25neoj332" path="res://scripts/menu/music_select.gd" id="1_8an63"]
-[ext_resource type="Script" path="res://scripts/menu/music_select/song_wheel.gd" id="20_wheel"]
-[ext_resource type="Texture2D" path="res://assets/music_select/alphabet.png" id="21_alphabet"]
-[ext_resource type="Texture2D" path="res://assets/music_select/file_type.png" id="22_file_type"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="1_mbwtn"]
 [ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="1_u0514"]
 [ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="1_y1sfi"]
@@ -20,6 +17,9 @@
 [ext_resource type="Texture2D" uid="uid://b23buntq635jn" path="res://assets/music_select/difficulty.png" id="9_g2fnn"]
 [ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="10_rocpe"]
 [ext_resource type="AudioStream" uid="uid://csvkylr0deve0" path="res://assets/music_select/close.ogg" id="11_uuciq"]
+[ext_resource type="Script" uid="uid://bn0nxnvoi20f3" path="res://scripts/menu/music_select/song_wheel.gd" id="20_wheel"]
+[ext_resource type="Texture2D" uid="uid://bd6bcg8yqaho8" path="res://assets/music_select/alphabet.png" id="21_alphabet"]
+[ext_resource type="Texture2D" uid="uid://8bxcwuyj5as8" path="res://assets/music_select/file_type.png" id="22_file_type"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i76ow"]
 shader = ExtResource("1_y1sfi")
@@ -214,20 +214,20 @@ theme_override_font_sizes/font_size = 48
 horizontal_alignment = 2
 uppercase = true
 
-[node name="BestScore" type="VBoxContainer" parent="SongInfo"]
+[node name="BestScore" type="VBoxContainer" parent="SongInfo" unique_id=2140062738]
 layout_mode = 2
 
-[node name="Gap" type="Control" parent="SongInfo/BestScore"]
+[node name="Gap" type="Control" parent="SongInfo/BestScore" unique_id=535423359]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 
-[node name="Lamp" type="Label" parent="SongInfo/BestScore"]
+[node name="Lamp" type="Label" parent="SongInfo/BestScore" unique_id=293345194]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("1_mbwtn")
 theme_override_font_sizes/font_size = 32
 horizontal_alignment = 2
 
-[node name="Score" type="Label" parent="SongInfo/BestScore"]
+[node name="Score" type="Label" parent="SongInfo/BestScore" unique_id=1685748784]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_me461")
 theme_override_font_sizes/font_size = 32
@@ -248,8 +248,9 @@ grow_vertical = 2
 focus_mode = 2
 script = ExtResource("20_wheel")
 
-[node name="PositionBar" type="VScrollBar" parent="SongWheel"]
+[node name="PositionBar" type="VScrollBar" parent="SongWheel" unique_id=118415479]
 layout_mode = 1
+anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -260,7 +261,7 @@ focus_mode = 0
 step = 1.0
 
 [node name="Categories" type="VBoxContainer" parent="SongWheel" unique_id=847710013]
-layout_mode = 2
+layout_mode = 0
 theme_override_constants/separation = 0
 
 [node name="AllMusic" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1568755540]
@@ -425,145 +426,145 @@ visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="ABCD" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="ABCD" type="VBoxContainer" parent="SongWheel/Categories" unique_id=261898751]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/ABCD" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/ABCD" unique_id=1886987240 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "ABCD"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/ABCD"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/ABCD" unique_id=884499013]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="EFGH" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="EFGH" type="VBoxContainer" parent="SongWheel/Categories" unique_id=281194224]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/EFGH" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/EFGH" unique_id=913089522 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "EFGH"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/EFGH"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/EFGH" unique_id=1505410244]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="IJKL" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="IJKL" type="VBoxContainer" parent="SongWheel/Categories" unique_id=779015277]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/IJKL" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/IJKL" unique_id=164372675 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "IJKL"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/IJKL"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/IJKL" unique_id=2127851242]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="MNOP" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="MNOP" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1347092505]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/MNOP" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/MNOP" unique_id=347660609 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "MNOP"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/MNOP"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/MNOP" unique_id=595703946]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="QRST" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="QRST" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1622525954]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/QRST" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/QRST" unique_id=888288769 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "QRST"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/QRST"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/QRST" unique_id=1937868652]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="UVWXYZ" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="UVWXYZ" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1802488470]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/UVWXYZ" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/UVWXYZ" unique_id=2074329385 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "UVWXYZ"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/UVWXYZ"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/UVWXYZ" unique_id=2004579060]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="OTHERS" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="OTHERS" type="VBoxContainer" parent="SongWheel/Categories" unique_id=957633736]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/OTHERS" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/OTHERS" unique_id=354886965 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "OTHERS"
 category_texture = ExtResource("21_alphabet")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/OTHERS"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/OTHERS" unique_id=313655491]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="MODULE" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="MODULE" type="VBoxContainer" parent="SongWheel/Categories" unique_id=2025382905]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/MODULE" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/MODULE" unique_id=1300657280 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "MODULE"
 category_texture = ExtResource("22_file_type")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/MODULE"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/MODULE" unique_id=122746212]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="QUAVER" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="QUAVER" type="VBoxContainer" parent="SongWheel/Categories" unique_id=2076351139]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/QUAVER" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/QUAVER" unique_id=72555001 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "QUAVER"
 category_texture = ExtResource("22_file_type")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/QUAVER"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/QUAVER" unique_id=335135685]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="BMS" type="VBoxContainer" parent="SongWheel/Categories"]
+[node name="BMS" type="VBoxContainer" parent="SongWheel/Categories" unique_id=972409679]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Category" parent="SongWheel/Categories/BMS" instance=ExtResource("3_ojufb")]
+[node name="Category" parent="SongWheel/Categories/BMS" unique_id=765220096 instance=ExtResource("3_ojufb")]
 layout_mode = 2
 category_name = "BMS"
 category_texture = ExtResource("22_file_type")
 
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/BMS"]
+[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/BMS" unique_id=714728597]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0

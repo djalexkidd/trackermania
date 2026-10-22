@@ -13,7 +13,7 @@ project.godot            Config : autoloads, InputMap (p1_*/p2_*), viewport 1280
 default_bus_layout.tres  Bus Master avec Chorus / Phaser / Reverb (effector de la sélection)
 assets/                  Images, polices, sons (bgm de la sélection, frames, groove gauge, shader), shift_jis.tres (table Shift-JIS)
 scripts/
-  Global.gd              Autoload : options et résultats des 2 joueurs, chargement des touches remappées
+  Global.gd              Autoload : options et résultats des 2 joueurs, touches remappées, réglages système (user://settings.cfg)
   Loader.gd              Autoload : chart choisie (file_path, chart_difficulty), scan de fichiers, cache JSON de la sélection
   QuaChart.gd            Lecture d'une beatmap Quaver .qua (class_name QuaChart)
   netplay/               Netplay.gd (autoload réseau), NetplayUI.gd (style des écrans), lobby.gd, scoreboard.gd, netplay_result.gd
@@ -38,6 +38,7 @@ scripts/
     controller_test/     CONTROLLER SETUP : controller_panel.gd (platine IIDX dessinée d'un joueur, test et remappage) ;
                          touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
+    options_menu.gd      Menu OPTIONS façon IIDX console (voir plus bas), scène scenes/menu/options.tscn
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs
   result/                result.gd (écran de résultats unique, solo et versus) et result_panel.gd (panneau d'un joueur)
 scenes/
@@ -79,6 +80,13 @@ Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est ch
 - .qua : l'audio depuis `SongPreviewTime` (`QuaChart.previewTime`), sinon depuis le tiers de la musique.
 - .mod : un `ModPlayer` sans chart (tout en BGM, bus `ModLeftPreview`/`ModRightPreview`), lancé par `play_from()` à la mesure la plus proche du tiers.
 - BMS : le fichier `#PREVIEW` ou `preview_music` (`BmsChart.previewFile`) s'il existe, sinon un `BmsPlayer` comme pour un module.
+
+### Menu OPTIONS (`options_menu.gd`)
+Ouvert depuis le bouton Options du menu titre. Tout est dessiné dans `_draw()` comme les menus IIDX console : roue des catégories à gauche, titre et réglages à droite, aide en bas. Thème sombre de la sélection : grille animée (`Background`, `show_behind_parent`) et bandeau `music_select_info.png` en haut, dont la case OPTIONS/START est recouverte par DEFAULT/EFFECT.
+- Platine : choisir ; touche blanche : valider (OK) ; touche noire : retour / annuler (EXIT) ; EFFECT : valeurs par défaut (du réglage, ou de la catégorie sur la roue). Clavier (flèches, Entrée, Échap, Suppr) et souris aussi.
+- Niveaux : catégories -> réglages -> édition (la valeur change en direct, une touche noire remet l'ancienne). Les réglages sont décrits dans `categories` (`var` de Global, type bool/int/choice/action/name).
+- DISPLAY (plein écran, V-SYNC, timing en ms), SOUND (volume, audio offset, calibration, BGM de la sélection jouée en fond), DJ NAME (6 lettres à la platine, `Netplay.set_dj_name()`), CONTROLLER SET UP (ouvre `test_controller.tscn`).
+- `Global.SETTING_DEFAULTS` liste les réglages sauvés dans `user://settings.cfg` (`save_settings()`, `load_settings()` au démarrage, `apply_settings()` pour la fenêtre, la V-SYNC et le volume du bus Master).
 
 ### Options des joueurs (`Global.gd`)
 Les variables de P1 n'ont pas de préfixe, celles de P2 sont préfixées par `p2_` : passer par `Global.get_player_var(player, name)` et `set_player_var`.

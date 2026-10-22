@@ -29,12 +29,15 @@ func _ready() -> void:
 func _on_option_button_item_selected(index: int) -> void:
 	var selected_value = json_files[index-1]
 	Global.custom_music_select_bgm = selected_value
+	Global.save_settings()
 
 func _on_timing_check_toggled(toggled_on: bool) -> void:
 	Global.show_timing = toggled_on
+	Global.save_settings()
 
 func _on_audio_offset_value_changed(value: float) -> void:
 	Global.audio_offset = int(value)
+	Global.save_settings()
 
 func _on_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/test_menu.tscn")

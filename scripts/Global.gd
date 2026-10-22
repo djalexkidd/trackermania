@@ -46,11 +46,51 @@ var custom_music_select_bgm = ""
 var show_timing = false
 # Extra audio latency in ms (bluetooth headphones...), positive when the sound comes late
 var audio_offset = 0
+var fullscreen = false
+var vsync = true
+# Volume of the Master bus, in percent
+var master_volume = 100
 
 const KEY_MAPPING_PATH = "user://mappings.cfg"
+# System settings of the OPTIONS menu, saved in SETTINGS_PATH
+const SETTINGS_PATH = "user://settings.cfg"
+const SETTING_DEFAULTS = {
+	"fullscreen": false,
+	"vsync": true,
+	"show_timing": false,
+	"master_volume": 100,
+	"audio_offset": 0,
+	"custom_music_select_bgm": "",
+}
 
 func _ready():
 	load_key_mappings()
+	load_settings()
+
+func load_settings() -> void:
+	var config = ConfigFile.new()
+	if config.load(SETTINGS_PATH) == OK:
+		for setting in SETTING_DEFAULTS:
+			set(setting, config.get_value("settings", setting, SETTING_DEFAULTS[setting]))
+	# The custom BGM may have been deleted since
+	if custom_music_select_bgm != "" and not FileAccess.file_exists(custom_music_select_bgm):
+		custom_music_select_bgm = ""
+	apply_settings()
+
+func save_settings() -> void:
+	var config = ConfigFile.new()
+	for setting in SETTING_DEFAULTS:
+		config.set_value("settings", setting, get(setting))
+	config.save(SETTINGS_PATH)
+
+func apply_settings() -> void:
+	# Only a desktop window can leave full screen
+	if OS.has_feature("pc"):
+		var fullscreen_mode = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+		if fullscreen != fullscreen_mode:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+	AudioServer.set_bus_volume_db(0, linear_to_db(master_volume / 100.0))
 
 # Apply the remapped keys saved by the Controller Setup menu
 func load_key_mappings():

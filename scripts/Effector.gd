@@ -5,8 +5,8 @@ extends Node
 # It survives scene changes; the main menu turns it off.
 
 const NAMES : Array[String] = [
-	"EFFECTOR OFF", "CHORUS", "PHASER", "FLANGER", "REVERB", "ECHO", "STADIUM", "COMPRESSOR",
-	"FILTER SWEEP", "WOBBLE", "RADIO", "UNDERWATER", "BITCRUSH", "MEGA BASS",
+	"EFFECTOR OFF", "CHORUS", "PHASER", "FLANGER", "REVERB", "ECHO", "STADIUM",
+	"FILTER SWEEP", "WOBBLE", "RADIO", "UNDERWATER", "MEGA BASS",
 	"GARGLE", "8D AUDIO", "CHIPMUNK", "MONSTER", "DRUNK",
 ]
 # Small FFT for the pitch shifters: it delays the sound by about 8 ms, a bigger one would be off beat
@@ -119,15 +119,6 @@ func build(preset : String) -> Array[AudioEffect]:
 			slap.tap1_level_db = -14.0
 			slap.tap2_active = false
 			return [slap, reverb]
-		"COMPRESSOR":
-			# Hard and loud: the quiet parts come up, the drums make the rest pump
-			var compressor := AudioEffectCompressor.new()
-			compressor.threshold = -30.0
-			compressor.ratio = 10.0
-			compressor.attack_us = 500.0
-			compressor.release_ms = 300.0
-			compressor.gain = 14.0
-			return [compressor]
 		"FILTER SWEEP", "WOBBLE":
 			var lowpass := AudioEffectLowPassFilter.new()
 			lowpass.resonance = 0.75 if preset == "WOBBLE" else 0.6
@@ -159,14 +150,6 @@ func build(preset : String) -> Array[AudioEffect]:
 			reverb.room_size = 0.6
 			reverb.wet = 0.4
 			return [lowpass, wave, reverb]
-		"BITCRUSH":
-			# About 3 bits left, on the whole spectrum (keep_hf_hz at the top spares nothing)
-			var crush := AudioEffectDistortion.new()
-			crush.mode = AudioEffectDistortion.MODE_LOFI
-			crush.drive = 0.92
-			crush.keep_hf_hz = 20000.0
-			crush.post_gain = -6.0
-			return [crush]
 		"MEGA BASS":
 			var shelf := AudioEffectLowShelfFilter.new()
 			shelf.cutoff_hz = 160.0

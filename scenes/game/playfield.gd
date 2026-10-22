@@ -145,6 +145,8 @@ var subLineArray   : Array = []
 # Time when the chart started, the music of a .qua starts after the lead-in
 var startUsec      : int     = 0
 var musicStarted   : bool    = false
+# DECIDE screen of main.gd, the game waits until it is gone
+var decide         : Control = null
 # Current audio playback time (seconds)
 var currentSongPos : float   = 0.0
 # The y-coordinate at which the note descends per frame
@@ -246,6 +248,11 @@ func start() -> void:
 	AUTOPLAY = opt("auto_play") and not Arcade.active
 	AUTOSCRATCH = opt("auto_scratch")
 	speed = opt("hispeed")
+	# The 6th and 7th keys are not played in 5 keys mode, greyed out before the game starts
+	if opt("keys_mode") == 5:
+		disabled[5] = true
+		disabled[6] = true
+		queue_redraw()
 	if netplay:
 		# Same #RANDOM branches for everyone
 		seed(Netplay.room["seed"])
@@ -262,14 +269,11 @@ func start() -> void:
 		return
 	# Key lanes shuffled by RANDOM, the scratch lane never moves like in IIDX
 	var lanes : Array = range(7)
-	# The 6th and 7th keys are not played in 5 keys mode
 	if opt("keys_mode") == 5:
 		noteArray[5] = []
 		noteArray[6] = []
 		keysoundArray[5] = []
 		keysoundArray[6] = []
-		disabled[5] = true
-		disabled[6] = true
 		lanes = range(5)
 	# In double play the 1P side counts the notes of both sides
 	scorer.noteCount += Judge.noteCount(noteArray)
@@ -350,6 +354,10 @@ func start() -> void:
 		# Everyone starts together once all the charts are loaded
 		$getready.text = "Waiting for the DJs…"
 		Netplay.mark_loaded()
+	# The game starts once the DECIDE screen is gone
+	if is_instance_valid(decide) and not decide.done:
+		await decide.closed
+	if netplay:
 		await Netplay.wait_begin()
 		$getready.text = "Get Ready !"
 	await get_tree().create_timer(1.0).timeout
@@ -1047,10 +1055,20 @@ func drawLanes() -> void:
 				PackedColorArray([Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.65), Color(BEAM_COLOR, 0.65)]))
 		if disabled[i]:
 			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), Color(0.12, 0.12, 0.14))
+			drawLaneText(left + laneWidth[i] / 2.0, "AUTO PLAY LANE")
 		draw_line(Vector2(left, 0), Vector2(left, PERFECT_YPOS), SEPARATOR_COLOR, 1.0)
 		draw_line(Vector2(right, 0), Vector2(right, PERFECT_YPOS), SEPARATOR_COLOR, 1.0)
 	drawRail(-RAIL_WIDTH, not mirrored)
 	drawRail(PLAYFIELD_WIDTH, mirrored)
+
+# A text written down a lane, centred on it
+func drawLaneText(center : float, text : String) -> void:
+	var size : int = 16
+	var width : float = FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var baseline : float = (FONT.get_ascent(size) - FONT.get_descent(size)) / 2.0
+	draw_set_transform(Vector2(center, PERFECT_YPOS / 2.0), PI / 2.0)
+	draw_string(FONT, Vector2(-width / 2.0, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, LABEL_COLOR)
+	draw_set_transform(Vector2.ZERO)
 
 # A rounded metal rail beside the lanes, the outer one has a slot where the song progress goes down
 func drawRail(left : float, outer : bool) -> void:

@@ -50,6 +50,7 @@ scenes/
   game/main.gd + .tscn   Scène de jeu unique (1P, 2P, versus) : deux terrains P1/P2 toujours affichés, un AudioStreamPlayer partagé, plaque centrale (titre, BPM)
   game/playfield.gd/.tscn Un terrain (class_name Playfield) : chart, notes, jugement, layout (lanes, touches, jauge, HUD) ; le côté non joué reste affiché, vide et assombri
   game/note.gd           Une note (normale ou longue) qui descend
+  game/decide.gd         Écran DECIDE (titre, difficulté, GAME OPTION des joueurs) posé par main.gd avant la partie
   game/judge.gd          Règles IIDX : fenêtres, EX-Score, jauge (class_name Judge)
   menu/                  Scènes des menus
   result/result.tscn     Écran de résultats (solo et versus local)
@@ -66,8 +67,13 @@ Menu principal (FREE) -> sélection des musiques -> `song_entry._on_pressed()` r
 - `main.tscn` dans tous les cas (P1 seul, P2 seul ou versus) : `main.gd` règle quel terrain joue d'après `Global.p1_joined`/`p2_joined` ;
 - en netplay, la sélection est ouverte depuis le lobby (choix de l'hôte), le round lance `main.tscn` sur chaque machine (voir Netplay).
 
-`main.gd` charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension. Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats (`scenes/result/result.tscn`, aussi pour le versus local).
+`main.gd` pose d'abord l'écran DECIDE (`decide.gd`, dans un `CanvasLayer`), charge la chart avec `loadQuaChart()`, `loadModule()` ou `loadBms()` selon l'extension, puis lance l'écran (`decide.play()`). Ensuite `main.gd.finish()` écrit les résultats dans `Global` et ouvre l'écran de résultats (`scenes/result/result.tscn`, aussi pour le versus local).
 En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après les difficultés (`SongInfo/BestScore`).
+
+### Écran DECIDE (`scenes/game/decide.gd`)
+Comme sur IIDX après le choix d'une musique, dessiné dans `_draw()` avec la DA de la barre du bas (rouge, orange, segments) : en haut à gauche une barre rouge et des légendes tapées (TRACKERMANIA, MUSIC DECIDE, SP/DP et touches), à droite DIFFICULTY, le nom (couleur de `song_entry.difficulty_color()`) et le niveau ; au milieu une bande avec une grille orange qui défile vers la droite (comme `grid.png`, `GRID_CELL`, `GRID_SPEED`), des lignes orange et des traits jaunes, avec le stage en ARCADE (sinon NETPLAY ou le type de fichier), le titre et l'artiste ; en bas un panneau GAME OPTION par joueur (2 × 5 options, celles choisies s'allument une à une ; ABSENCE pour un côté vide, DOUBLE PLAY pour l'autre côté du DP).
+- Écran fixe pendant le chargement, puis la bande s'ouvre, tout entre, reste jusqu'à `HOLD_TIME` et s'efface en `OUT_TIME` ; il émet `closed` et libère son calque.
+- `playfield.start()` attend `decide.closed` avant Get Ready. En netplay, le joueur signale `mark_loaded()` avant d'attendre l'écran, puis `wait_begin()` : l'écran se joue au lancement du round, jamais dans la sélection du netplay.
 
 ### Écran de résultats (`scripts/result/`)
 Un seul écran comme sur IIDX : 1P à gauche, 2P à droite (un seul panneau en solo, du côté du joueur), la musique au milieu, WIN/LOSE en versus. Pas d'image de fond pour l'instant.
@@ -96,10 +102,9 @@ Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est ch
 - BMS : le fichier `#PREVIEW` ou `preview_music` (`BmsChart.previewFile`) s'il existe, sinon un `BmsPlayer` comme pour un module.
 
 ### Effector (`Effector.gd`)
-Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l'autre joueur) : passe au preset suivant de `NAMES` (EFFECTOR OFF, CHORUS, PHASER, FLANGER, REVERB, ECHO, STADIUM, COMPRESSOR, FILTER SWEEP, WOBBLE, RADIO, UNDERWATER, BITCRUSH, MEGA BASS, GARGLE, 8D AUDIO, CHIPMUNK, MONSTER, DRUNK). La maintenir `OFF_HOLD_MS` (1 s) remet EFFECTOR OFF : `Effector.update_button()`, appelée à chaque image avec les actions EFFECT des joueurs, gère l'appui et le maintien.
+Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l'autre joueur) : passe au preset suivant de `NAMES` (EFFECTOR OFF, CHORUS, PHASER, FLANGER, REVERB, ECHO, STADIUM, FILTER SWEEP, WOBBLE, RADIO, UNDERWATER, MEGA BASS, GARGLE, 8D AUDIO, CHIPMUNK, MONSTER, DRUNK). La maintenir `OFF_HOLD_MS` (1 s) remet EFFECTOR OFF : `Effector.update_button()`, appelée à chaque image avec les actions EFFECT des joueurs, gère l'appui et le maintien.
 - `set_effect()` retire les effets du preset précédent (en fin de bus Master), ajoute ceux de `build()` puis un `AudioEffectHardLimiter`. Tout passe par Master : aperçu, keysounds et BGM.
 - Les presets animés (filtre, gargle, panoramique, hauteur) sont mis à jour dans `_process`, sur une horloge lancée au choix du preset. Le gain ne change qu'à chaque image : GARGLE (triangle sur le volume, comme le Gargle DirectX d'IIDX) tourne à `GARGLE_HZ` = 12 Hz au lieu de 20.
-- BITCRUSH réduit seulement le nombre de bits (`AudioEffectDistortion` LOFI) : Godot n'a pas de réduction de fréquence d'échantillonnage.
 - Les pitch shifters utilisent une FFT de 512 (`PITCH_FFT`) : environ 8 ms de retard, une plus grande décalerait le son.
 - Le preset survit aux changements de scène ; le menu principal le coupe. En jeu, son nom remplace le titre de la plaque centrale pendant `EFFECTOR_SHOW_TIME`.
 
@@ -163,7 +168,7 @@ Chaque `.qua` de `user://songs` est une difficulté de la musique de son dossier
 - **POOR vide** (`emptyPress()`) : une touche pressée sans note à frapper, alors qu'une note de la lane arrive dans moins de 500 ms, abîme la jauge sans casser le combo.
 - L'horloge est `songPosition() - AudioServer.get_output_latency()` ; pour un MP3/OGG, `songPosition()` ajoute `AudioServer.get_time_since_last_mix()`, sinon elle avance par saccades de la taille d'un mixage (fatal avec des fenêtres de ±16 ms).
 - MIRROR inverse les touches (pas le scratch), comme BATTLE pour le 2P : les deux s'annulent.
-- RANDOM mélange seulement les touches (0~6, ou 0~4 en 5 touches) ; le scratch ne bouge jamais, comme sur IIDX. En 5 touches, les lanes 5 et 6 sont vidées au chargement.
+- RANDOM mélange seulement les touches (0~6, ou 0~4 en 5 touches) ; le scratch ne bouge jamais, comme sur IIDX. En 5 touches, les lanes 5 et 6 sont vidées au chargement, grisées dès le début de `start()` (avant GET READY) avec « AUTO PLAY LANE » écrit verticalement (`drawLaneText()`).
 - Les touches (`p1_frame.png`, scratch `p1_frame_scratch.png` + disque) et la jauge (`groove_gauge.png` / `progress.png`, `_hard` en HARD) viennent des assets, à l'échelle `KEY_SCALE` (0.4, donc des lanes de 40 px) et `SCRATCH_SCALE` (0.6, platine plus haute que les touches comme sur IIDX). Les touches enfoncées s'allument en rouge en redessinant leur zone teintée (`drawKeys()`, `KEY_WHITE_RECT`/`KEY_BLACK_RECT`, une touche tous les `KEY_SPACING` px). Touches, jauge et HUD sont dessinés dans `Overlay`, au-dessus des notes.
 - Habillage façon IIDX (`playfield.gd`, rectangles du côté 1P, inversés par `sideRect()`/`sideX()` en 2P) : lanes noires, rails métalliques de chaque côté (la progression de la chanson descend dans le rail extérieur), la bande rouge du haut des touches sert de ligne de jugement (`KEYS_TOP` = 497). Sous les lanes, une plaque métallique (`drawPlate()`) porte des écrans noirs (`drawScreen()`) : pourcentage de la jauge, jauge (« P1 GROOVE GAUGE »), SCORE / MAXCOMBO et difficulté + niveau, chiffres en 7 segments avec les segments éteints (`drawNumber()`, police digitalix). `drawMetal()`, `drawScreen()` et `drawNumber()` sont statiques : `main.gd` s'en sert pour la plaque centrale (titre, BPM).
 - Le jugement et le combo sont sur une ligne au-dessus des touches (« GREAT 113 », `drawJudge()`), 0.8 s, P-GREAT en couleurs alternées ; une note frappée fait un éclat sur la ligne (`drawBursts()`, aussi en autoplay).

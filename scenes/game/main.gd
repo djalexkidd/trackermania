@@ -12,6 +12,8 @@ const BPM_SCREEN : Rect2 = Rect2(572, 683, 136, 32)
 # Time the effector name replaces the title after it changes
 const EFFECTOR_SHOW_TIME : float = 1.5
 const EFFECTOR_COLOR : Color = Color(1.0, 0.75, 0.2)
+const DECIDE_SCREEN : GDScript = preload("res://scenes/game/decide.gd")
+const DECIDE_LAYER : int = 10
 
 var playersDone : int = 0
 # Playfields that play, the first one gives the title and the BPM
@@ -44,11 +46,22 @@ func _ready() -> void:
 		scoreboard.position = Vector2($P2.position.x, 0)
 		scoreboard.size = Vector2(Playfield.PLAYFIELD_WIDTH, 540)
 		add_child(scoreboard)
+	# The DECIDE screen covers the loading, then shows the song and the options before the game
+	var layer : CanvasLayer = CanvasLayer.new()
+	layer.layer = DECIDE_LAYER
+	add_child(layer)
+	var decide : Control = DECIDE_SCREEN.new()
+	layer.add_child(decide)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	for field in playing:
+		field.decide = decide
 		field.start()
-	if not playing.is_empty():
-		songTitle = playing[0].songInfo.get("title", "")
-		$Title.text = songTitle
+	var info : Dictionary = playing[0].songInfo if not playing.is_empty() else {}
+	songTitle = info.get("title", "")
+	$Title.text = songTitle
+	decide.play(songTitle if songTitle != "" else Loader.file_path.get_file().get_basename(),
+		info.get("artist", ""), Loader.chart_difficulty, info.get("level", 0))
 
 func _process(_delta : float) -> void:
 	queue_redraw()

@@ -15,8 +15,8 @@ const SCRATCH_HOLE_CENTER : Vector2 = Vector2(72, 72)
 const SCRATCH_HEIGHT : float = SCRATCH_WIDTH * SCRATCH_ART_SIZE.y / SCRATCH_ART_SIZE.x
 const SCRATCH_GAP : float = 8.0
 const PLAYFIELD_WIDTH : float = SCRATCH_WIDTH + SCRATCH_GAP + 7 * KEY_WIDTH
-# Keys row under the judge line
-const KEYS_TOP : float = 504.0
+# Keys row under the judge line: the red strip on top of the key art is the judge line, centred on PERFECT_YPOS
+const KEYS_TOP : float = 497.0
 # The art is drawn at these scales: 100 px per key in the key frame becomes one lane, the turntable is bigger than the keys
 const KEY_SCALE : float = 0.4
 const SCRATCH_SCALE : float = 0.6
@@ -24,40 +24,66 @@ const SCRATCH_SCALE : float = 0.6
 const KEYS_HEIGHT : float = SCRATCH_HEIGHT
 const KEY_SCALE_Y : float = KEYS_HEIGHT / 130.0
 const KEYS_BOTTOM : float = KEYS_TOP + KEYS_HEIGHT
-# Groove gauge under the keys: 50 segments of 2 %, with the percentage box beside it
-const GAUGE_TOP : float = 588.0
-const GAUGE_HEIGHT : float = 24.0
-const GAUGE_PERCENT_WIDTH : float = 84.0
-const GAUGE_WIDTH : float = PLAYFIELD_WIDTH - GAUGE_PERCENT_WIDTH - 6.0
+# Notes are a bit narrower than their lane
+const NOTE_MARGIN : float = 2.0
+# Metal rails on both sides of the lanes, the outer one shows the song progress like in IIDX
+const RAIL_WIDTH : float = 12.0
+# Metal plate under the lanes holding the screens of the HUD, it goes past the lanes towards the middle of the screen.
+# The rectangles below are for the 1P side, mirrored on the 2P side (sideRect())
+const PLATE_TOP : float = 500.0
+const PLATE_RIGHT : float = 488.0
+const PERCENT_SCREEN : Rect2 = Rect2(392, 526, 90, 46)
+const GAUGE_LABEL_Y : float = 588.0
+const GAUGE_SCREEN : Rect2 = Rect2(-4, 592, 484, 30)
+# Groove gauge: 50 segments of 2 %, keeps the proportions of its art (1062 x 46)
+const GAUGE_RECT : Rect2 = Rect2(5, 597, 466, 20)
+const SCORE_SCREEN : Rect2 = Rect2(-4, 632, 284, 78)
+const DIFFICULTY_SCREEN : Rect2 = Rect2(288, 632, 192, 78)
 # Gauge texture geometry: one segment every 21 px (2 %), the gaps between them are around x = 21 n + 6
 const GAUGE_SEGMENT_PX : float = 21.0
 const GAUGE_GAP_PX : float = 6.0
-# HUD under the gauge: score, then max combo
-const HUD_TOP : float = 614.0
-const HUD_ROW_HEIGHT : float = 48.0
-const HUD_ROW_GAP : float = 4.0
-# The playfield of a player who is not playing stays on screen, dimmed
-const IDLE_ALPHA : float = 0.3
+# The playfield of a player who is not playing stays on screen, empty and a bit darker like on the cabinet
+const IDLE_DIM : float = 0.7
 # The two gauge segments before the last filled one flicker like in IIDX: 0 to 2 lit, drawn again at this interval (ms)
 const GAUGE_FLICKER_SEGMENTS : int = 2
 const GAUGE_FLICKER_MS : int = 50
-# Height of the light rising from a lane when its key is held or a note is hit (px), and how fast a hit flash fades (per second)
-const LANE_LIGHT_HEIGHT : float = 180.0
+# Height of the beam rising from a lane when its key is held (px), and how fast the burst of a hit note fades (per second)
+const LANE_LIGHT_HEIGHT : float = 280.0
 const HIT_FLASH_DECAY : float = 4.0
+# Judgement over the key lanes: shown this long, it pops at first (s), the P-GREAT colors change at this interval (ms)
+const JUDGE_Y : float = 380.0
+const JUDGE_SIZE : int = 30
+const JUDGE_TIME : float = 0.8
+const JUDGE_POP_TIME : float = 0.06
+const PGREAT_CYCLE_MS : int = 40
+const JUDGE_WORDS : Dictionary = {"PGreat": "GREAT", "Great": "GREAT", "Good": "GOOD", "Bad": "BAD", "Poor": "POOR"}
+const JUDGE_COLORS : Dictionary = {"Great": Color(1, 0.85, 0.1), "Good": Color(0.35, 1, 0.4), "Bad": Color(1, 0.25, 0.45), "Poor": Color(0.7, 0.7, 0.75)}
+const PGREAT_COLORS : Array = [Color(1, 1, 1), Color(0.55, 1, 1), Color(1, 0.95, 0.45), Color(1, 0.65, 0.95)]
 # After the last note is finished, wait for this margin and then the game ends.
 const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing when the chart has no measures (sec)
 const SUBLINE_LENGTH : float = 1.0
 const FONT : Font = preload("res://assets/font/04B_20__.TTF")
-const LANE_TOP_COLOR : Color = Color(0.02, 0.03, 0.08)
-const LANE_BOTTOM_COLOR : Color = Color(0.07, 0.11, 0.22)
-const LANE_LIGHT_COLOR : Color = Color(0.35, 0.8, 1.0)
-const LIGHT_PRESSED_COLOR : Color = Color(1.0, 0.3, 0.3)
-const SEPARATOR_COLOR : Color = Color(0.45, 0.65, 1.0, 0.3)
-const JUDGE_LINE_COLOR : Color = Color(0.75, 0.95, 1.0)
-const FRAME_COLOR : Color = Color(0.55, 0.8, 1.0, 0.85)
-const TITLE_COLOR : Color = Color(0.45, 0.75, 1.0)
-const VALUE_COLOR : Color = Color(0.85, 1.0, 1.0)
+const NUMBER_FONT : Font = preload("res://assets/font/digitalix.ttf")
+const LANE_COLOR : Color = Color(0, 0, 0)
+const LANE_BLACK_KEY_COLOR : Color = Color(0.035, 0.035, 0.045)
+const LANE_GAP_COLOR : Color = Color(0.1, 0.1, 0.11)
+const SEPARATOR_COLOR : Color = Color(0.22, 0.22, 0.25)
+const BEAM_COLOR : Color = Color(0.25, 0.55, 1.0)
+const BURST_COLOR : Color = Color(0.6, 0.85, 1.0)
+const MEASURE_COLOR : Color = Color(0.6, 0.6, 0.65, 0.6)
+# Metal of the frames: light at the top, darker at the bottom
+const METAL_LIGHT : Color = Color(0.8, 0.82, 0.86)
+const METAL_DARK : Color = Color(0.36, 0.38, 0.43)
+const METAL_EDGE : Color = Color(0.1, 0.1, 0.12)
+const SCREEN_COLOR : Color = Color(0.02, 0.025, 0.035)
+const SCREEN_GLOW : Color = Color(0.2, 0.75, 1.0, 0.35)
+const LABEL_COLOR : Color = Color(0.78, 0.82, 0.88)
+const GAUGE_LABEL_COLOR : Color = Color(1, 0.55, 0.1)
+const PROGRESS_COLOR : Color = Color(1, 0.55, 0.1)
+const NUMBER_COLOR : Color = Color(0.4, 0.95, 1.0)
+const NUMBER_DIM : Color = Color(0.4, 0.95, 1.0, 0.3)
+const NUMBER_GHOST : Color = Color(0.4, 0.95, 1.0, 0.1)
 # Tints of the lit keys (the black keys are darker, so their tint is brighter)
 const KEY_LIGHT_WHITE : Color = Color(1.0, 0.25, 0.25)
 const KEY_LIGHT_BLACK : Color = Color(2.6, 0.5, 0.5)
@@ -174,16 +200,14 @@ var laneWidth      : PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 
 var keyFrame       : Texture2D
 var scratchFrame   : Texture2D
 var keyFrameOrigin : Vector2
-# Boxes of the HUD and of the gauge percentage
-var hudStyle       : StyleBoxFlat
-var percentStyle   : StyleBoxFlat
+# Last judgement shown over the lanes, when it was shown (ms), and the timing of the hit under it
+var judgeShown     : String  = ""
+var judgeMs        : int     = 0
+var timingText     : String  = ""
+var timingColor    : Color
 # Nodes made by buildLayout()
 var overlay        : Overlay
 var disc           : Sprite2D
-var hud            : Node2D
-var scoreValue     : Label
-var comboValue     : Label
-var percentLabel   : Label
 
 # Set the side of this playfield before start(): the player, whether it plays here, and the mode
 func setup(p : int, plays : bool, both : bool, online : bool) -> void:
@@ -196,7 +220,8 @@ func setup(p : int, plays : bool, both : bool, online : bool) -> void:
 	keycodes = PackedStringArray([prefix + "key1", prefix + "key2", prefix + "key3", prefix + "key4",
 		prefix + "key5", prefix + "key6", prefix + "key7", prefix + "digital_turntable_fwd"])
 	buildLayout()
-	modulate = Color(1, 1, 1, 1.0 if active else IDLE_ALPHA)
+	if not active:
+		modulate = Color(IDLE_DIM, IDLE_DIM, IDLE_DIM)
 	set_process(false)
 
 # Load the chart and start the playfield, called by main.gd for each player who plays
@@ -501,10 +526,10 @@ func _process(delta) -> void:
 			note.perfectYpos = PERFECT_YPOS
 			if (len(info) == 1):
 				# Create a general note
-				note.setNote(i+1, speed, coordPerFrame, laneWidth[i])
+				note.setNote(i+1, speed, coordPerFrame, laneWidth[i] - 2 * NOTE_MARGIN)
 			else:
 				# Create long note
-				note.setNote(i+1, speed, coordPerFrame, laneWidth[i], info[1])
+				note.setNote(i+1, speed, coordPerFrame, laneWidth[i] - 2 * NOTE_MARGIN, info[1])
 			var container = get_node("container" + str(i+1))
 			container.add_child(note)
 			container.get_child(container.get_child_count()-1).position.x = laneX(i)
@@ -515,7 +540,7 @@ func _process(delta) -> void:
 		var line : Line2D = Line2D.new()
 		line.set_meta("time", subLineArray.pop_front() + speed)
 		line.width = 1
-		line.default_color = Color(1, 1, 1, 0.25)
+		line.default_color = MEASURE_COLOR
 		line.points = [Vector2(0, 0), Vector2(PLAYFIELD_WIDTH, 0)]
 		$sublinecontainer.add_child(line)
 	# Move & Delete Auxiliary Lines
@@ -549,12 +574,14 @@ func autoscratch():
 	if (queue[7] and queue[7][0].isLongnote == false):
 		if (queue[7][0].hitTime <= currentSongPos):
 			queue[7][0].score = "PGreat"
+			hitFlash[7] = 1.0
 			addJudge(queue[7][0].score)
 			queue[7][0].free()
 			queue[7].pop_front()
 	elif (queue[7] and queue[7][0].isLongnote == true and queue[7][0].longnoteScore == ""):
 		if (queue[7][0].hitTime <= currentSongPos):
 			queue[7][0].score = "PGreat"
+			hitFlash[7] = 1.0
 			startLongnote(7)
 
 func autoplay():
@@ -564,12 +591,14 @@ func autoplay():
 		if (queue[i] and queue[i][0].isLongnote == false):
 			if (queue[i][0].hitTime <= currentSongPos):
 				queue[i][0].score = "PGreat"
+				hitFlash[i] = 1.0
 				addJudge(queue[i][0].score)
 				queue[i][0].free()
 				queue[i].pop_front()
 		elif (queue[i] and queue[i][0].isLongnote == true and queue[i][0].longnoteScore == ""):
 			if (queue[i][0].hitTime <= currentSongPos):
 				queue[i][0].score = "PGreat"
+				hitFlash[i] = 1.0
 				startLongnote(i)
 
 # Called when the i-th channel key is pressed, returns false if there was no note to hit
@@ -615,30 +644,16 @@ func addJudge(judgement : String, offset : float = 0.0) -> void:
 	updateGauge(judgement)
 	if judgement == "Bad" or judgement == "Poor":
 		comboBreak += 1
-		resetCombo(judgement)
+		combo = 0
 	else:
-		addCombo(judgement)
-	refreshHud()
+		combo += 1
+		comboMax = maxi(comboMax, combo)
+	showJudge(judgement)
 
-# Add a combo.
-func addCombo(score : String) -> void:
-	combo += 1
-	if combo > comboMax:
-		comboMax = combo
-	$combo.text = str(combo)
-	$anim.play(score)
-	await $anim.animation_finished
-	$anim.play("combo")
-	await $anim.animation_finished
-
-# Resets the combo.
-func resetCombo(judgement : String) -> void:
-	combo = 0
-	$combo.text = str(combo)
-	$anim.play(judgement)
-	await $anim.animation_finished
-	$anim.play("combo")
-	await $anim.animation_finished
+# Show a judgement over the lanes, with the combo after it
+func showJudge(judgement : String) -> void:
+	judgeShown = judgement
+	judgeMs = Time.get_ticks_msec()
 
 # Apply a judgement to the groove gauge, the HARD gauge fails at 0
 func updateGauge(judgement : String) -> void:
@@ -653,14 +668,10 @@ func updateGauge(judgement : String) -> void:
 func shownGauge() -> float:
 	return float(Judge.gaugeDisplay(opt("gauge_level"), gauge))
 
-# Score, max combo and gauge shown beside the playfield
+# Gauge shown under the keys, the numbers of the HUD are drawn with the overlay
 func refreshHud() -> void:
-	if not active:
-		return
-	scoreValue.text = "%06d" % exScore
-	comboValue.text = "%04d" % comboMax
 	gaugeBar.value = shownGauge()
-	percentLabel.text = "%d%%" % int(shownGauge())
+	overlay.queue_redraw()
 
 # A key pressed without a note to hit: an empty POOR if a note comes soon, it only hurts the gauge
 func emptyPress(i : int) -> void:
@@ -676,17 +687,16 @@ func emptyPress(i : int) -> void:
 		# Counted in the POORs and the miss count like in IIDX, but it does not break the combo
 		judgeCounts["Poor"] += 1
 		updateGauge("EmptyPoor")
-		$anim.play("Poor")
+		showJudge("Poor")
 
 # Show how early (-) or late (+) a note was hit, measured like the judgement from its y position
 func showTiming(n : Note) -> void:
 	if not Global.show_timing:
 		return
 	var ms : int = roundi((currentSongPos - n.hitTime) * 1000.0)
-	$score/timing.text = "%+dms" % ms
+	timingText = "%+dms" % ms
 	# Fast in blue, slow in red like in IIDX
-	$score/timing.add_theme_color_override("font_color", Color(0.3, 0.6, 1) if ms < 0 else Color(1, 0.3, 0.3))
-	$score/timing.show()
+	timingColor = Color(0.3, 0.6, 1) if ms < 0 else Color(1, 0.3, 0.3)
 
 # Play the keysound of the next note of a lane when its key is pressed without a note to hit
 func previewKeysound(i : int) -> void:
@@ -778,14 +788,14 @@ func dequeue() -> void:
 			if (queue[i][0].isLongnote == true):
 				# If you didn't press it in the first place, the press and the release are missed
 				if (not shouldPress[i]):
-					$score/timing.hide()
+					timingText = ""
 					queue[i][0].longnoteFailed()
 					queue[i].pop_front()
 					addJudge("Poor")
 					addJudge("Poor")
 			# If it's a general note
 			else:
-				$score/timing.hide()
+				timingText = ""
 				queue[i].pop_front()
 				addJudge("Poor")
 
@@ -834,7 +844,8 @@ func finish(failed : bool) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		get_tree().change_scene_to_file("res://scenes/netplay/result.tscn")
 	elif versus:
-		$score.hide()
+		judgeShown = ""
+		overlay.queue_redraw()
 		if failed:
 			$getready.text = "Failed"
 			$getready.add_theme_color_override("font_color", Color(1, 0.1, 0))
@@ -903,9 +914,11 @@ func buildLayout() -> void:
 	gaugeBar.texture_progress = load("res://assets/play/progress%s.png" % gauge_art)
 	# Without nine patch the texture is the minimum size of the bar, the bar is then stretched to the gauge width
 	gaugeBar.nine_patch_stretch = true
-	gaugeBar.position = Vector2(GAUGE_PERCENT_WIDTH + 6.0 if mirrored else 0.0, GAUGE_TOP)
-	gaugeBar.size = Vector2(GAUGE_WIDTH, GAUGE_HEIGHT)
+	gaugeBar.position = sideRect(GAUGE_RECT).position
+	gaugeBar.size = GAUGE_RECT.size
 	gaugeBar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# The screen of the gauge stays empty on the side of a player who is not playing
+	gaugeBar.visible = active
 	add_child(gaugeBar)
 	gaugeFlicker = TextureRect.new()
 	gaugeFlicker.texture = AtlasTexture.new()
@@ -915,49 +928,26 @@ func buildLayout() -> void:
 	gaugeFlicker.visible = false
 	gaugeBar.add_child(gaugeFlicker)
 	gaugeBar.move_child(gaugeFlicker, 0)
-	# Boxes
-	hudStyle = makeBox(Color(0.03, 0.05, 0.1, 0.85), Color(0.3, 0.6, 1.0, 0.7), 2, 12)
-	percentStyle = makeBox(Color(0.03, 0.05, 0.1, 0.85), Color(0.3, 0.6, 1.0, 0.7), 2, 8)
-	# Score and max combo, the 2P side reads from the right edge
-	hud = Node2D.new()
-	hud.name = "hud"
-	hud.visible = active
-	add_child(hud)
-	var title_align := HORIZONTAL_ALIGNMENT_RIGHT if mirrored else HORIZONTAL_ALIGNMENT_LEFT
-	var value_align := HORIZONTAL_ALIGNMENT_LEFT if mirrored else HORIZONTAL_ALIGNMENT_RIGHT
-	# Title and value share the box of their row: both are centred on its height, with the same margin inside the frame
-	var value_width := PLAYFIELD_WIDTH - 24.0
-	var combo_row := HUD_TOP + HUD_ROW_HEIGHT + HUD_ROW_GAP
-	makeLabel(hud, "scoreTitle", "SCORE", 12, TITLE_COLOR, Rect2(12, HUD_TOP, value_width, HUD_ROW_HEIGHT), title_align)
-	scoreValue = makeLabel(hud, "scoreValue", "000000", 26, VALUE_COLOR, Rect2(12, HUD_TOP, value_width, HUD_ROW_HEIGHT), value_align)
-	makeLabel(hud, "comboTitle", "MAXCOMBO", 12, TITLE_COLOR, Rect2(12, combo_row, value_width, HUD_ROW_HEIGHT), title_align)
-	comboValue = makeLabel(hud, "comboValue", "0000", 26, VALUE_COLOR, Rect2(12, combo_row, value_width, HUD_ROW_HEIGHT), value_align)
-	# Gauge percentage in its box beside the gauge
-	percentLabel = makeLabel(self, "percent", "0%", 16, VALUE_COLOR, percentRect(), HORIZONTAL_ALIGNMENT_CENTER)
-	percentLabel.visible = active
-	# Judgement, timing and combo over the lanes
-	var judgement := makeLabel(self, "score", "", 27, Color(0.88, 0, 0.27), Rect2(0, 350, PLAYFIELD_WIDTH, 37), HORIZONTAL_ALIGNMENT_CENTER)
-	var timing := makeLabel(judgement, "timing", "", 16, Color.WHITE, Rect2(-20, 36, PLAYFIELD_WIDTH + 40, 20), HORIZONTAL_ALIGNMENT_CENTER)
-	timing.visible = false
-	makeLabel(self, "combo", "0", 32, Color.WHITE, Rect2(0, 420, PLAYFIELD_WIDTH, 40), HORIZONTAL_ALIGNMENT_CENTER)
-	var get_ready := makeLabel(self, "getready", "Get Ready !", 27, Color(0.15, 0.5, 1), Rect2(0, 240, PLAYFIELD_WIDTH, 37), HORIZONTAL_ALIGNMENT_CENTER)
+	# Messages over the key lanes
+	var keys := Rect2(keysCenter() - 3.5 * KEY_WIDTH, 0, 7 * KEY_WIDTH, 0)
+	var get_ready := makeLabel(self, "getready", "Get Ready !", 24, Color.WHITE, Rect2(keys.position.x, 240, keys.size.x, 37), HORIZONTAL_ALIGNMENT_CENTER)
 	get_ready.visible = active
-	var autoplay_label := makeLabel(self, "isautoplay", "AUTO PLAY", 24, Color.WHITE, Rect2(0, 190, PLAYFIELD_WIDTH, 32), HORIZONTAL_ALIGNMENT_CENTER)
+	var autoplay_label := makeLabel(self, "isautoplay", "AUTO PLAY", 16, LABEL_COLOR, Rect2(keys.position.x, 16, keys.size.x, 24), HORIZONTAL_ALIGNMENT_CENTER)
 	autoplay_label.visible = false
 
-# Position of the percentage box, beside the gauge on the side of the player
-func percentRect() -> Rect2:
-	var left : float = 0.0 if mirrored else PLAYFIELD_WIDTH - GAUGE_PERCENT_WIDTH
-	return Rect2(left, GAUGE_TOP - 2, GAUGE_PERCENT_WIDTH, GAUGE_HEIGHT + 4)
+# Centre of the 7 key lanes, the judgement is shown there
+func keysCenter() -> float:
+	return (laneLeft[0] + laneLeft[6] + KEY_WIDTH) / 2.0
 
-# A rounded box for the panels of the playfield
-func makeBox(color : Color, border : Color, border_width : int, radius : int) -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = color
-	box.border_color = border
-	box.set_border_width_all(border_width)
-	box.set_corner_radius_all(radius)
-	return box
+# A rectangle of the 1P layout, mirrored on the 2P side
+func sideRect(rect : Rect2) -> Rect2:
+	if mirrored:
+		rect.position.x = PLAYFIELD_WIDTH - rect.end.x
+	return rect
+
+# An x coordinate of the 1P layout, mirrored on the 2P side
+func sideX(x : float) -> float:
+	return PLAYFIELD_WIDTH - x if mirrored else x
 
 # A label in the pixel font of the game, placed in the coordinates of its parent
 func makeLabel(parent : Node, node_name : String, text : String, font_size : int, color : Color, rect : Rect2, align : HorizontalAlignment) -> Label:
@@ -981,29 +971,130 @@ func makeLabel(parent : Node, node_name : String, text : String, font_size : int
 func _draw() -> void:
 	drawLanes()
 
-# Dark lanes, columns of light over the held keys, separators and the judge line
+# Black lanes with grey separators, beams over the held keys, and the metal rails on both sides
 func drawLanes() -> void:
-	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(PLAYFIELD_WIDTH, 0), Vector2(PLAYFIELD_WIDTH, PERFECT_YPOS), Vector2(0, PERFECT_YPOS)]),
-		PackedColorArray([LANE_TOP_COLOR, LANE_TOP_COLOR, LANE_BOTTOM_COLOR, LANE_BOTTOM_COLOR]))
+	draw_rect(Rect2(0, 0, PLAYFIELD_WIDTH, PERFECT_YPOS), LANE_COLOR)
+	# Gap between the turntable lane and the keys
+	var gapLeft : float = 7 * KEY_WIDTH if mirrored else SCRATCH_WIDTH
+	draw_rect(Rect2(gapLeft, 0, SCRATCH_GAP, PERFECT_YPOS), LANE_GAP_COLOR)
 	for i in range(8):
-		var light : float = hitFlash[i] * 0.5 + (0.45 if pressed[i] else 0.0)
-		if light > 0.0 and not disabled[i]:
-			var left : float = laneLeft[i]
-			var right : float = left + laneWidth[i]
+		var left : float = laneLeft[i]
+		var right : float = left + laneWidth[i]
+		if i < 7 and i % 2 == 1:
+			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), LANE_BLACK_KEY_COLOR)
+		if pressed[i] and not disabled[i]:
 			var top : float = PERFECT_YPOS - LANE_LIGHT_HEIGHT
-			var color : Color = LIGHT_PRESSED_COLOR if pressed[i] else LANE_LIGHT_COLOR
 			draw_polygon(PackedVector2Array([Vector2(left, top), Vector2(right, top), Vector2(right, PERFECT_YPOS), Vector2(left, PERFECT_YPOS)]),
-				PackedColorArray([Color(color, 0.0), Color(color, 0.0), Color(color, light), Color(color, light)]))
+				PackedColorArray([Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.65), Color(BEAM_COLOR, 0.65)]))
 		if disabled[i]:
-			draw_rect(Rect2(laneLeft[i], 0, laneWidth[i], KEYS_BOTTOM), Color(0, 0, 0, 0.6))
-		draw_line(Vector2(laneLeft[i], 0), Vector2(laneLeft[i], KEYS_BOTTOM), SEPARATOR_COLOR, 1.0)
-		draw_line(Vector2(laneLeft[i] + laneWidth[i], 0), Vector2(laneLeft[i] + laneWidth[i], KEYS_BOTTOM), SEPARATOR_COLOR, 1.0)
-	var flash : float = 0.0
-	for value in hitFlash:
-		flash = maxf(flash, value)
-	draw_rect(Rect2(0, PERFECT_YPOS - 4, PLAYFIELD_WIDTH, 8), Color(JUDGE_LINE_COLOR, 0.15 + 0.3 * flash))
-	draw_line(Vector2(0, PERFECT_YPOS), Vector2(PLAYFIELD_WIDTH, PERFECT_YPOS), JUDGE_LINE_COLOR, 2.0)
-	draw_rect(Rect2(-1, -1, PLAYFIELD_WIDTH + 2, KEYS_BOTTOM + 2), FRAME_COLOR, false, 2.0)
+			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), Color(0.12, 0.12, 0.14))
+		draw_line(Vector2(left, 0), Vector2(left, PERFECT_YPOS), SEPARATOR_COLOR, 1.0)
+		draw_line(Vector2(right, 0), Vector2(right, PERFECT_YPOS), SEPARATOR_COLOR, 1.0)
+	drawRail(-RAIL_WIDTH, not mirrored)
+	drawRail(PLAYFIELD_WIDTH, mirrored)
+
+# A rounded metal rail beside the lanes, the outer one has a slot where the song progress goes down
+func drawRail(left : float, outer : bool) -> void:
+	var mid : float = left + RAIL_WIDTH / 2.0
+	var right : float = left + RAIL_WIDTH
+	draw_polygon(PackedVector2Array([Vector2(left, 0), Vector2(mid, 0), Vector2(mid, PLATE_TOP), Vector2(left, PLATE_TOP)]),
+		PackedColorArray([METAL_DARK, METAL_LIGHT, METAL_LIGHT, METAL_DARK]))
+	draw_polygon(PackedVector2Array([Vector2(mid, 0), Vector2(right, 0), Vector2(right, PLATE_TOP), Vector2(mid, PLATE_TOP)]),
+		PackedColorArray([METAL_LIGHT, METAL_DARK, METAL_DARK, METAL_LIGHT]))
+	draw_line(Vector2(left, 0), Vector2(left, PLATE_TOP), METAL_EDGE, 1.0)
+	draw_line(Vector2(right, 0), Vector2(right, PLATE_TOP), METAL_EDGE, 1.0)
+	if not outer:
+		return
+	var slot := Rect2(mid - 2, 6, 4, PLATE_TOP - 18)
+	draw_rect(slot, SCREEN_COLOR)
+	if not active or endPos <= 0.0:
+		return
+	var marker : float = slot.position.y + (slot.size.y - 14) * clampf(currentSongPos / endPos, 0.0, 1.0)
+	draw_rect(Rect2(mid - 4, marker - 2, 8, 18), Color(PROGRESS_COLOR, 0.3))
+	draw_rect(Rect2(mid - 3, marker, 6, 14), PROGRESS_COLOR)
+
+# Metal plate under the lanes with the screens of the HUD
+func drawPlate(canvas : CanvasItem) -> void:
+	var points := PackedVector2Array()
+	for p in [Vector2(-RAIL_WIDTH, PLATE_TOP), Vector2(392, PLATE_TOP), Vector2(404, 512), Vector2(PLATE_RIGHT, 512),
+			Vector2(PLATE_RIGHT, 708), Vector2(476, 720), Vector2(-RAIL_WIDTH, 720)]:
+		points.append(Vector2(sideX(p.x), p.y))
+	drawMetal(canvas, points)
+	for rect in [PERCENT_SCREEN, GAUGE_SCREEN, SCORE_SCREEN, DIFFICULTY_SCREEN]:
+		drawScreen(canvas, sideRect(rect))
+	for screw in [Vector2(PLATE_RIGHT - 7, 519), Vector2(PLATE_RIGHT - 7, 627), Vector2(284, 627), Vector2(-6, 627)]:
+		drawScrew(canvas, Vector2(sideX(screw.x), screw.y))
+	# Blue lights under the bottom screens
+	for rect in [SCORE_SCREEN, DIFFICULTY_SCREEN]:
+		var screen : Rect2 = sideRect(rect)
+		canvas.draw_rect(Rect2(screen.get_center().x - 18, screen.end.y + 4, 36, 3), Color(SCREEN_GLOW, 0.9))
+
+# Gauge title, gauge percentage, score, max combo and difficulty, in the screens of the plate
+func drawHud(canvas : CanvasItem) -> void:
+	var outer : HorizontalAlignment = HORIZONTAL_ALIGNMENT_RIGHT if mirrored else HORIZONTAL_ALIGNMENT_LEFT
+	var gauge_screen : Rect2 = sideRect(GAUGE_SCREEN)
+	canvas.draw_string(FONT, Vector2(gauge_screen.position.x + 4, GAUGE_LABEL_Y), "P%d GROOVE GAUGE" % player, outer, gauge_screen.size.x - 8, 10, GAUGE_LABEL_COLOR)
+	var percent : Rect2 = sideRect(PERCENT_SCREEN)
+	drawNumber(canvas, Vector2(percent.end.x - 22, percent.position.y + 32), int(shownGauge()), 3, 19)
+	canvas.draw_string(FONT, Vector2(percent.end.x - 19, percent.position.y + 32), "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, NUMBER_COLOR)
+	# Score and max combo: the titles on the outer side, the numbers towards the middle of the screen
+	var score : Rect2 = sideRect(SCORE_SCREEN)
+	var rows : Array = [["SCORE", exScore, 5], ["MAXCOMBO", comboMax, 4]]
+	for row in range(2):
+		var baseline : float = score.position.y + 33 + row * 37
+		canvas.draw_string(FONT, Vector2(score.position.x + 10, baseline - 6), rows[row][0], outer, score.size.x - 20, 11, LABEL_COLOR)
+		var right : float = score.position.x + 10 + numberWidth(5, 24) if mirrored else score.end.x - 10
+		drawNumber(canvas, Vector2(right, baseline), rows[row][1], rows[row][2], 24)
+	# Difficulty in its color, with the level of the chart under it
+	var difficulty : Rect2 = sideRect(DIFFICULTY_SCREEN)
+	var difficulty_name : String = Loader.chart_difficulty.to_upper()
+	var size : int = 20
+	while size > 10 and FONT.get_string_size(difficulty_name, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > difficulty.size.x - 16:
+		size -= 1
+	canvas.draw_string(FONT, Vector2(difficulty.position.x, difficulty.position.y + 36), difficulty_name, HORIZONTAL_ALIGNMENT_CENTER, difficulty.size.x, size,
+		NetplayUI.difficulty_color(Loader.chart_difficulty))
+	var middle : float = difficulty.get_center().x
+	canvas.draw_string(FONT, Vector2(middle - 64, difficulty.position.y + 64), "LEVEL", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, LABEL_COLOR)
+	drawNumber(canvas, Vector2(middle + 54, difficulty.position.y + 66), songInfo.get("level", 0), 2, 20)
+
+# Burst of light on the judge line where a note was hit
+func drawBursts(canvas : CanvasItem) -> void:
+	for i in range(8):
+		var f : float = hitFlash[i]
+		if f <= 0.0:
+			continue
+		var center := Vector2(laneX(i), PERFECT_YPOS)
+		var radius : float = laneWidth[i] * (0.35 + 0.5 * (1.0 - f))
+		canvas.draw_circle(center, radius * 1.5, Color(BURST_COLOR, 0.15 * f))
+		canvas.draw_circle(center, radius, Color(BURST_COLOR, 0.35 * f))
+		canvas.draw_circle(center, radius * 0.45, Color(1, 1, 1, 0.75 * f))
+		canvas.draw_rect(Rect2(center.x - radius * 1.8, center.y - 1.5, radius * 3.6, 3), Color(1, 1, 1, 0.6 * f))
+
+# Last judgement and the combo on one line over the key lanes, like "GREAT 113" in IIDX, the timing under it
+func drawJudge(canvas : CanvasItem) -> void:
+	var elapsed : float = (Time.get_ticks_msec() - judgeMs) / 1000.0
+	if judgeShown == "" or elapsed > JUDGE_TIME:
+		return
+	var text : String = JUDGE_WORDS[judgeShown]
+	if combo > 0 and judgeShown != "Bad" and judgeShown != "Poor":
+		text += " %d" % combo
+	var color : Color
+	if judgeShown == "PGreat":
+		color = PGREAT_COLORS[(Time.get_ticks_msec() / PGREAT_CYCLE_MS) % PGREAT_COLORS.size()]
+	else:
+		color = JUDGE_COLORS[judgeShown]
+	var width : float = FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, JUDGE_SIZE).x
+	# Narrowed to fit the key lanes, and bigger for a moment when it appears
+	var zoom : float = minf(1.0, (7 * KEY_WIDTH - 8) / width) * (1.0 + 0.25 * maxf(0.0, 1.0 - elapsed / JUDGE_POP_TIME))
+	var origin := Vector2(-width / 2.0, JUDGE_SIZE / 2.0)
+	canvas.draw_set_transform(Vector2(keysCenter(), JUDGE_Y), 0.0, Vector2(zoom, zoom))
+	canvas.draw_string_outline(FONT, origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1, JUDGE_SIZE, 8, Color.BLACK)
+	canvas.draw_string(FONT, origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1, JUDGE_SIZE, color)
+	canvas.draw_set_transform(Vector2.ZERO)
+	if timingText != "":
+		var timing := Vector2(keysCenter() - 100, JUDGE_Y + JUDGE_SIZE / 2.0 + 22)
+		canvas.draw_string_outline(FONT, timing, timingText, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, 4, Color.BLACK)
+		canvas.draw_string(FONT, timing, timingText, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, timingColor)
 
 # Key frame and scratch frame of the game art, the held keys are drawn again in red over it
 func drawKeys(canvas : CanvasItem) -> void:
@@ -1040,17 +1131,70 @@ func flickerGauge() -> void:
 	gaugeFlicker.position = Vector2(from * ratio, 0)
 	gaugeFlicker.size = Vector2((to - from) * ratio, bar.size.y)
 
-# Percentage box and panels behind the score and the max combo
-func drawHud(canvas : CanvasItem) -> void:
-	canvas.draw_style_box(percentStyle, percentRect())
-	for row in range(2):
-		canvas.draw_style_box(hudStyle, Rect2(0, HUD_TOP + row * (HUD_ROW_HEIGHT + HUD_ROW_GAP), PLAYFIELD_WIDTH, HUD_ROW_HEIGHT))
+# A metal panel of the frame, lit from the top
+static func drawMetal(canvas : CanvasItem, points : PackedVector2Array) -> void:
+	var top : float = INF
+	var bottom : float = -INF
+	for p in points:
+		top = minf(top, p.y)
+		bottom = maxf(bottom, p.y)
+	var colors := PackedColorArray()
+	for p in points:
+		colors.append(METAL_LIGHT.lerp(METAL_DARK, (p.y - top) / maxf(bottom - top, 1.0)))
+	canvas.draw_polygon(points, colors)
+	var outline := points.duplicate()
+	outline.append(points[0])
+	canvas.draw_polyline(outline, METAL_EDGE, 2.0)
 
-# Drawn over the notes: the keys and the HUD
+# A dark screen sunk in the metal: shadow on its border, a thin blue glow inside, a light lip under it
+static func drawScreen(canvas : CanvasItem, rect : Rect2) -> void:
+	var points := chamfered(rect, 6)
+	canvas.draw_colored_polygon(points, SCREEN_COLOR)
+	var outline := points.duplicate()
+	outline.append(points[0])
+	canvas.draw_polyline(outline, METAL_EDGE, 2.0)
+	var glow := chamfered(rect.grow(-3), 4)
+	glow.append(glow[0])
+	canvas.draw_polyline(glow, SCREEN_GLOW, 1.0)
+	canvas.draw_line(Vector2(rect.position.x + 6, rect.end.y + 1.5), Vector2(rect.end.x - 6, rect.end.y + 1.5), Color(1, 1, 1, 0.5), 1.0)
+
+# Corners of a rectangle with its corners cut
+static func chamfered(rect : Rect2, cut : float) -> PackedVector2Array:
+	var a : Vector2 = rect.position
+	var b : Vector2 = rect.end
+	return PackedVector2Array([Vector2(a.x + cut, a.y), Vector2(b.x - cut, a.y), Vector2(b.x, a.y + cut), Vector2(b.x, b.y - cut),
+		Vector2(b.x - cut, b.y), Vector2(a.x + cut, b.y), Vector2(a.x, b.y - cut), Vector2(a.x, a.y + cut)])
+
+# A screw of the metal frame
+static func drawScrew(canvas : CanvasItem, at : Vector2) -> void:
+	canvas.draw_circle(at, 3.5, METAL_EDGE)
+	canvas.draw_circle(at, 2.5, METAL_LIGHT)
+	canvas.draw_line(at - Vector2(2, -2), at + Vector2(2, -2), METAL_DARK, 1.0)
+
+# Width of a number of digits drawn by drawNumber()
+static func numberWidth(digits : int, size : int) -> float:
+	return digits * NUMBER_FONT.get_string_size("8", HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+
+# Digits of a 7-segment display, right-aligned on right: the unlit segments behind, the leading zeros dimmed
+static func drawNumber(canvas : CanvasItem, right : Vector2, value : int, digits : int, size : int) -> void:
+	var text : String = ("%0" + str(digits) + "d") % value
+	var cell : float = numberWidth(1, size)
+	var leading : bool = true
+	for k in text.length():
+		var x : float = right.x - (text.length() - k) * cell
+		canvas.draw_string(NUMBER_FONT, Vector2(x, right.y), "8", HORIZONTAL_ALIGNMENT_LEFT, -1, size, NUMBER_GHOST)
+		leading = leading and text[k] == "0" and k < text.length() - 1
+		var width : float = NUMBER_FONT.get_string_size(text[k], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		canvas.draw_string(NUMBER_FONT, Vector2(x + cell - width, right.y), text[k], HORIZONTAL_ALIGNMENT_LEFT, -1, size, NUMBER_DIM if leading else NUMBER_COLOR)
+
+# Drawn over the notes: the plate, the keys, the HUD and the judgement
 class Overlay extends Node2D:
 	var field : Playfield
 
 	func _draw() -> void:
+		field.drawPlate(self)
 		field.drawKeys(self)
 		if field.active:
 			field.drawHud(self)
+		field.drawBursts(self)
+		field.drawJudge(self)

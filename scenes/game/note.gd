@@ -3,6 +3,11 @@ class_name Note
 
 # The following code is based from https://github.com/scenent/gd-rhythm
 
+const WHITE_NOTE : Color = Color(0.94, 0.95, 0.97)
+const BLUE_NOTE : Color = Color(0.3, 0.55, 1.0)
+const SCRATCH_NOTE : Color = Color(1.0, 0.2, 0.2)
+const AUTO_SCRATCH_NOTE : Color = Color(0.2, 1.0, 0.3)
+
 # Channel value
 var channel : int
 # The y-coordinate at which the note descends per frame
@@ -48,16 +53,14 @@ func setNote(_channel : int, _speed : float, _coordPerFrame : float, width : flo
 		$LN_EffectEnd.visible = true
 		# The body of a long note is a soft blue instead of plain grey
 		$LN_Effect.color = Color(0.3, 0.6, 1.0, 0.45)
-	# Color the note in blue if it's on the upper keys like in beatmania.
+	# White notes on the white keys, blue on the black keys and red on the scratch like in beatmania
+	var color : Color = WHITE_NOTE
 	if channel in [2, 4, 6]:
-		$bar.color = Color(0, 0, 1)
-		$LN_EffectEnd.color = Color(0, 0, 1)
-	# Color the note in red if in scratch lane
-	if channel == 8:
-		if !autoScratch:
-			$bar.color = Color(1, 0, 0)
-		else:
-			$bar.color = Color(0, 1, 0)
+		color = BLUE_NOTE
+	elif channel == 8:
+		color = AUTO_SCRATCH_NOTE if autoScratch else SCRATCH_NOTE
+	$bar.color = color
+	$LN_EffectEnd.color = color
 
 func longnoteStart():
 	longnoteScore = score

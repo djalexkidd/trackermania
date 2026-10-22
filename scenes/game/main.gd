@@ -9,11 +9,17 @@ const RESULT_DELAY : float = 3.0
 const CENTER_PLATE : PackedVector2Array = [Vector2(496, 652), Vector2(508, 640), Vector2(772, 640), Vector2(784, 652), Vector2(784, 720), Vector2(496, 720)]
 const TITLE_SCREEN : Rect2 = Rect2(512, 647, 256, 30)
 const BPM_SCREEN : Rect2 = Rect2(572, 683, 136, 32)
+# Time the effector name replaces the title after it changes
+const EFFECTOR_SHOW_TIME : float = 1.5
+const EFFECTOR_COLOR : Color = Color(1.0, 0.75, 0.2)
 
 var playersDone : int = 0
 # Playfields that play, the first one gives the title and the BPM
 var playing : Array[Playfield] = []
 var netplay : bool = false
+var songTitle : String = ""
+@onready var titleColor : Color = $Title.get_theme_color("font_color")
+var effectorTimer : SceneTreeTimer
 
 func _ready() -> void:
 	# Netplay plays alone on this machine, the other side shows the live ranking
@@ -37,10 +43,27 @@ func _ready() -> void:
 	for field in playing:
 		field.start()
 	if not playing.is_empty():
-		$Title.text = playing[0].songInfo.get("title", "")
+		songTitle = playing[0].songInfo.get("title", "")
+		$Title.text = songTitle
 
 func _process(_delta : float) -> void:
 	queue_redraw()
+	# The effector can be changed while playing, by either player
+	if Effector.update_button(playing.map(func(field : Playfield) -> String: return field.prefix + "effect")):
+		showEffector()
+
+# The effector name takes the place of the title for a moment
+func showEffector() -> void:
+	$Title.text = Effector.current_name()
+	$Title.add_theme_color_override("font_color", EFFECTOR_COLOR)
+	effectorTimer = get_tree().create_timer(EFFECTOR_SHOW_TIME)
+	var timer : SceneTreeTimer = effectorTimer
+	await timer.timeout
+	# A newer change keeps its own timer
+	if timer != effectorTimer:
+		return
+	$Title.text = songTitle
+	$Title.add_theme_color_override("font_color", titleColor)
 
 func _draw() -> void:
 	Playfield.drawMetal(self, CENTER_PLATE)

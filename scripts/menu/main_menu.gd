@@ -78,6 +78,8 @@ var cancel_sound: AudioStreamPlayer
 var bgm: AudioStreamPlayer
 
 func _ready() -> void:
+	# The effector chosen in the music select lasts until the main menu
+	Effector.set_effect(0)
 	# Back to the default: player 1 only, player 2 has to press start in the music select
 	Global.p1_joined = true
 	Global.p2_joined = false

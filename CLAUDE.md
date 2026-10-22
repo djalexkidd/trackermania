@@ -10,10 +10,11 @@ Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues d
 
 ```
 project.godot            Config : autoloads, InputMap (p1_*/p2_*), viewport 1280x720
-default_bus_layout.tres  Bus Master avec Chorus / Phaser / Reverb (effector de la sélection)
+default_bus_layout.tres  Bus Master vide : les effets sont ajoutés par Effector.gd
 assets/                  Images, polices, sons (bgm de la sélection, frames, groove gauge, shader), shift_jis.tres (table Shift-JIS)
 scripts/
   Global.gd              Autoload : options et résultats des 2 joueurs, touches remappées, réglages système (user://settings.cfg)
+  Effector.gd            Autoload : effector (presets d'effets sur le bus Master), voir plus bas
   Loader.gd              Autoload : chart choisie (file_path, chart_difficulty), scan de fichiers, cache JSON de la sélection
   QuaChart.gd            Lecture d'une beatmap Quaver .qua (class_name QuaChart)
   netplay/               Netplay.gd (autoload réseau), NetplayUI.gd (style des écrans), lobby.gd, scoreboard.gd, netplay_result.gd
@@ -83,6 +84,14 @@ Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est ch
 - .qua : l'audio depuis `SongPreviewTime` (`QuaChart.previewTime`), sinon depuis le tiers de la musique.
 - .mod : un `ModPlayer` sans chart (tout en BGM, bus `ModLeftPreview`/`ModRightPreview`), lancé par `play_from()` à la mesure la plus proche du tiers.
 - BMS : le fichier `#PREVIEW` ou `preview_music` (`BmsChart.previewFile`) s'il existe, sinon un `BmsPlayer` comme pour un module.
+
+### Effector (`Effector.gd`)
+Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l'autre joueur) : passe au preset suivant de `NAMES` (EFFECTOR OFF, CHORUS, PHASER, FLANGER, REVERB, ECHO, STADIUM, COMPRESSOR, FILTER SWEEP, WOBBLE, RADIO, UNDERWATER, BITCRUSH, MEGA BASS, GARGLE, 8D AUDIO, CHIPMUNK, MONSTER, DRUNK). La maintenir `OFF_HOLD_MS` (1 s) remet EFFECTOR OFF : `Effector.update_button()`, appelée à chaque image avec les actions EFFECT des joueurs, gère l'appui et le maintien.
+- `set_effect()` retire les effets du preset précédent (en fin de bus Master), ajoute ceux de `build()` puis un `AudioEffectHardLimiter`. Tout passe par Master : aperçu, keysounds et BGM.
+- Les presets animés (filtre, gargle, panoramique, hauteur) sont mis à jour dans `_process`, sur une horloge lancée au choix du preset. Le gain ne change qu'à chaque image : GARGLE (triangle sur le volume, comme le Gargle DirectX d'IIDX) tourne à `GARGLE_HZ` = 12 Hz au lieu de 20.
+- BITCRUSH réduit seulement le nombre de bits (`AudioEffectDistortion` LOFI) : Godot n'a pas de réduction de fréquence d'échantillonnage.
+- Les pitch shifters utilisent une FFT de 512 (`PITCH_FFT`) : environ 8 ms de retard, une plus grande décalerait le son.
+- Le preset survit aux changements de scène ; le menu principal le coupe. En jeu, son nom remplace le titre de la plaque centrale pendant `EFFECTOR_SHOW_TIME`.
 
 ### Menu principal (`main_menu.gd`)
 MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).

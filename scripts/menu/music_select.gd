@@ -3,12 +3,6 @@ extends Control
 const player_colors = [Color(0.305, 0.305, 0.305, 1.0), Color(0.0, 0.686, 1.0), Color(1.0, 0.157, 0.0)]
 const ALPHABET_CATEGORIES = ["ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWXYZ", "OTHERS"]
 
-# Audio stream player node to apply effects
-@onready var audio_bus = AudioServer.get_bus_index("Master")  # Replace with your bus name
-
-# To track which effect is currently active (0 = off, 1 = chorus, 2 = phaser, 3 = reverb)
-var effect_state = 0
-
 # Opened from the netplay lobby: only P1 plays, the chosen song goes to the room
 var netplay = false
 var songs_loading = true
@@ -24,10 +18,8 @@ var options_x := {}
 var options_tweens := {}
 
 func _ready():
-	# Ensure all effects are initially disabled
-	AudioServer.set_bus_effect_enabled(audio_bus, 0, false)  # Chorus
-	AudioServer.set_bus_effect_enabled(audio_bus, 1, false)  # Phaser
-	AudioServer.set_bus_effect_enabled(audio_bus, 2, false)  # Reverb
+	# The effector stays as it was chosen, also from the game
+	show_effector()
 	
 	if Global.p1_name != "":
 		$BottomBar/P1ColorRect/P1Label.hide()
@@ -212,11 +204,9 @@ func add_category_lamps() -> void:
 func _process(delta):
 	if songs_loading:
 		return
-	# Check if the effector button is pressed (shared by both players)
-	for player in joined_players():
-		if Input.is_action_just_pressed("p%d_effect" % player):
-			_cycle_audio_effects()
-			break
+	# Check if the effector button is pressed (shared by both players), held it turns the effector off
+	if Effector.update_button(joined_players().map(func(player): return "p%d_effect" % player)):
+		show_effector()
 	
 	# START joins, then hold it for the game options. META leaves.
 	for player in [1, 2]:
@@ -350,31 +340,8 @@ func options_tween(player: int) -> Tween:
 	options_tweens[player] = create_tween()
 	return options_tweens[player]
 
-func _cycle_audio_effects():
-	# Disable all effects before cycling to the next one
-	AudioServer.set_bus_effect_enabled(audio_bus, 0, false)  # Disable Chorus
-	AudioServer.set_bus_effect_enabled(audio_bus, 1, false)  # Disable Phaser
-	AudioServer.set_bus_effect_enabled(audio_bus, 2, false)  # Disable Reverb
-	
-	# Cycle through the effects: off -> chorus -> phaser -> reverb -> off (loop)
-	effect_state = (effect_state + 1) % 4  # Cycle through 0 to 3
-	
-	match effect_state:
-		1:
-			# Enable Chorus
-			AudioServer.set_bus_effect_enabled(audio_bus, 0, true)
-			$BottomBar/Label.text = "chorus"
-		2:
-			# Enable Phaser
-			AudioServer.set_bus_effect_enabled(audio_bus, 1, true)
-			$BottomBar/Label.text = "phaser"
-		3:
-			# Enable Reverb
-			AudioServer.set_bus_effect_enabled(audio_bus, 2, true)
-			$BottomBar/Label.text = "reverb"
-		_:
-			# All effects are off (default state)
-			$BottomBar/Label.text = "effector off"
+func show_effector():
+	$BottomBar/Label.text = Effector.current_name().to_lower()
 
 # Time is up: the song under the cursor, or a random song from a category
 func _on_arcade_timeout() -> void:

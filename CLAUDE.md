@@ -213,7 +213,7 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 - **Lanes** (`assignLanes`) :
   - Chaque instrument (sample, pas le canal) a une lane de base ; plus la note est aiguë, plus elle va à droite.
   - Si la lane voulue est occupée, la note va sur la plus proche libre : d'abord avec un écart confortable de 0.25 s, ce qui transforme les flux rapides en trilles, puis avec l'écart minimum de 0.1 s.
-  - Le sample le moins fréquent (au moins 4 notes) va sur le scratch, en Hyper et Another.
+  - Le sample le moins fréquent (au moins 4 notes) va sur le scratch, dans les 3 difficultés.
 - **Une note sans place reste dans la BGM** : rien n'est jamais perdu à l'écoute.
 - Le niveau vaut la densité de notes × `LEVEL_PER_NPS`, borné entre 1 et 8. Tous les réglages sont des constantes en tête du fichier.
 

@@ -6,7 +6,7 @@ class_name ModChart
 
 # max_nps: note density limit, max_chord: notes at the same time, scratch: one sound goes to the scratch lane
 const DIFFICULTIES : Dictionary = {
-	"Normal": {"max_nps": 4.0, "max_chord": 2, "scratch": false},
+	"Normal": {"max_nps": 4.0, "max_chord": 2, "scratch": true},
 	"Hyper": {"max_nps": 8.0, "max_chord": 3, "scratch": true},
 	"Another": {"max_nps": INF, "max_chord": 8, "scratch": true},
 }

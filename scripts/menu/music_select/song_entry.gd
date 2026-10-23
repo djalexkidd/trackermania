@@ -114,6 +114,9 @@ func _on_pressed() -> void:
 			Netplay.suggest_song(song_name, difficulty_name)
 		get_tree().change_scene_to_file("res://scenes/netplay/lobby.tscn")
 	else:
+		# TRAINING keeps the difficulties of the song, the panel changes them
+		if Training.active:
+			Training.choose_song(all_charts, path)
 		# One scene for 1P, 2P and versus, main.gd picks the playing sides from Global
 		get_tree().change_scene_to_file("res://scenes/game/main.tscn")
 

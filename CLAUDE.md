@@ -21,6 +21,8 @@ scripts/
   Scores.gd              Meilleurs scores en solo (user://scores.cfg), lampes de clear et rangs (class_name Scores)
   arcade/                Mode ARCADE (voir plus bas) : Arcade.gd (class_name Arcade, état statique et classement),
                          arcade_timer.gd (TIME REMAIN), name_entry.gd, ranking.gd
+  training/              Mode TRAINING (voir plus bas) : Training.gd (class_name Training, état statique, bus ralenti),
+                         training_panel.gd (panneau TRAINING au milieu de la scène de jeu)
   mod/                   Modules Amiga keysoundés (voir plus bas)
   bms/                   BMS et bmson keysoundés (voir plus bas)
     BmsChart.gd          Lecture d'un BMS/bmson -> événements sonores, notes, mesures
@@ -112,7 +114,7 @@ Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l
 
 ### Menu principal (`main_menu.gd`)
 MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).
-- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
+- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), TRAINING (sélection avec `"training": true`, qui appelle `Training.start()`), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
 - Platine (ou flèches, molette) : choisir, en boucle ; touche blanche : valider ; touche noire deux fois : quitter (rien en web).
 
 ### Mode ARCADE (`scripts/arcade/`)
@@ -123,6 +125,15 @@ Comme sur IIDX : 3 stages (`Arcade.STAGES`), puis NAME ENTRY et classement. L'é
 - Fin d'une partie solo : `playfield.finish()` appelle `Arcade.add_stage()` (musique, EX-Score, EX max, lampe ; FAILED si la lampe vaut 0, donc aussi une jauge NORMAL/EASY sous 80 % ou un abandon). L'écran de résultats titre « 1ST STAGE RESULT »… puis, à la sortie : GAME OVER (3 s, retour au menu principal) après un stage échoué, NAME ENTRY après le dernier, sinon la sélection.
 - NAME ENTRY (`name_entry.gd`, `scenes/arcade/name_entry.tscn`) : 6 lettres pré-remplies avec le DJ NAME, platine : lettre, touche blanche : suivante (valide sur la dernière), touche noire : précédente, START : valide ; clavier aussi. Timer de 30 s (`NAME_ENTRY_TIME`) qui valide. Affiche les 3 stages et le total EX avec son DJ LEVEL.
 - Classement (`ranking.gd`) : `user://arcade_ranking.cfg`, liste `entries` triée par total EX (`name`, `ex_score`, `rate`, `songs`, `date`, 100 au plus). Les 10 premiers, la nouvelle partie clignote (en 11e ligne si elle est plus bas). Une touche ou 20 s ramène au menu principal.
+
+### Mode TRAINING (`scripts/training/`)
+Comme sur IIDX : on rejoue une section d'une musique (1re et dernière mesure), à vitesse normale ou plus lente. Rien n'est enregistré. L'état est statique dans `Training` (`active`, `charts` (toutes les difficultés des deux styles), `player` (celui qui a choisi la musique), `first_measure`, `last_measure` (0 = fin), `speed_index`, `repeat`), arrêté par le menu principal.
+- Sélection : comme FREE, mais l'autre côté ne peut pas rejoindre (le DP reste possible). `song_entry._on_pressed()` appelle `Training.choose_song()` avec `all_charts` (une autre musique repart de toute sa longueur).
+- `main.gd` : après DECIDE (sauté quand `Training.reload`, la scène rouverte pour une autre difficulté), `playfield.start()` s'arrête dans `prepareTraining()` (chart entière dans `trainingNotes`/`trainingKeysounds`, mesures dans `trainingMeasures`, une toutes les `TRAINING_MEASURE` s sans mesures) et `setupTraining()` pose le panneau (avec ses `trainingScorers()` : les deux terrains en BATTLE, le 1P en DP) entre les terrains (`TRAINING_RECT`, au-dessus des plaques).
+- Panneau (`training_panel.gd`, dessiné dans `_draw()`) : SELECT MODE (`Training.MODES` : SINGLE PLAY, DOUBLE PLAY, BATTLE ; `Training.set_mode()` règle `p1_joined`/`p2_joined`, `double_play` du joueur, `Global.battle` et la chart du style (`mode_chart()`, même difficulté sinon même place), un mode sans chart dans son style est sauté, puis la scène est rouverte), OPTION, 1ST MEASURE, LAST MEASURE (l'une pousse l'autre), PLAY SPEED (`Training.SPEEDS`, NORMAL à x0.5), REPEAT, GAME START, puis le score de la dernière section et une ligne EXPLANATION. Platine : ligne ; touches blanches : valeur suivante, noires : précédente (répétées si maintenues) ; START : jouer ; META : retour à la sélection ; E3 : difficulté suivante du style joué (scène rouverte). Clavier : flèches, Entrée, Échap. Pendant ce temps les terrains montrent la chart immobile à la mesure choisie (`previewTime`, `drawPreview()`), avec le numéro des mesures à côté des lanes.
+- `playTraining()` : `resetPlay()` puis `playSection(début, fin, horloge, vitesse)` sur chaque terrain ; l'horloge part `speed` + `TRAINING_LEAD` avant la 1re mesure. `songPosition()` suit `clockOffset` et `playRate` ; `ModPlayer`/`BmsPlayer.play_from(t, vitesse)` ralentissent l'horloge et les voix, `stop()` les coupe. Seules les notes de la section sont réservées (`owners`), celles d'avant jouent en BGM.
+- Ralenti : la musique passe par le bus `Training` (`Training.bus()`, vers Master), dont l'`AudioEffectPitchShift` (FFT 1024) garde la hauteur ; son retard (`Training.audio_delay()`) est retiré de l'horloge.
+- Fin (`endPos` = fin de la section + `TRAINING_END_BIAS`) ou META : `finish()` émet `finished` sans rien enregistrer, la jauge ne fait jamais échouer. `trainingFinished()` attend tous les scorers (META d'un côté arrête les deux en BATTLE), puis `section_over()` rend le panneau avec un résultat par joueur ; le panneau ignore l'image de fin (`resume_frame`), sinon le même META le ferait quitter vers la sélection ; avec REPEAT (et sans META) la section reprend après `TRAINING_REPEAT_DELAY`. Pas de PACEMAKER.
 
 ### Menu OPTIONS (`options_menu.gd`)
 Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme les menus IIDX console : roue des catégories à gauche, titre et réglages à droite, aide en bas. Thème sombre de la sélection : grille animée (`Background`, `show_behind_parent`) et bandeau `music_select_info.png` en haut, dont la case OPTIONS/START est recouverte par DEFAULT/EFFECT.

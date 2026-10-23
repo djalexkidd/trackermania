@@ -82,6 +82,8 @@ func play(song_title: String, song_artist: String, difficulty_name: String, char
 	level = chart_level
 	if Arcade.active:
 		tag = Arcade.current_stage_name()
+	elif Training.active:
+		tag = "TRAINING"
 	elif Netplay.in_round():
 		tag = "NETPLAY"
 	else:

@@ -31,6 +31,9 @@ var triggered : PackedByteArray = []
 var nextNote : int = 0
 var gain : float = 1.0
 var startUsec : int = 0
+# Song time at startUsec, and its speed (TRAINING plays slower, the voices are slowed as much)
+var startTime : float = 0.0
+var rate : float = 1.0
 
 # The voices go to the panning buses sending to the bus send (the music select preview has its own)
 func _init(_module : ModModule, send : String = "Master") -> void:
@@ -82,22 +85,28 @@ func claim(keysounds : Array) -> void:
 
 func play() -> void:
 	startUsec = Time.get_ticks_usec()
+	startTime = 0.0
 	playing = true
 
-# Start again at a time of the module, the earlier notes are skipped (music select preview)
-func play_from(t : float) -> void:
-	for c in voices.size():
-		voices[c].stop()
-		voiceNote[c] = -1
+# Start again at a time of the module, the earlier notes are skipped (music select preview, TRAINING at a slower rate)
+func play_from(t : float, song_rate : float = 1.0) -> void:
+	stop()
 	triggered.fill(0)
 	nextNote = 0
 	while nextNote < module.notes.size() and module.notes[nextNote].time < t:
 		nextNote += 1
 	play()
-	startUsec -= int((t + ModChart.LEAD_IN) * 1000000.0)
+	startTime = t + ModChart.LEAD_IN
+	rate = song_rate
+
+func stop() -> void:
+	playing = false
+	for c in voices.size():
+		voices[c].stop()
+		voiceNote[c] = -1
 
 func get_playback_position() -> float:
-	return (Time.get_ticks_usec() - startUsec) / 1000000.0 if playing else 0.0
+	return startTime + (Time.get_ticks_usec() - startUsec) / 1000000.0 * rate if playing else 0.0
 
 # Time in the module (without the lead-in)
 func songTime() -> float:
@@ -144,7 +153,7 @@ func trigger(i : int, t : float, on_time : bool) -> void:
 	updateVoice(c, t, false)
 	var voice : AudioStreamPlayer = voices[c]
 	voice.stream = streams[note.sample]
-	var late : float = maxf(t - note.time, 0.0) * voice.pitch_scale if on_time else 0.0
+	var late : float = maxf(t - note.time, 0.0) * voice.pitch_scale / rate if on_time else 0.0
 	voice.play(note.offset / float(MIX_RATE) + late)
 
 # Apply the pitch and volume automation of the note played by a voice
@@ -165,6 +174,6 @@ func updateVoice(c : int, t : float, retrigger : bool) -> void:
 	voiceEnv[c] = e
 	var period : float = env[current + 1]
 	if period > 0:
-		voices[c].pitch_scale = ModModule.AMIGA_CLOCK / period / MIX_RATE * finetunes[note.sample]
+		voices[c].pitch_scale = ModModule.AMIGA_CLOCK / period / MIX_RATE * finetunes[note.sample] * rate
 	var volume : float = env[current + 2] / 64.0 * gain
 	voices[c].volume_db = linear_to_db(volume) if volume > 0.0 else -80.0

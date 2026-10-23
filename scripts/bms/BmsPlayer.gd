@@ -27,6 +27,9 @@ var triggered : PackedByteArray = []
 # Next event to check in time order
 var nextNote : int = 0
 var startUsec : int = 0
+# Song time at startUsec, and its speed (TRAINING plays slower, the voices are slowed as much)
+var startTime : float = 0.0
+var rate : float = 1.0
 
 func _init(_chart : BmsChart, dir : String, bus : String = "Master") -> void:
 	chart = _chart
@@ -105,23 +108,32 @@ func claim(keysounds : Array) -> void:
 
 func play() -> void:
 	startUsec = Time.get_ticks_usec()
+	startTime = 0.0
 	playing = true
 
-# Start again at a time of the song, the earlier sounds are skipped (music select preview)
-func play_from(t : float) -> void:
-	for s in voices.size():
-		if voices[s] != null:
-			voices[s].stop()
-	voiceNote.fill(-1)
+# Start again at a time of the song, the earlier sounds are skipped (music select preview, TRAINING at a slower rate)
+func play_from(t : float, song_rate : float = 1.0) -> void:
+	stop()
 	triggered.fill(0)
 	nextNote = 0
 	while nextNote < chart.keysounds.size() and chart.keysounds[nextNote].time < t:
 		nextNote += 1
 	play()
-	startUsec -= int((t + BmsChart.LEAD_IN) * 1000000.0)
+	startTime = t + BmsChart.LEAD_IN
+	rate = song_rate
+	for voice in voices:
+		if voice != null:
+			voice.pitch_scale = rate
+
+func stop() -> void:
+	playing = false
+	for voice in voices:
+		if voice != null:
+			voice.stop()
+	voiceNote.fill(-1)
 
 func get_playback_position() -> float:
-	return (Time.get_ticks_usec() - startUsec) / 1000000.0 if playing else 0.0
+	return startTime + (Time.get_ticks_usec() - startUsec) / 1000000.0 * rate if playing else 0.0
 
 # Time in the song (without the lead-in)
 func songTime() -> float:

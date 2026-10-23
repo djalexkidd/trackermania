@@ -79,6 +79,12 @@ const GREEN_COLOR : Color = Color(0.3, 1, 0.4)
 const ENDPOS_BIAS : float = +2.0
 # Auxiliary line spacing when the chart has no measures (sec)
 const SUBLINE_LENGTH : float = 1.0
+# TRAINING: a section starts this long before its first note, after the falling time (song seconds),
+# and ends this long after its last measure or note. Without measures, one every TRAINING_MEASURE seconds
+const TRAINING_LEAD : float = 1.0
+const TRAINING_END_BIAS : float = 0.5
+const TRAINING_MEASURE : float = 2.0
+const TRAINING_MEASURE_COLOR : Color = Color(1, 0.55, 0.1)
 const FONT : Font = preload("res://assets/font/04B_20__.TTF")
 const NUMBER_FONT : Font = preload("res://assets/font/digitalix.ttf")
 const LANE_COLOR : Color = Color(0, 0, 0)
@@ -181,6 +187,16 @@ var subLineArray   : Array = []
 # Time when the chart started, the music of a .qua starts after the lead-in
 var startUsec      : int     = 0
 var musicStarted   : bool    = false
+# Song time at startUsec and speed of the song, a TRAINING section starts in the song and can be slower
+var clockOffset    : float   = 0.0
+var playRate       : float   = 1.0
+# TRAINING: the whole chart (lanes, with their keysounds) and its measures, a section is taken from them,
+# the chart shown still at a time while the section is chosen (-1 when not shown), and how the last section ended
+var trainingNotes      : Array = []
+var trainingKeysounds  : Array = []
+var trainingMeasures   : Array = []
+var previewTime        : float = -1.0
+var gaveUp             : bool  = false
 # DECIDE screen of main.gd, the game waits until it is gone
 var decide         : Control = null
 # Current audio playback time (seconds)
@@ -349,6 +365,9 @@ func start() -> void:
 	refreshHud()
 
 	set_process(false)
+	if Training.active:
+		prepareTraining()
+		return
 	if AUTOPLAY:
 		$isautoplay.visible = true
 	var noteStart : float = INF
@@ -454,6 +473,9 @@ func loadQuaChart() -> bool:
 	var audio_path : String = Loader.file_path.get_base_dir().path_join(chart.audioFile)
 	# In local versus both playfields share the same audio player, only load it once
 	if get_node(audio).stream == null:
+		# TRAINING: the bus keeps the pitch of the slowed song
+		if Training.active:
+			get_node(audio).bus = Training.bus()
 		match chart.audioFile.get_extension().to_lower():
 			"mp3":
 				get_node(audio).stream = load_mp3(audio_path)
@@ -471,7 +493,7 @@ func loadModule() -> bool:
 			OS.alert("Invalid Amiga module: " + Loader.file_path)
 			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
 			return false
-		keysoundPlayer = ModPlayer.new(module)
+		keysoundPlayer = ModPlayer.new(module, Training.bus() if Training.active else "Master")
 		keysoundPlayer.name = "ModPlayer"
 		get_node(audio).add_child(keysoundPlayer)
 	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"), partner != null)
@@ -502,7 +524,7 @@ func loadBms() -> bool:
 			OS.alert("Invalid BMS chart: " + Loader.file_path)
 			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
 			return false
-		keysoundPlayer = BmsPlayer.new(chart, Loader.file_path.get_base_dir())
+		keysoundPlayer = BmsPlayer.new(chart, Loader.file_path.get_base_dir(), Training.bus() if Training.active else "Master")
 		keysoundPlayer.name = "BmsPlayer"
 		get_node(audio).add_child(keysoundPlayer)
 	# The notes are changed while playing, each playfield has its copy
@@ -541,17 +563,18 @@ func songPosition() -> float:
 	if keysoundPlayer:
 		return keysoundPlayer.get_playback_position()
 	var player : AudioStreamPlayer = get_node(audio)
-	var clock : float = (Time.get_ticks_usec() - startUsec) / 1000000.0
+	var clock : float = clockOffset + (Time.get_ticks_usec() - startUsec) / 1000000.0 * playRate
 	# The music starts after the lead-in, the playfields share it in versus
 	if not musicStarted and clock >= QuaChart.LEAD_IN:
 		musicStarted = true
 		if not player.playing:
+			player.pitch_scale = playRate
 			player.play(clock - QuaChart.LEAD_IN)
 	# Before and after the music, the clock goes on alone
 	if not player.playing:
 		return clock
 	# The playback position only moves at each audio mix, the time since then makes it smooth
-	return QuaChart.LEAD_IN + player.get_playback_position() + AudioServer.get_time_since_last_mix()
+	return QuaChart.LEAD_IN + player.get_playback_position() + AudioServer.get_time_since_last_mix() * playRate
 
 func _process(delta) -> void:
 	queue_redraw()
@@ -562,7 +585,7 @@ func _process(delta) -> void:
 	# Get current audio playback time
 	currentSongPos = songPosition()
 	# The notes come later when the sound is late (output latency and user offset)
-	currentSongPos -= AudioServer.get_output_latency() + Global.audio_offset / 1000.0
+	currentSongPos -= (AudioServer.get_output_latency() + Global.audio_offset / 1000.0 + Training.audio_delay()) * playRate
 	# Confirm game end
 	if (currentSongPos >= endPos):
 		finish(false)
@@ -734,7 +757,7 @@ func updateGauge(judgement : String) -> void:
 	gauge = Judge.gaugeChange(opt("gauge_level"), judgement, gauge, gaugeRecovery)
 	refreshHud()
 	gaugeHistory.append(Vector2(clampf(currentSongPos / endPos, 0.0, 1.0), shownGauge()))
-	if gauge <= 0.0:
+	if gauge <= 0.0 and not Training.active:
 		# Deferred because the note queues are still being iterated
 		finish.call_deferred(true)
 
@@ -956,6 +979,12 @@ func finish(failed : bool) -> void:
 	stop()
 	if partner:
 		partner.stop()
+	# TRAINING: back to the panel of main.gd, nothing is saved
+	if Training.active:
+		gaveUp = failed
+		judgeShown = ""
+		finished.emit()
+		return
 	var double : bool = partner != null
 	Global.set_player_var(player, "failed", failed)
 	Global.set_player_var(player, "ex_score", exScore)
@@ -996,6 +1025,132 @@ func finish(failed : bool) -> void:
 			Arcade.add_stage(player)
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		get_tree().change_scene_to_file("res://scenes/result/result.tscn")
+
+# TRAINING: keep the whole chart, the sections are taken from it
+func prepareTraining() -> void:
+	trainingNotes = noteArray
+	trainingKeysounds = keysoundArray
+	noteArray = [[], [], [], [], [], [], [], []]
+	keysoundArray = [[], [], [], [], [], [], [], []]
+	trainingMeasures = measures.duplicate()
+	if trainingMeasures.is_empty():
+		var t : float = 0.0
+		while t < getEndPosAll(trainingNotes):
+			trainingMeasures.append(t)
+			t += TRAINING_MEASURE
+	$getready.hide()
+
+# End of the last note of the lanes
+func getEndPosAll(lanes : Array) -> float:
+	var result : float = 0.0
+	for lane in lanes:
+		result = maxf(result, getEndPos(lane, 0.0))
+	return result
+
+# Song time of the start of a measure (from 1), the end of the chart after the last one
+func measureTime(measure : int) -> float:
+	if measure <= trainingMeasures.size():
+		return trainingMeasures[measure - 1]
+	return maxf(getEndPosAll(trainingNotes), trainingMeasures[-1] if trainingMeasures else 0.0)
+
+# Back to the start of a play: no note, no score, the gauge from its start (the 1P side counts both sides of a double play)
+func resetPlay() -> void:
+	stop()
+	exScore = 0
+	combo = 0
+	comboMax = 0
+	for judgement in judgeCounts:
+		judgeCounts[judgement] = 0
+	fastCount = 0
+	slowCount = 0
+	comboBreak = 0
+	gaugeHistory = PackedVector2Array()
+	noteCount = 0
+	judgedNotes = 0
+	shouldPress.fill(false)
+	shouldPressEnd.fill(-1.0)
+	lastKeysound.fill(-1)
+	judgeShown = ""
+	timingText = ""
+	gauge = Judge.gaugeStart(opt("gauge_level"))
+
+# TRAINING: play the notes from a time until another, the clock starting at begin, at a rate of the song.
+# resetPlay() is called for every playfield before, main.gd starts the keysounds
+func playSection(from : float, to : float, begin : float, rate : float) -> void:
+	previewTime = -1.0
+	playRate = rate
+	var tolerance : float = 0.001
+	for i in range(8):
+		noteArray[i] = []
+		keysoundArray[i] = []
+		for k in trainingNotes[i].size():
+			var t : float = trainingNotes[i][k][0]
+			if t >= from - tolerance and t < to - tolerance:
+				noteArray[i].append(trainingNotes[i][k])
+				if k < trainingKeysounds[i].size():
+					keysoundArray[i].append(trainingKeysounds[i][k])
+	scorer.noteCount += Judge.noteCount(noteArray)
+	scorer.gaugeRecovery = Judge.gaugeRecovery(opt("gauge_level"), scorer.noteCount)
+	endPos = maxf(to, getEndPosAll(noteArray)) + TRAINING_END_BIAS
+	# Both sides of a double play end together
+	if partner:
+		endPos = maxf(endPos, partner.endPos)
+		partner.endPos = endPos
+	if scorer == self:
+		gaugeHistory.append(Vector2(0.0, shownGauge()))
+	subLineArray = trainingMeasures.filter(func(t): return t > begin and t <= endPos)
+	if keysoundPlayer:
+		for i in range(0, 8):
+			if not AUTOPLAY and not (AUTOSCRATCH and i == 7):
+				keysoundPlayer.claim([keysoundArray[i]])
+	refreshHud()
+	clockOffset = begin
+	currentSongPos = begin
+	musicStarted = false
+	gaveUp = false
+	done = false
+	startUsec = Time.get_ticks_usec()
+	set_process(true)
+
+# TRAINING: the chart stands still at a time while the section is chosen, with the numbers of the measures
+func drawPreview() -> void:
+	var bottom : float = judgeY()
+	var scroll : float = scrollSpeed()
+	var numberX : float = sideX(PLAYFIELD_WIDTH + RAIL_WIDTH + 4)
+	for m in trainingMeasures.size():
+		var y : float = bottom - (trainingMeasures[m] - previewTime) * scroll
+		if y < 0.0 or y > bottom + 1.0:
+			continue
+		draw_line(Vector2(0, y), Vector2(PLAYFIELD_WIDTH, y), MEASURE_COLOR, 1.0)
+		draw_line(Vector2(sideX(PLAYFIELD_WIDTH), y), Vector2(sideX(PLAYFIELD_WIDTH + RAIL_WIDTH + 24), y), TRAINING_MEASURE_COLOR, 2.0)
+		var text : String = str(m + 1)
+		var width : float = FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
+		draw_string_outline(FONT, Vector2(numberX - (width if mirrored else 0.0), y - 4), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, 4, Color.BLACK)
+		draw_string(FONT, Vector2(numberX - (width if mirrored else 0.0), y - 4), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
+	for i in range(8):
+		if disabled[i]:
+			continue
+		var color : Color = Note.WHITE_NOTE
+		if i in [1, 3, 5]:
+			color = Note.BLUE_NOTE
+		elif i == 7:
+			color = Note.AUTO_SCRATCH_NOTE if AUTOSCRATCH else Note.SCRATCH_NOTE
+		var left : float = laneLeft[i] + NOTE_MARGIN
+		var width : float = laneWidth[i] - 2 * NOTE_MARGIN
+		for info in trainingNotes[i]:
+			var y : float = bottom - (info[0] - previewTime) * scroll
+			if y < 0.0:
+				break
+			var length : float = info[1] * scroll if info.size() == 2 else 0.0
+			if y - length > bottom:
+				continue
+			if length > 0.0:
+				var body := Rect2(left, maxf(y - length, 0.0), width, minf(y, bottom) - maxf(y - length, 0.0))
+				draw_rect(body, Color(0.3, 0.6, 1.0, 0.45))
+				if y - length >= 0.0:
+					draw_rect(Rect2(left, y - length - 3, width, 6), color)
+			if y <= bottom + 3:
+				draw_rect(Rect2(left, y - 3, width, 6), color)
 
 # X position of the centre of a lane in the playfield
 func laneX(i : int) -> float:
@@ -1109,6 +1264,8 @@ func makeLabel(parent : Node, node_name : String, text : String, font_size : int
 
 func _draw() -> void:
 	drawLanes()
+	if previewTime >= 0.0:
+		drawPreview()
 
 # Black lanes with grey separators, beams over the held keys, and the metal rails on both sides
 func drawLanes() -> void:
@@ -1461,7 +1618,7 @@ class Overlay extends Node2D:
 		if field.active:
 			field.drawHud(self)
 			# The 1P side of a double play shows the graph of both sides, no graph in local versus
-			if field.scorer == field and not field.versus and field.noteCount > 0 and field.opt("pacemaker") != 0:
+			if field.scorer == field and not field.versus and not Training.active and field.noteCount > 0 and field.opt("pacemaker") != 0:
 				field.drawPacemaker(self)
 		field.drawBursts(self)
 		field.drawJudge(self)

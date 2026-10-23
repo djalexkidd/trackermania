@@ -38,6 +38,7 @@ var modes = [
 	{"name": "ARCADE", "short": "ARCADE", "icon": "arcade", "scene": "res://scenes/menu/music_select.tscn", "arcade": true, "desc": "PLAY 3 STAGES IN A ROW, THEN ENTER THE RANKING."},
 	{"name": "FREE", "short": "FREE", "icon": "free", "scene": "res://scenes/menu/music_select.tscn", "desc": "PLAY THE SONGS YOU WANT, FREELY."},
 	{"name": "NETPLAY", "short": "NET", "icon": "netplay", "scene": "res://scenes/netplay/lobby.tscn", "desc": "PLAY AGAINST OTHER DJS ON THE NETWORK."},
+	{"name": "TRAINING", "short": "TRAIN", "icon": "training", "scene": "res://scenes/menu/music_select.tscn", "training": true, "desc": "PRACTICE A SECTION OF A SONG, AT NORMAL SPEED OR SLOWER."},
 	{"name": "OPTIONS", "short": "OPTION", "icon": "options", "scene": "res://scenes/menu/options.tscn", "desc": "DISPLAY, SOUND, DJ NAME AND CONTROLLERS."},
 	{"name": "DOWNLOAD", "short": "DL", "icon": "download", "scene": "res://scenes/menu/download.tscn", "desc": "IMPORT NEW SONGS INTO THE GAME."},
 ]
@@ -84,6 +85,7 @@ func _ready() -> void:
 	Global.p1_joined = true
 	Global.p2_joined = false
 	Arcade.stop()
+	Training.stop()
 
 	scroll_sound = add_sound(preload("res://assets/music_select/scroll.wav"))
 	decide_sound = add_sound(preload("res://assets/music_select/decide.wav"))
@@ -216,6 +218,8 @@ func decide() -> void:
 	leaving = true
 	if mode.get("arcade", false):
 		Arcade.start()
+	if mode.get("training", false):
+		Training.start()
 	await get_tree().create_timer(LEAVE_TIME).timeout
 	get_tree().change_scene_to_file(mode["scene"])
 
@@ -457,6 +461,12 @@ func draw_icon(icon: String, center: Vector2, icon_color: Color) -> void:
 				draw_rect(Rect2(center + Vector2(x - 8, -14), Vector2(16, 12)), icon_color, false, 3.0)
 				draw_rect(Rect2(center + Vector2(x - 2, -2), Vector2(4, 6)), icon_color)
 			draw_polyline([center + Vector2(-10, 4), center + Vector2(-10, 12), center + Vector2(10, 12), center + Vector2(10, 4)], icon_color, 3.0)
+		"training":
+			# Stopwatch
+			draw_circle(center + Vector2(0, 3), 14, icon_color, false, 4.0)
+			draw_rect(Rect2(center + Vector2(-4, -18), Vector2(8, 5)), icon_color)
+			draw_line(center + Vector2(0, 3), center + Vector2(6, -4), icon_color, 3.0)
+			draw_line(center + Vector2(11, -10), center + Vector2(15, -14), icon_color, 3.0)
 		"options":
 			for i in 8:
 				var direction = Vector2.from_angle(i * TAU / 8)

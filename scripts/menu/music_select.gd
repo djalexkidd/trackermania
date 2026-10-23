@@ -226,8 +226,8 @@ func _process(delta):
 			continue
 		var prefix = "p%d_" % player
 		if Input.is_action_just_pressed(prefix + "start"):
-			# The arcade mode is played alone, and the DOUBLE PLAY takes both sides
-			if (Arcade.active or Global.is_double_play()) and not is_joined(player):
+			# The arcade and training modes are played alone, and the DOUBLE PLAY takes both sides
+			if (Arcade.active or Training.active or Global.is_double_play()) and not is_joined(player):
 				continue
 			if not is_joined(player):
 				set_joined(player, true)

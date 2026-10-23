@@ -1,7 +1,7 @@
 extends ColorRect
 
 # OPTION SETTING panel, held open with START, drawn like on IIDX:
-# the options of the black keys hang above the keys, those of the white keys below.
+# the options of the black keys hang above the keys, those of the white keys below, the PACEMAKER on the turntable.
 
 signal update(option, status)
 
@@ -37,8 +37,16 @@ const KEY_STEP = 52.0
 const BLACK_KEY_TOP = 228.0
 const WHITE_KEY_TOP = 318.0
 # White key options, under the keys
-const WHITE_BOX_TOP = 420.0
+const WHITE_BOX_TOP = 404.0
 const WHITE_BOX_SIZE = Vector2(96, 30)
+# PACEMAKER row, from the bottom of the panel: the turntable on the side of the player, then the target
+const PACEMAKER_BOTTOM = 58.0
+const PACEMAKER_HEIGHT = 26.0
+const PACEMAKER_TITLE_WIDTH = 96.0
+# Turntable move for one PACEMAKER step, like the song wheel
+const ANALOG_STEP = 0.08
+# The turntable stays lit this long after it moved
+const TURN_LIGHT_MSEC = 150
 
 # AUTO PLAY is a cheat code: the 3rd black key (STYLE) held this long, a shorter press changes the STYLE
 const AUTO_HOLD_MSEC = 1000
@@ -52,18 +60,38 @@ var open := false
 # When the 3rd black key was pressed (-1 when released), and whether its hold already switched AUTO PLAY
 var style_pressed_at := -1
 var auto_switched := false
+# Analog turntable position of the last frame and move not turned into a step yet, when it last moved
+var analog_previous := 0.0
+var analog_remainder := 0.0
+var turned_at := -TURN_LIGHT_MSEC
 
 func _ready():
 	color = Color(0.02, 0.03, 0.06, 0.94)
+	analog_previous = analog_value()
 
 func _process(_delta: float) -> void:
+	# The analog turntable is followed even when hidden, it does not jump when the panel opens
+	var analog = analog_value()
+	var motion = wrapf(analog - analog_previous, -1.0, 1.0)
+	analog_previous = analog
 	if not visible:
 		return
 	# Redrawn every frame for the key lights and the flashes
 	queue_redraw()
 	if not open:
 		style_pressed_at = -1
+		analog_remainder = 0.0
 		return
+	# Turntable: PACEMAKER target, forward to the next one
+	var steps = int(Input.is_action_just_pressed(key("digital_turntable_fwd"))) - int(Input.is_action_just_pressed(key("digital_turntable_rew")))
+	analog_remainder += motion
+	var analog_steps = int(analog_remainder / ANALOG_STEP)
+	analog_remainder -= analog_steps * ANALOG_STEP
+	steps += analog_steps
+	if steps != 0 and can_pacemaker():
+		set_opt("pacemaker", posmod(get_opt("pacemaker") + steps, Global.PACEMAKERS.size()))
+		turned_at = Time.get_ticks_msec()
+		changed(7)
 	if Input.is_action_just_pressed(key("key1")) and can_battle():
 		Global.battle = !Global.battle
 		emit_signal("update", "battle", Global.battle)
@@ -122,6 +150,14 @@ func _process(_delta: float) -> void:
 func can_double() -> bool:
 	return not (Global.p1_joined and Global.p2_joined) and not Netplay.active and Arcade.can_change_style()
 
+# The analog turntable reports an absolute, wrapping position
+func analog_value() -> float:
+	return Input.get_action_strength(key("analog_turntable_fwd")) - Input.get_action_strength(key("analog_turntable_rew"))
+
+# The PACEMAKER graph is not shown when two players play, like on IIDX
+func can_pacemaker() -> bool:
+	return not (Global.p1_joined and Global.p2_joined)
+
 # BATTLE replaces it when both players are in game
 func can_battle() -> bool:
 	return Global.p1_joined and Global.p2_joined and not Netplay.active
@@ -159,6 +195,12 @@ func column_rect(column: int) -> Rect2:
 func white_box_rect(i: int) -> Rect2:
 	var center = key_rect(i).get_center().x
 	return Rect2(Vector2(center - WHITE_BOX_SIZE.x / 2, WHITE_BOX_TOP), WHITE_BOX_SIZE)
+
+# A rect of the 1P layout, mirrored for 2P whose turntable is on the right
+func side_rect(rect: Rect2) -> Rect2:
+	if player == 2:
+		rect.position.x = size.x - rect.end.x
+	return rect
 
 # Text centered in a rect, made smaller until it fits
 func draw_text(font: Font, rect: Rect2, text: String, font_size: int, text_color: Color) -> void:
@@ -262,9 +304,32 @@ func _draw() -> void:
 			draw_rect(Rect2(rect.position + Vector2(6, 6), Vector2(rect.size.x - 12, rect.size.y * 0.4)), Color.WHITE)
 		draw_rect(rect, Color.BLACK, false, 2.0)
 
+	# Turntable: the PACEMAKER, with arrows on the sides of its box
+	var top = size.y - PACEMAKER_BOTTOM
+	var left = keys_left()
+	var right = left + 6 * KEY_STEP + KEY_SIZE.x
+	var turntable = side_rect(Rect2(left, top, PACEMAKER_HEIGHT, PACEMAKER_HEIGHT))
+	var turning = Time.get_ticks_msec() - turned_at < TURN_LIGHT_MSEC
+	draw_circle(turntable.get_center(), PACEMAKER_HEIGHT / 2 + 2, Color(0.2, 0.2, 0.24))
+	draw_circle(turntable.get_center(), PACEMAKER_HEIGHT / 2, accent.lightened(0.3) if turning else Color(0.06, 0.06, 0.08))
+	draw_circle(turntable.get_center(), 3, Color(0.85, 0.85, 0.88))
+	var title = side_rect(Rect2(left + PACEMAKER_HEIGHT + 4, top, PACEMAKER_TITLE_WIDTH, PACEMAKER_HEIGHT))
+	var box = side_rect(Rect2(left + PACEMAKER_HEIGHT + PACEMAKER_TITLE_WIDTH + 8, top, right - left - PACEMAKER_HEIGHT - PACEMAKER_TITLE_WIDTH - 8, PACEMAKER_HEIGHT))
+	if not can_pacemaker():
+		draw_text(TITLE_FONT, title, "PACEMAKER", 12, LINE)
+		draw_box(box, "---", false, 0.0, true)
+	else:
+		draw_text(TITLE_FONT, title, "PACEMAKER", 12, ORANGE)
+		var pacemaker = get_opt("pacemaker")
+		draw_box(box, Global.PACEMAKERS[pacemaker], pacemaker != 0, flash(7))
+	for direction in [-1, 1] if can_pacemaker() else []:
+		var tip = Vector2(box.get_center().x + direction * (box.size.x / 2 - 6), box.get_center().y)
+		var back = tip.x - direction * 7
+		draw_colored_polygon(PackedVector2Array([tip, Vector2(back, tip.y - 6), Vector2(back, tip.y + 6)]), accent if turning else LINE)
+
 	# Help line
-	var help = Rect2(0, size.y - 40, size.x, 30)
-	draw_text(FONT, help, "HOLD START  -  PRESS A KEY TO CHANGE", 16, Color(0.6, 0.62, 0.7))
+	var help = Rect2(0, size.y - 30, size.x, 22)
+	draw_text(FONT, help, "HOLD START  -  PRESS A KEY TO CHANGE", 14, Color(0.6, 0.62, 0.7))
 
 func get_opt(option : String):
 	return Global.get_player_var(player, option)

@@ -24,6 +24,8 @@ var lane_cover = 0
 # Height of the SUDDEN+ cover and of the LIFT in px, moved with START + turntable while playing
 var sudden_height = 150.0
 var lift_height = 80.0
+# PACEMAKER: graph of the score against a target while playing, an index of PACEMAKERS (0 is OFF)
+var pacemaker = 0
 
 # Players in game on this machine (START joins, META leaves in the music select)
 var p1_joined = true
@@ -48,6 +50,7 @@ var p2_double_play = false
 var p2_lane_cover = 0
 var p2_sudden_height = 150.0
 var p2_lift_height = 80.0
+var p2_pacemaker = 0
 
 # Hi-speed is the falling time of a note in seconds, changed by steps in the OPTION SETTING panel and while playing
 const HISPEED_MIN = 0.45
@@ -55,6 +58,8 @@ const HISPEED_MAX = 1.0
 const HISPEED_STEP = 0.05
 # RANGE: SUDDEN+ covers the top of the lanes, LIFT raises the judge line
 const LANE_COVERS = ["OFF", "SUDDEN+", "LIFT", "LIFT SUD+"]
+# PACEMAKER targets, chosen with the turntable in the OPTION SETTING panel (see Scores.pacemaker_target())
+const PACEMAKERS = ["OFF", "MY BEST", "A", "AA", "AAA", "MAX", "NEXT", "NEXT+", "50%", "60%", "70%", "80%", "90%"]
 
 # BATTLE (two players): the 2P side plays the chart mirrored
 var battle = false

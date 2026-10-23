@@ -38,6 +38,27 @@ static func lamp(player: int) -> int:
 		return 5
 	return [3, 2, 4][gauge_level]
 
+# Target of a PACEMAKER (Global.PACEMAKERS) as [name, EX score]: a DJ LEVEL, the best score, a rate of the maximum,
+# NEXT (the DJ LEVEL above the best score) or NEXT+ (the next half DJ LEVEL above it, "AA+" is half way to AAA)
+static func pacemaker_target(pacemaker: String, max_ex: int, best_ex: int) -> Array:
+	match pacemaker:
+		"MY BEST":
+			return ["MY BEST", best_ex]
+		"MAX":
+			return ["MAX", max_ex]
+		"NEXT", "NEXT+":
+			# Ninths of the maximum for NEXT, eighteenths for NEXT+
+			var steps = 9 if pacemaker == "NEXT" else 18
+			for step in range(1, steps):
+				var ex = ceili(max_ex * step / float(steps) - 0.000001)
+				if ex > best_ex:
+					var rank_name = RANKS[floori(step * 9.0 / steps)]
+					return [rank_name + "+" if step * 9 % steps != 0 else rank_name, ex]
+			return ["MAX", max_ex]
+	if pacemaker.ends_with("%"):
+		return [pacemaker, ceili(max_ex * int(pacemaker.trim_suffix("%")) / 100.0 - 0.000001)]
+	return [pacemaker, ceili(max_ex * RANKS.find(pacemaker) / 9.0 - 0.000001)]
+
 # The single play and double play scores of a chart are kept apart, a module has both
 static func key(difficulty_name: String, double: bool) -> String:
 	return "DP_" + difficulty_name if double else difficulty_name

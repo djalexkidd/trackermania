@@ -103,6 +103,19 @@ const NUMBER_GHOST : Color = Color(0.4, 0.95, 1.0, 0.1)
 # Tints of the lit keys (the black keys are darker, so their tint is brighter)
 const KEY_LIGHT_WHITE : Color = Color(1.0, 0.25, 0.25)
 const KEY_LIGHT_BLACK : Color = Color(2.6, 0.5, 0.5)
+# PACEMAKER graph (score, best score and target): the bars of the best score and the target follow the notes judged so far,
+# their final score is drawn behind. Not in local versus, like IIDX. It fills the hidden side (pacemakerRect, set by main.gd),
+# otherwise (double play, netplay) it goes beside the lanes, towards the middle of the screen (1P layout)
+const PACEMAKER_RECT : Rect2 = Rect2(PLAYFIELD_WIDTH + RAIL_WIDTH + 10, 8, 206, 482)
+# Area of the side of a playfield, rails and plate included: the hidden side given to the graph
+const SIDE_AREA : Rect2 = Rect2(-RAIL_WIDTH, 8, PLAYFIELD_WIDTH + 2 * RAIL_WIDTH, 704)
+const PACEMAKER_DIGITS : int = 4
+const PACEMAKER_TITLE_COLOR : Color = Color(1, 0.55, 0.1)
+const PACEMAKER_YOU_COLOR : Color = Color(0.15, 0.75, 0.95)
+const PACEMAKER_BEST_COLOR : Color = Color(0.7, 0.92, 0.45)
+const PACEMAKER_TARGET_COLOR : Color = Color(0.95, 0.42, 0.42)
+const PACEMAKER_LINE_COLOR : Color = Color(0.45, 0.5, 1.0, 0.6)
+const PACEMAKER_LINES : Array = [["MAX", 9], ["AAA", 8], ["AA", 7], ["A", 6]]
 # Key faces in p1_frame.png: white keys 1/3/5/7 and black keys 2/4/6, one key every 198 px per color
 const KEY_WHITE_RECT : Rect2 = Rect2(42, 31, 68, 75)
 const KEY_BLACK_RECT : Rect2 = Rect2(137, 21, 72, 71)
@@ -205,6 +218,11 @@ var gaugeHistory   : PackedVector2Array = []
 var songInfo       : Dictionary = {}
 # Number of judgements of the chart, a long note counts twice (press and release) like a CN
 var noteCount      : int     = 0
+# Judgements of notes so far (not the empty POORs), the pacemakers follow them, and the best EX score of the chart
+var judgedNotes    : int     = 0
+var bestEx         : int     = 0
+# Where the PACEMAKER graph goes when the other side is hidden, in the coordinates of this playfield
+var pacemakerRect  : Rect2   = Rect2()
 # Groove gauge in percent (Judge rules), and what a PGREAT or GREAT recovers
 var gauge          : float   = 0.0
 var gaugeRecovery  : float   = 0.0
@@ -325,6 +343,7 @@ func start() -> void:
 
 	if scorer == self:
 		gauge = Judge.gaugeStart(opt("gauge_level"))
+		bestEx = Scores.get_best(Loader.file_path, Loader.chart_difficulty, partner != null).get("ex_score", 0)
 	# The 2P side of a double play starts after the 1P side, the recovery counts the notes of both
 	scorer.gaugeRecovery = Judge.gaugeRecovery(opt("gauge_level"), scorer.noteCount)
 	refreshHud()
@@ -690,6 +709,7 @@ func addJudge(judgement : String, offset : float = 0.0) -> void:
 func countJudge(judgement : String, offset : float) -> void:
 	exScore += Judge.EX_POINTS.get(judgement, 0)
 	judgeCounts[judgement] += 1
+	judgedNotes += 1
 	# FAST/SLOW like in IIDX: the PGREATs and the missed notes are not counted
 	if offset != 0.0 and judgement in ["Great", "Good", "Bad"]:
 		if offset < 0.0:
@@ -1188,6 +1208,76 @@ func drawHud(canvas : CanvasItem) -> void:
 	canvas.draw_string(FONT, Vector2(middle - 64, difficulty.position.y + 64), "LEVEL", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, LABEL_COLOR)
 	drawNumber(canvas, Vector2(middle + 54, difficulty.position.y + 66), songInfo.get("level", 0), 2, 20)
 
+# PACEMAKER graph like in IIDX: the scores on top, a bar for the score, the best score and the target, the differences under them.
+# Laid out for PACEMAKER_RECT and scaled up to fill the hidden side
+func drawPacemaker(canvas : CanvasItem) -> void:
+	var rect : Rect2 = pacemakerRect if pacemakerRect.has_area() else sideRect(PACEMAKER_RECT)
+	var k : float = rect.size.y / PACEMAKER_RECT.size.y
+	var maxEx : int = noteCount * 2
+	var target : Array = Scores.pacemaker_target(Global.PACEMAKERS[opt("pacemaker")], maxEx, bestEx)
+	var progress : float = float(judgedNotes) / maxi(noteCount, 1)
+	var bestPace : int = int(bestEx * progress)
+	var targetPace : int = int(target[1] * progress)
+	drawScreen(canvas, rect)
+	var margin : float = 10 * k
+	var title := Rect2(rect.position.x + 6 * k, rect.position.y + 6 * k, rect.size.x - 12 * k, 16 * k)
+	canvas.draw_rect(title, PACEMAKER_TITLE_COLOR)
+	canvas.draw_string(FONT, Vector2(title.position.x + 4 * k, title.end.y - 3 * k), "SCORE DATA", HORIZONTAL_ALIGNMENT_LEFT, -1, roundi(11 * k), Color.BLACK)
+	var numberSize : int = roundi(18 * k)
+	var labelWidth : float = rect.size.x - 2 * margin - 6 * k - numberWidth(PACEMAKER_DIGITS, numberSize)
+	for row in range(2):
+		var baseline : float = title.end.y + (26 + row * 26) * k
+		drawFitted(canvas, Vector2(rect.position.x + margin, baseline - 3 * k), ["YOU", "PACEMAKER"][row], labelWidth, roundi(11 * k), LABEL_COLOR)
+		drawNumber(canvas, Vector2(rect.end.x - margin, baseline), [exScore, targetPace][row], PACEMAKER_DIGITS, numberSize)
+	# Lines of the DJ LEVELs over the bars, from 0 at the bottom to the maximum at the top
+	var graph := Rect2(rect.position.x + margin, rect.position.y + 96 * k, rect.size.x - 2 * margin, rect.size.y - 176 * k)
+	canvas.draw_rect(graph, Color(1, 1, 1, 0.03))
+	var barsLeft : float = graph.position.x + 36 * k
+	var barStep : float = (graph.end.x - barsLeft) / 3.0
+	var bars : Array = [[exScore, -1, PACEMAKER_YOU_COLOR], [bestPace, bestEx, PACEMAKER_BEST_COLOR], [targetPace, target[1], PACEMAKER_TARGET_COLOR]]
+	for b in range(3):
+		var x : float = barsLeft + b * barStep + barStep * 0.08
+		var width : float = barStep * 0.84
+		var total : int = bars[b][1]
+		if total > 0:
+			var behind : float = graph.size.y * total / maxi(maxEx, 1)
+			canvas.draw_rect(Rect2(x, graph.end.y - behind, width, behind), Color(bars[b][2].darkened(0.6), 0.6))
+			canvas.draw_rect(Rect2(x, graph.end.y - behind, width, behind), Color(bars[b][2], 0.5), false, 1.0)
+		var height : float = graph.size.y * bars[b][0] / maxi(maxEx, 1)
+		canvas.draw_rect(Rect2(x, graph.end.y - height, width, height), bars[b][2])
+	for line in PACEMAKER_LINES:
+		var y : float = graph.end.y - graph.size.y * line[1] / 9.0
+		canvas.draw_line(Vector2(graph.position.x, y), Vector2(graph.end.x, y), PACEMAKER_LINE_COLOR, 1.0)
+		drawFitted(canvas, Vector2(graph.position.x + 2 * k, y + 11 * k), line[0], barsLeft - graph.position.x - 2 * k, roundi(9 * k), PACEMAKER_LINE_COLOR.lightened(0.4))
+	# Ahead (+) or behind (-) the pace of the target and of the best score
+	var diffs : Array = [["TARGET", exScore - targetPace, PACEMAKER_TARGET_COLOR], ["MY BEST", exScore - bestPace, Color.WHITE]]
+	var diffSize : int = roundi(16 * k)
+	for row in range(2):
+		var baseline : float = graph.end.y + (22 + row * 20) * k
+		var diff : int = diffs[row][1]
+		var text : String = "%s%04d" % ["+" if diff >= 0 else "-", absi(diff)]
+		var textWidth : float = NUMBER_FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, diffSize).x
+		canvas.draw_string(NUMBER_FONT, Vector2(graph.end.x - 4 * k - textWidth, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, diffSize, diffs[row][2])
+		drawFitted(canvas, Vector2(graph.position.x + 4 * k, baseline - 2 * k), diffs[row][0], graph.size.x - textWidth - 16 * k, roundi(11 * k), diffs[row][2])
+	# Legend under the graph: what each bar is
+	var legend : Array = [["YOU", PACEMAKER_YOU_COLOR], ["BEST", PACEMAKER_BEST_COLOR], ["BEST" if target[0] == "MY BEST" else target[0], PACEMAKER_TARGET_COLOR]]
+	var legendWidth : float = (rect.size.x - 16 * k) / 3.0
+	for b in range(3):
+		var box := Rect2(rect.position.x + 8 * k + b * legendWidth + 1, rect.end.y - 26 * k, legendWidth - 2, 18 * k)
+		canvas.draw_rect(box, Color(legend[b][1], 0.85))
+		var size : int = fittedSize(legend[b][0], box.size.x - 6, roundi(11 * k))
+		canvas.draw_string(FONT, Vector2(box.position.x, box.position.y + 13 * k), legend[b][0], HORIZONTAL_ALIGNMENT_CENTER, box.size.x, size, Color.BLACK)
+
+# Font size of a text made smaller until it fits a width
+func fittedSize(text : String, width : float, size : int) -> int:
+	while size > 6 and FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+		size -= 1
+	return size
+
+# A text made smaller until it fits a width
+func drawFitted(canvas : CanvasItem, at : Vector2, text : String, width : float, size : int, color : Color) -> void:
+	canvas.draw_string(FONT, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fittedSize(text, width, size), color)
+
 # Burst of light on the judge line where a note was hit
 func drawBursts(canvas : CanvasItem) -> void:
 	for i in range(8):
@@ -1370,5 +1460,8 @@ class Overlay extends Node2D:
 		field.drawKeys(self)
 		if field.active:
 			field.drawHud(self)
+			# The 1P side of a double play shows the graph of both sides, no graph in local versus
+			if field.scorer == field and not field.versus and field.noteCount > 0 and field.opt("pacemaker") != 0:
+				field.drawPacemaker(self)
 		field.drawBursts(self)
 		field.drawJudge(self)

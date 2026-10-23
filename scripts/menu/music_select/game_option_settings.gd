@@ -53,7 +53,7 @@ const AUTO_HOLD_MSEC = 1000
 
 const FLASH_MSEC = 250.0
 
-# Last change of each key, for the flash of its option
+# Last change of each key (7 is the turntable), for the flash of its option
 var changed_at := {}
 # Held open by START, set by music_select; the panel still shows while sliding out
 var open := false
@@ -322,10 +322,10 @@ func _draw() -> void:
 		draw_text(TITLE_FONT, title, "PACEMAKER", 12, ORANGE)
 		var pacemaker = get_opt("pacemaker")
 		draw_box(box, Global.PACEMAKERS[pacemaker], pacemaker != 0, flash(7))
-	for direction in [-1, 1] if can_pacemaker() else []:
-		var tip = Vector2(box.get_center().x + direction * (box.size.x / 2 - 6), box.get_center().y)
-		var back = tip.x - direction * 7
-		draw_colored_polygon(PackedVector2Array([tip, Vector2(back, tip.y - 6), Vector2(back, tip.y + 6)]), accent if turning else LINE)
+		for direction in [-1, 1]:
+			var tip = Vector2(box.get_center().x + direction * (box.size.x / 2 - 6), box.get_center().y)
+			var back = tip.x - direction * 7
+			draw_colored_polygon(PackedVector2Array([tip, Vector2(back, tip.y - 6), Vector2(back, tip.y + 6)]), accent if turning else LINE)
 
 	# Help line
 	var help = Rect2(0, size.y - 30, size.x, 22)

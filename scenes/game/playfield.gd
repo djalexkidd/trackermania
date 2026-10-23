@@ -1260,7 +1260,7 @@ func drawPacemaker(canvas : CanvasItem) -> void:
 		canvas.draw_string(NUMBER_FONT, Vector2(graph.end.x - 4 * k - textWidth, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, diffSize, diffs[row][2])
 		drawFitted(canvas, Vector2(graph.position.x + 4 * k, baseline - 2 * k), diffs[row][0], graph.size.x - textWidth - 16 * k, roundi(11 * k), diffs[row][2])
 	# Legend under the graph: what each bar is
-	var legend : Array = [["YOU", PACEMAKER_YOU_COLOR], ["BEST", PACEMAKER_BEST_COLOR], ["BEST" if target[0] == "MY BEST" else target[0], PACEMAKER_TARGET_COLOR]]
+	var legend : Array = [["YOU", PACEMAKER_YOU_COLOR], ["BEST", PACEMAKER_BEST_COLOR], [target[0], PACEMAKER_TARGET_COLOR]]
 	var legendWidth : float = (rect.size.x - 16 * k) / 3.0
 	for b in range(3):
 		var box := Rect2(rect.position.x + 8 * k + b * legendWidth + 1, rect.end.y - 26 * k, legendWidth - 2, 18 * k)

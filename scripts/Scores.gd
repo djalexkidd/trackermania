@@ -43,7 +43,7 @@ static func lamp(player: int) -> int:
 static func pacemaker_target(pacemaker: String, max_ex: int, best_ex: int) -> Array:
 	match pacemaker:
 		"MY BEST":
-			return ["MY BEST", best_ex]
+			return ["BEST", best_ex]
 		"MAX":
 			return ["MAX", max_ex]
 		"NEXT", "NEXT+":

@@ -36,13 +36,14 @@ func _ready() -> void:
 		field.setup(solo if double else side, plays, versus, netplay, side)
 		if plays:
 			playing.append(field)
-		# The PACEMAKER graph of a player alone takes the place of the empty side, which is hidden like on IIDX
-		# (in netplay the live ranking is there, the graph stays beside the lanes)
+		# In netplay the live ranking takes the place of the empty side, which is hidden
+		elif netplay:
+			field.hide()
+		# The PACEMAKER graph of a player alone takes the place of the empty side, like on IIDX
 		elif not versus and Global.get_player_var(solo, "pacemaker") != 0:
 			field.hide()
-			if not netplay:
-				var player_field : Playfield = get_node("P%d" % solo)
-				player_field.pacemakerRect = Rect2(field.position - player_field.position + Playfield.SIDE_AREA.position, Playfield.SIDE_AREA.size)
+			var player_field : Playfield = get_node("P%d" % solo)
+			player_field.pacemakerRect = Rect2(field.position - player_field.position + Playfield.SIDE_AREA.position, Playfield.SIDE_AREA.size)
 	if double:
 		$P1.pairWith($P2)
 	if versus:

@@ -63,7 +63,7 @@ var pointBpms : PackedFloat64Array = []
 static func is_bms(path : String) -> bool:
 	return path.get_extension().to_lower() in EXTENSIONS
 
-# Read a chart, null if it is not a chart TrackerMania can play.
+# Read a chart, null if it is not a chart noiseBMS can play.
 # The #RANDOM blocks take a random branch, or the first one for the music select.
 static func load_file(path : String, random : bool = true) -> BmsChart:
 	var bytes : PackedByteArray = FileAccess.get_file_as_bytes(path)

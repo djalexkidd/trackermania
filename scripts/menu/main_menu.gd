@@ -482,7 +482,7 @@ func draw_header() -> void:
 	draw_text(Vector2(16, 16 + TITLE_FONT.get_ascent(32)), "menu select", 32, Color.WHITE)
 	# Credits, small under the title like the console menu
 	var version = Engine.get_version_info()
-	draw_text(Vector2(18, 72), "TRACKERMANIA  2024-2026 DJALEXKIDD", 8, TAG_BORDER)
+	draw_text(Vector2(18, 72), "noiseBMS  2024-2026 DJALEXKIDD", 8, TAG_BORDER)
 	draw_text(Vector2(18, 84), "GODOT ENGINE %d.%d.%d" % [version["major"], version["minor"], version["patch"]], 8, TAG_BORDER)
 	# No OPTIONS tag here
 	var tag = header_tag_rect(0)

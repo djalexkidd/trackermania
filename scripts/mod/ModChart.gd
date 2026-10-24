@@ -1,7 +1,7 @@
 extends RefCounted
 class_name ModChart
 
-# Turns the notes of a module into a TrackerMania chart, the module is the chart.
+# Turns the notes of a module into a noiseBMS chart, the module is the chart.
 # The notes given to the player are keysounds, the others are played automatically as background music.
 
 # max_nps: note density limit, max_chord: notes at the same time, scratch: one sound goes to the scratch lane

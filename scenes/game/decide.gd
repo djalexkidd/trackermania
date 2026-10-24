@@ -181,7 +181,7 @@ func draw_header() -> void:
 	var grow = phase(0.1, 0.4)
 	draw_rect(Rect2(48, 196 - 160 * grow, 14, 160 * grow), RED)
 	var typed = phase(0.4, 0.5)
-	var captions = ["TRACKERMANIA", "MUSIC DECIDE", style]
+	var captions = ["noiseBMS", "MUSIC DECIDE", style]
 	for i in captions.size():
 		var text: String = captions[i]
 		draw_string(STRIP_FONT, Vector2(76, 160 + i * 18), text.left(int(text.length() * typed)), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, SMALL_TEXT)

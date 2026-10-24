@@ -1,4 +1,4 @@
-# TrackerMania
+# noiseBMS
 
 Jeu de rythme libre inspiré de beatmania IIDX (7 touches + scratch), écrit en GDScript avec **Godot 4.7** (`/usr/bin/godot`).
 Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/main_menu.tscn`.
@@ -62,7 +62,7 @@ scenes/
   netplay/               lobby.tscn (salles et salle), result.tscn (résultats du round), img/crown.png
 ```
 
-Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/TrackerMania/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER, BMS), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
+Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/noiseBMS/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER, BMS), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
 
 ## Fonctionnement du jeu
 
@@ -75,7 +75,7 @@ Menu principal (FREE) -> sélection des musiques -> `song_entry._on_pressed()` r
 En solo (hors autoplay), il enregistre aussi la partie avec `Scores.save_play()` : une section par fichier de chart, une clé par difficulté, et chaque valeur (EX-Score, taux, lampe, combo) garde son meilleur séparément. Comme sur IIDX, l'auto-scratch et le 5 touches donnent au mieux un ASSIST CLEAR. La sélection l'affiche sous les infos de la musique, après les difficultés (`SongInfo/BestScore`).
 
 ### Écran DECIDE (`scenes/game/decide.gd`)
-Comme sur IIDX après le choix d'une musique, dessiné dans `_draw()` avec la DA de la barre du bas (rouge, orange, segments) : en haut à gauche une barre rouge et des légendes tapées (TRACKERMANIA, MUSIC DECIDE, SP/DP et touches), à droite DIFFICULTY, le nom (couleur de `song_entry.difficulty_color()`) et le niveau ; au milieu une bande avec une grille orange qui défile vers la droite (comme `grid.png`, `GRID_CELL`, `GRID_SPEED`), des lignes orange et des traits jaunes, avec le stage en ARCADE (sinon NETPLAY ou le type de fichier), le titre et l'artiste ; en bas un panneau GAME OPTION par joueur (2 × 6 options, celles choisies s'allument une à une ; ABSENCE pour un côté vide, DOUBLE PLAY pour l'autre côté du DP).
+Comme sur IIDX après le choix d'une musique, dessiné dans `_draw()` avec la DA de la barre du bas (rouge, orange, segments) : en haut à gauche une barre rouge et des légendes tapées (noiseBMS, MUSIC DECIDE, SP/DP et touches), à droite DIFFICULTY, le nom (couleur de `song_entry.difficulty_color()`) et le niveau ; au milieu une bande avec une grille orange qui défile vers la droite (comme `grid.png`, `GRID_CELL`, `GRID_SPEED`), des lignes orange et des traits jaunes, avec le stage en ARCADE (sinon NETPLAY ou le type de fichier), le titre et l'artiste ; en bas un panneau GAME OPTION par joueur (2 × 6 options, celles choisies s'allument une à une ; ABSENCE pour un côté vide, DOUBLE PLAY pour l'autre côté du DP).
 - Écran fixe pendant le chargement, puis la bande s'ouvre, tout entre, reste jusqu'à `HOLD_TIME` et s'efface en `OUT_TIME` ; il émet `closed` et libère son calque.
 - `playfield.start()` attend `decide.closed` avant Get Ready. En netplay, le joueur signale `mark_loaded()` avant d'attendre l'écran, puis `wait_begin()` : l'écran se joue au lancement du round, jamais dans la sélection du netplay.
 

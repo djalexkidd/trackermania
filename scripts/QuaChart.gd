@@ -1,12 +1,12 @@
 extends RefCounted
 class_name QuaChart
 
-# A Quaver beatmap (.qua), the chart format of TrackerMania.
+# A Quaver beatmap (.qua), the chart format of noiseBMS.
 # Only the YAML written by Quaver is read: the top level fields and the TimingPoints and HitObjects lists.
 
 # Silence before the music starts (seconds), the first notes need time to come down
 const LEAD_IN : float = 2.0
-# TrackerMania lane (0~6 keys) of each Quaver lane, the scratch is the extra last lane (HasScratchKey)
+# noiseBMS lane (0~6 keys) of each Quaver lane, the scratch is the extra last lane (HasScratchKey)
 const LANES : Dictionary = {
 	"Keys7": [0, 1, 2, 3, 4, 5, 6],
 	"Keys4": [1, 2, 3, 4],
@@ -37,7 +37,7 @@ var measures : Array = []
 var bpmChanges : Array = []
 var level : int = 1
 
-# Read a .qua file, null if it is not a chart TrackerMania can play
+# Read a .qua file, null if it is not a chart noiseBMS can play
 static func load_file(path : String) -> QuaChart:
 	var text : String = FileAccess.get_file_as_string(path)
 	if text == "":

@@ -1,7 +1,7 @@
 extends Node
 class_name ModPlayer
 
-# Plays a module with one voice per channel like on the Amiga.
+# Plays a module (ProTracker or FastTracker II) with one voice per channel like on the Amiga.
 # Notes in a player's chart only sound when the player hits them (keysounds),
 # the other notes are played on time as background music.
 
@@ -9,6 +9,8 @@ class_name ModPlayer
 const MIX_RATE : int = 8363
 # Stereo separation of the Amiga channels (left, right, right, left), 1.0 is hard panning
 const STEREO_SEPARATION : float = 0.6
+# Notes panned less than this play in the center (FastTracker modules)
+const PAN_CENTER : float = 0.25
 
 var module : ModModule
 var playing : bool = false
@@ -17,8 +19,8 @@ var length : float = 0.0
 
 # AudioStreamWAV of each sample (null for empty samples)
 var streams : Array = []
-# Pitch correction of each sample from its finetune
-var finetunes : PackedFloat32Array = []
+# Bus of the left, center and right notes
+var buses : Array = []
 var voices : Array = []
 # Note played by each voice (-1 if none) and its next envelope value
 var voiceNote : PackedInt32Array = []
@@ -42,23 +44,22 @@ func _init(_module : ModModule, send : String = "Master") -> void:
 	owners.resize(module.notes.size())
 	triggered.resize(module.notes.size())
 	gain = 1.0 / sqrt(module.channels)
+	buses = [panningBus(-1.0, send), send, panningBus(1.0, send)]
 	for s in module.samples:
-		finetunes.append(pow(2.0, s.finetune / 96.0))
-		if s.data.size() <= 2:
+		if s.frames <= 2 or s.data.is_empty():
 			streams.append(null)
 			continue
 		var stream : AudioStreamWAV = AudioStreamWAV.new()
-		stream.format = AudioStreamWAV.FORMAT_8_BITS
+		stream.format = AudioStreamWAV.FORMAT_16_BITS if s.bits == 16 else AudioStreamWAV.FORMAT_8_BITS
 		stream.mix_rate = MIX_RATE
 		stream.data = s.data
-		if s.loop_length > 2:
-			stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		if s.loop_type > 0:
+			stream.loop_mode = AudioStreamWAV.LOOP_PINGPONG if s.loop_type == 2 else AudioStreamWAV.LOOP_FORWARD
 			stream.loop_begin = s.loop_start
 			stream.loop_end = s.loop_start + s.loop_length
 		streams.append(stream)
 	for c in module.channels:
 		var voice : AudioStreamPlayer = AudioStreamPlayer.new()
-		voice.bus = panningBus(-1.0 if c % 4 in [0, 3] else 1.0, send)
 		add_child(voice)
 		voices.append(voice)
 		voiceNote.append(-1)
@@ -152,6 +153,7 @@ func trigger(i : int, t : float, on_time : bool) -> void:
 	voiceEnv[c] = 0
 	updateVoice(c, t, false)
 	var voice : AudioStreamPlayer = voices[c]
+	voice.bus = buses[0 if note.pan < -PAN_CENTER else (2 if note.pan > PAN_CENTER else 1)]
 	voice.stream = streams[note.sample]
 	var late : float = maxf(t - note.time, 0.0) * voice.pitch_scale / rate if on_time else 0.0
 	voice.play(note.offset / float(MIX_RATE) + late)
@@ -174,6 +176,6 @@ func updateVoice(c : int, t : float, retrigger : bool) -> void:
 	voiceEnv[c] = e
 	var period : float = env[current + 1]
 	if period > 0:
-		voices[c].pitch_scale = ModModule.AMIGA_CLOCK / period / MIX_RATE * finetunes[note.sample] * rate
+		voices[c].pitch_scale = module.pitchScale(note.sample, period) * rate
 	var volume : float = env[current + 2] / 64.0 * gain
 	voices[c].volume_db = linear_to_db(volume) if volume > 0.0 else -80.0

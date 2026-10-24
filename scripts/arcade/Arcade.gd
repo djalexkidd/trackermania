@@ -38,7 +38,7 @@ static func current_stage_name() -> String:
 
 # The difficulties of a song share its folder (.qua, BMS), a module gives all its difficulties itself
 static func song_key(path: String) -> String:
-	return path if path.get_extension().to_lower() == "mod" else path.get_base_dir()
+	return path if ModModule.is_module(path) else path.get_base_dir()
 
 static func is_played(path: String) -> bool:
 	return stages.any(func(stage): return song_key(stage["path"]) == song_key(path))

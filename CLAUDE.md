@@ -3,7 +3,7 @@
 Jeu de rythme libre inspiré de beatmania IIDX (7 touches + scratch), écrit en GDScript avec **Godot 4.7** (`/usr/bin/godot`).
 Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/main_menu.tscn`.
 
-L'objectif d'origine : jouer directement des **modules Amiga (.MOD)**, le module étant la chart, avec des **keysounds** comme sur IIDX.
+L'objectif d'origine : jouer directement des **modules Amiga (.MOD)** et **FastTracker II (.XM)**, le module étant la chart, avec des **keysounds** comme sur IIDX.
 Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues directement ; elles cohabitent avec les modules et les **BMS** (.bms, .bme, .bml, .bmson), keysoundés eux aussi. Les PMS (pop'n music, 9 touches) sont hors sujet.
 
 ## Arborescence
@@ -23,12 +23,13 @@ scripts/
                          arcade_timer.gd (TIME REMAIN), name_entry.gd, ranking.gd
   training/              Mode TRAINING (voir plus bas) : Training.gd (class_name Training, état statique, bus ralenti),
                          training_panel.gd (panneau TRAINING au milieu de la scène de jeu)
-  mod/                   Modules Amiga keysoundés (voir plus bas)
+  mod/                   Modules Amiga et FastTracker keysoundés (voir plus bas)
   bms/                   BMS et bmson keysoundés (voir plus bas)
     BmsChart.gd          Lecture d'un BMS/bmson -> événements sonores, notes, mesures
     BmsPlayer.gd         Lecture audio : une voix par son, keysounds + BGM
     ShiftJIS.gd          Décodage Shift-JIS (CP932) ou UTF-8 des textes des BMS
     ModModule.gd         Lecture du .MOD + replay ProTracker -> liste de notes avec automation
+    XmModule.gd          Lecture du .XM + replay FastTracker II (hérite de ModModule, mêmes notes)
     ModChart.gd          Génération de la chart (lanes, difficultés, niveau)
     ModPlayer.gd         Lecture audio : une voix par canal, keysounds + BGM
   menu/
@@ -197,8 +198,8 @@ Chaque `.qua` de `user://songs` est une difficulté de la musique de son dossier
 
 ## Modules Amiga keysoundés (`scripts/mod/`)
 
-Un fichier `.mod` dans `user://songs` est une entrée de la sélection avec **3 difficultés** (Normal, Hyper, Another). Leur niveau est calculé.
-Dans `main.gd`, `loadModule()` remplace `loadQuaChart()` quand l'extension est `mod`.
+Un fichier `.mod` ou `.xm` (`ModModule.EXTENSIONS`, `ModModule.is_module()`) dans `user://songs` est une entrée de la sélection avec **3 difficultés** (Normal, Hyper, Another). Leur niveau est calculé.
+Dans `main.gd`, `loadModule()` remplace `loadQuaChart()` pour un module (`ModModule.is_module()`).
 
 ### 1. `ModModule` : lecture et replay
 - `parse()` : titre, 31 samples (ou 15 pour les vieux Soundtracker sans tag), ordre, patterns, PCM 8 bits signé.
@@ -209,13 +210,20 @@ Dans `main.gd`, `loadModule()` remplace `loadQuaChart()` quand l'extension est `
 - Résultat : `notes`, triées par temps, `length`, et `measures` (heure de début de chaque mesure, toutes les `ROWS_PER_MEASURE` = 16 lignes, donc au rythme du tempo et des `Fxx`). Chaque note est un keysound :
   `{time, channel, sample, period, offset, row, env}`.
   `env` est l'automation de la note : 4 valeurs par changement (temps depuis la note, période, volume 0~64, retrigger). Une note qui serait muette (sample vide, offset trop loin) n'est pas créée.
+  Les notes ont aussi `instrument` (= sample pour un .mod) et `pan` (-1~1 au départ de la note ; .mod : gauche-droite-droite-gauche).
+- `ModModule.load_file(path, with_samples)` renvoie un `XmModule` pour un .xm ; le catalogue passe `false` (pas de décodage des samples). `pitchScale(sample, période)` donne la vitesse de lecture par rapport à `C4_RATE` (8363 Hz), `formatName` l'artiste affiché (« Amiga module », « FastTracker module »).
+
+### 1 bis. `XmModule` : FastTracker II
+- `parse()` : en-tête (canaux jusqu'à 32, fréquences linéaires ou Amiga, tempo/BPM initiaux), patterns compressés dépliés en 5 octets par case (note, instrument, colonne de volume, effet, paramètre, nombre de lignes variable ; un pattern absent est vide), instruments (keymap des 96 notes vers les samples à plat dans `samples`, enveloppe de volume avec sustain/boucle, fadeout, auto-vibrato), samples 8 ou 16 bits décodés en delta, boucles avant ou ping-pong (en frames).
+- `replay()` comme FastTracker II : un instrument seul remet volume, panoramique et enveloppe ; note sans instrument = sample relancé sans remise à zéro ; key off (note 97, `Kxx`) : coupe sans enveloppe, sinon sort du sustain et lance le fadeout. Colonne de volume (volume, slides, vibrato, panoramique, tone porta) et effets 0~F avec leur mémoire, plus `Gxx`, `Hxy`, `Kxx`, `Lxx`, `Pxy`, `Rxy`, `Txy`, `X1x`/`X2x`. Périodes : 64 par demi-ton en linéaire (`LINEAR_BASE`, C-4 = `LINEAR_C4`), ×4 de ProTracker en Amiga.
+- Le volume enregistré dans `env` est le volume final (enveloppe × fadeout × volume global), la période inclut l'auto-vibrato. Le panoramique ne suit pas les changements après le début de la note.
 
 ### 2. `ModChart` : génération de la chart
 Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (même format que `QuaChart`, avec `LEAD_IN` = 2 s ajouté), un `keysoundArray` parallèle (index de chaque note dans `module.notes`) et `level`.
 - **Sélection** (`selectNotes`) : les notes sont prises d'abord sur les lignes fortes du pattern (`rowWeight` : ligne 0, puis les multiples de 32, 16, 8…).
   Chaque difficulté fixe un plafond de densité (`max_nps` sur une fenêtre de 2 s) et de taille des accords (`max_chord`). Another garde toutes les notes.
 - **Lanes** (`assignLanes`) :
-  - Chaque instrument (sample, pas le canal) a une lane de base ; plus la note est aiguë, plus elle va à droite.
+  - Chaque instrument (`note.instrument`, pas le canal) a une lane de base ; plus la note est aiguë, plus elle va à droite.
   - Si la lane voulue est occupée, la note va sur la plus proche libre : d'abord avec un écart confortable de 0.25 s, ce qui transforme les flux rapides en trilles, puis avec l'écart minimum de 0.1 s.
   - Le sample le moins fréquent (au moins 4 notes) va sur le scratch, dans les 3 difficultés.
 - **Une note sans place reste dans la BGM** : rien n'est jamais perdu à l'écoute.
@@ -223,9 +231,9 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 
 ### 3. `ModPlayer` : lecture audio
 - C'est un `Node` ajouté comme enfant de l'`AudioStreamPlayer` du terrain, sous le nom `ModPlayer`. En versus les deux terrains le partagent : le premier le crée, le second le retrouve.
-- Chaque sample devient un `AudioStreamWAV` (8 bits, 8363 Hz, boucle avant). Il y a **une voix (`AudioStreamPlayer`) par canal**, monophonique comme sur l'Amiga.
-  Hauteur : `pitch_scale = 3546895 / période / 8363 × finetune`. Volume : `volume/64 / sqrt(canaux)`.
-  Stéréo gauche-droite-droite-gauche adoucie, via les bus `ModLeft` et `ModRight` créés à la volée et envoyés vers Master, donc l'effector s'applique.
+- Chaque sample devient un `AudioStreamWAV` (8 ou 16 bits, 8363 Hz, boucle avant ou ping-pong). Il y a **une voix (`AudioStreamPlayer`) par canal**, monophonique comme sur l'Amiga.
+  Hauteur : `pitch_scale = module.pitchScale(sample, période)` (.mod : `3546895 / période / 8363 × finetune`). Volume : `volume/64 / sqrt(canaux)`.
+  Stéréo : à chaque note la voix passe sur le bus `ModLeft` ou `ModRight` (créés à la volée, envoyés vers Master, donc l'effector s'applique), ou directement sur l'envoi si `pan` est à moins de `PAN_CENTER` du centre.
 - L'horloge est `Time.get_ticks_usec()` depuis `play()`. `get_playback_position()` imite celle d'`AudioStreamPlayer`.
 - `claim()` : chaque terrain réserve les notes de sa chart (`owners`). En autoplay rien n'est réservé, et en auto-scratch la lane 7 non plus : ces notes sont jouées à l'heure par la BGM.
 - À chaque image, `_process` traite les notes arrivées à leur heure :
@@ -245,6 +253,7 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 ### Limites connues
 - La BGM est déclenchée à chaque image (environ 16 ms), avec une compensation du retard.
 - Pas de notes longues générées. Le format FLT8 est lu de façon approximative.
+- XM : pas d'enveloppe de panoramique ni de glissement de panoramique pendant une note, pas de `E3x`/`E4x`/`E5x`/`E7x`, les XM d'avant la version 0x0104 sont lus avec la mise en page 0x0104.
 
 ## BMS keysoundés (`scripts/bms/`)
 

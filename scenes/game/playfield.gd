@@ -176,7 +176,7 @@ var keysoundArray  : Array   = [[], [], [], [], [], [], [], []]
 var lastKeysound   : Array   = [-1, -1, -1, -1, -1, -1, -1, -1]
 # Lanes not played (5 keys mode), they are dimmed
 var disabled       : Array   = [false, false, false, false, false, false, false, false]
-# Keysound player shared by the playfields: ModPlayer for an Amiga module, BmsPlayer for a BMS (same methods)
+# Keysound player shared by the playfields: ModPlayer for a module, BmsPlayer for a BMS (same methods)
 var keysoundPlayer
 # Start time of each measure of the chart (seconds)
 var measures       : Array = []
@@ -311,7 +311,7 @@ func start() -> void:
 	if netplay:
 		# Same #RANDOM branches for everyone
 		seed(Netplay.room["seed"])
-	if Loader.file_path.get_extension().to_lower() == "mod":
+	if ModModule.is_module(Loader.file_path):
 		if not loadModule():
 			set_process(false)
 			return
@@ -483,14 +483,14 @@ func loadQuaChart() -> bool:
 				get_node(audio).stream = AudioStreamOggVorbis.load_from_file(audio_path)
 	return true
 
-# Generate the chart of an Amiga module, its notes are the keysounds
+# Generate the chart of a module (.mod, .xm), its notes are the keysounds
 func loadModule() -> bool:
 	# In local versus both playfields share the same module player, only load it once
 	keysoundPlayer = get_node(audio).get_node_or_null("ModPlayer")
 	if keysoundPlayer == null:
 		var module : ModModule = ModModule.load_file(Loader.file_path)
 		if module == null:
-			OS.alert("Invalid Amiga module: " + Loader.file_path)
+			OS.alert("Invalid module: " + Loader.file_path)
 			get_tree().change_scene_to_file.call_deferred(Loader.back_scene())
 			return false
 		keysoundPlayer = ModPlayer.new(module, Training.bus() if Training.active else "Master")
@@ -499,7 +499,8 @@ func loadModule() -> bool:
 	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"), partner != null)
 	noteArray = sideLanes(chart.noteArray)
 	keysoundArray = sideLanes(chart.keysoundArray)
-	songInfo = {"title": keysoundPlayer.module.title, "artist": "Amiga module", "level": chart.level}
+	var title : String = keysoundPlayer.module.title
+	songInfo = {"title": title if title != "" else Loader.file_path.get_file().get_basename(), "artist": keysoundPlayer.module.formatName, "level": chart.level}
 	# The lines follow the measures of the module
 	measures = keysoundPlayer.module.measures.map(func(t): return t + ModChart.LEAD_IN)
 	bpms = moduleBpms(keysoundPlayer.module)

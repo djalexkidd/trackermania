@@ -115,7 +115,7 @@ func load_preview(job: Dictionary) -> void:
 		var length = stream.get_length()
 		var from = chart.previewTime if chart.previewTime >= 0.0 and chart.previewTime < length else length * DEFAULT_START
 		job.result = [stream_player(stream), from, length]
-	elif file.get_extension().to_lower() == "mod":
+	elif ModModule.is_module(file):
 		var module = ModModule.load_file(file)
 		if module == null:
 			return

@@ -380,7 +380,7 @@ func choose_song(path: String, difficulty: String, title: String, artist: String
 	if not is_host or not path.begins_with(SONGS_DIR):
 		return
 	var type = "QUAVER"
-	if path.get_extension().to_lower() == "mod":
+	if ModModule.is_module(path):
 		type = "MODULE"
 	elif BmsChart.is_bms(path):
 		type = "BMS"

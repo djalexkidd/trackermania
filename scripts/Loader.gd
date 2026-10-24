@@ -1,7 +1,7 @@
 extends Node
 
 var file_path = ""
-# Difficulty of the chart generated from an Amiga module
+# Difficulty of the chart generated from a module
 var chart_difficulty = ""
 # Place of chart_difficulty among the difficulties of its song, for the songs without that name
 var difficulty_slot = 0
@@ -13,10 +13,10 @@ const MUSIC_SELECT_SCENE = "res://scenes/menu/music_select.tscn"
 
 const SONG_CACHE_PATH = "user://song_catalog.json"
 # Bump when selection metadata or module chart generation changes.
-const SONG_CACHE_VERSION = 5
+const SONG_CACHE_VERSION = 6
 
 # Chart files of the music select
-const SONG_EXTENSIONS = ["qua", "mod"] + BmsChart.EXTENSIONS
+const SONG_EXTENSIONS = ["qua"] + ModModule.EXTENSIONS + BmsChart.EXTENSIONS
 
 # Cache only selection metadata, never chart notes or module audio.
 func get_song_catalog(force_refresh: bool = false) -> Array:
@@ -69,7 +69,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 			if is_song_metadata(entry):
 				songs.append(entry)
 		else:
-			var module = ModModule.load_file(song_path)
+			var module = ModModule.load_file(song_path, false)
 			if module == null:
 				continue
 			var title = module.title if module.title != "" else song_path.get_file().get_basename()
@@ -78,7 +78,7 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 				for difficulty_name in ModChart.DIFFICULTIES:
 					var chart = ModChart.new(module, difficulty_name, 7, style == "DP")
 					songs.append({
-						"path": song_path, "Title": title, "Artist": "Amiga module",
+						"path": song_path, "Title": title, "Artist": module.formatName,
 						"Difficulty": chart.level, "DifficultyName": difficulty_name,
 						"Notes": note_count(chart.noteArray), "Style": style,
 					})

@@ -5,6 +5,10 @@ class_name ModModule
 # The song is replayed tick by tick like ProTracker does to get every note with its time
 # and the pitch/volume automation of its effects, so each note can be played on its own as a keysound.
 
+# Extensions of the modules, ProTracker and FastTracker II (XmModule)
+const EXTENSIONS : Array = ["mod", "xm"]
+# Rate of a sample played at C-4 with no finetune
+const C4_RATE : float = 8363.0
 # Half of the PAL Amiga clock, the frequency of a note is AMIGA_CLOCK / period (Hz)
 const AMIGA_CLOCK : float = 3546895.0
 const PERIOD_MIN : int = 113
@@ -19,21 +23,31 @@ const SINE_TABLE : Array = [0, 24, 49, 74, 97, 120, 141, 161, 180, 197, 212, 224
 	255, 253, 250, 244, 235, 224, 212, 197, 180, 161, 141, 120, 97, 74, 49, 24]
 
 var title : String = ""
+# Shown as the artist of the song
+var formatName : String = "Amiga module"
 var channels : int = 4
-# {name, length, data, finetune, volume, loop_start, loop_length}, data is signed 8-bit PCM
+# {name, data, frames, bits, loop_type (0 none, 1 forward, 2 ping-pong), finetune, volume, loop_start, loop_length},
+# data is signed 8-bit PCM or 16-bit little endian PCM, loops are in frames
 var samples : Array = []
+# The music select only needs the notes, not the sample data
+var decodeSamples : bool = true
 var order : PackedByteArray
 var patterns : Array = []
-# Every note of the song in time order: {time, channel, sample, period, offset, row, env}
+# Every note of the song in time order: {time, channel, sample, instrument, period, offset, row, env, pan}
 # env is the automation of the note, 4 values per change: time since the note, period, volume (0~64), retrigger (0 or 1)
+# pan is the panning when the note starts, from -1.0 (left) to 1.0 (right)
 var notes : Array = []
 # Duration of the song (seconds)
 var length : float = 0.0
 # Start time of each measure (seconds), they follow the tempo changes of the song
 var measures : Array = []
 
-static func load_file(path : String) -> ModModule:
-	var module : ModModule = ModModule.new()
+static func is_module(path : String) -> bool:
+	return path.get_extension().to_lower() in EXTENSIONS
+
+static func load_file(path : String, with_samples : bool = true) -> ModModule:
+	var module : ModModule = XmModule.new() if path.get_extension().to_lower() == "xm" else ModModule.new()
+	module.decodeSamples = with_samples
 	if not module.parse(FileAccess.get_file_as_bytes(path)):
 		return null
 	module.replay()
@@ -76,6 +90,7 @@ func parse(data : PackedByteArray) -> bool:
 			"volume": mini(data[o + 25], 64),
 			"loop_start": word(data, o + 26) * 2,
 			"loop_length": word(data, o + 28) * 2,
+			"bits": 8, "frames": 0, "loop_type": 0,
 		})
 	var pos : int = 20 + sample_count * 30
 	var song_length : int = data[pos]
@@ -101,7 +116,13 @@ func parse(data : PackedByteArray) -> bool:
 				s.loop_start = s.loop_start >> 1
 			else:
 				s.loop_length = maxi(s.data.size() - s.loop_start, 0)
+		s.frames = s.data.size()
+		s.loop_type = 1 if s.loop_length > 2 else 0
 	return not order.is_empty()
+
+# Playback rate of a sample at a period, relative to C4_RATE
+func pitchScale(sample : int, period : float) -> float:
+	return AMIGA_CLOCK / period / C4_RATE * pow(2.0, samples[sample].finetune / 96.0)
 
 func newChannel() -> Dictionary:
 	return {"sample": 0, "period": 0, "volume": 0, "period_out": 0, "volume_out": 0,
@@ -295,7 +316,8 @@ func trigger(ch : Dictionary, c : int, period : int, row : int, time : float) ->
 	var offset : int = ch.offset if ch.effect == 0x9 else 0
 	if s.data.size() <= 2 or offset >= s.data.size():
 		return
-	ch.note = {"time": time, "channel": c, "sample": ch.sample - 1, "period": period, "offset": offset, "row": row, "env": []}
+	ch.note = {"time": time, "channel": c, "sample": ch.sample - 1, "instrument": ch.sample - 1, "period": period, "offset": offset,
+		"row": row, "env": [], "pan": -1.0 if c % 4 in [0, 3] else 1.0}
 	notes.append(ch.note)
 
 # Save the pitch and volume of the playing note when they change

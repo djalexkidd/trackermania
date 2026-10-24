@@ -88,7 +88,7 @@ func play(song_title: String, song_artist: String, difficulty_name: String, char
 		tag = "NETPLAY"
 	else:
 		var extension = Loader.file_path.get_extension().to_lower()
-		tag = "MODULE" if extension == "mod" else ("QUAVER" if extension == "qua" else "BMS")
+		tag = "MODULE" if extension in ModModule.EXTENSIONS else ("QUAVER" if extension == "qua" else "BMS")
 	var player = 2 if Global.p2_joined and not Global.p1_joined else 1
 	if Global.is_double_play():
 		style = "DP 14 KEYS"

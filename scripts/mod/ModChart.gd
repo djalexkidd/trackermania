@@ -92,12 +92,12 @@ func selectNotes(notes : Array, settings : Dictionary) -> Array:
 	selected.sort()
 	return selected
 
-# Notes of the same sound (sample) start from the same lane, higher pitches go to the right
+# Notes of the same instrument start from the same lane, higher pitches go to the right
 func assignLanes(notes : Array, selected : Array, scratch : bool) -> void:
 	var keys : int = keyLanes.size()
 	var groups : Dictionary = {}
 	for i in selected:
-		var key : int = notes[i].sample
+		var key : int = notes[i].instrument
 		if not groups.has(key):
 			groups[key] = []
 		if not notes[i].period in groups[key]:
@@ -115,7 +115,7 @@ func assignLanes(notes : Array, selected : Array, scratch : bool) -> void:
 	if scratch and group_keys.size() > scratchLanes.size():
 		var counts : Dictionary = {}
 		for i in selected:
-			var key : int = notes[i].sample
+			var key : int = notes[i].instrument
 			counts[key] = counts.get(key, 0) + 1
 		var candidates : Array = group_keys.filter(func(key): return counts[key] >= SCRATCH_MIN_NOTES)
 		candidates.sort_custom(func(a, b): return counts[a] < counts[b] if counts[a] != counts[b] else a < b)
@@ -126,7 +126,7 @@ func assignLanes(notes : Array, selected : Array, scratch : bool) -> void:
 	last_time.fill(-INF)
 	for i in selected:
 		var note : Dictionary = notes[i]
-		var key : int = note.sample
+		var key : int = note.instrument
 		var lane : int = -1
 		var scratch_lane : int = scratchLanes[scratch_groups.find(key)] if key in scratch_groups else -1
 		if scratch_lane != -1 and note.time - last_time[scratch_lane] >= LANE_MIN_GAP:

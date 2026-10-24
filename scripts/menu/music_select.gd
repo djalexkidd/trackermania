@@ -111,7 +111,7 @@ func add_song_entry(group: Array):
 	var file_path: String = charts[0]["path"]
 
 	var file_type = "QUAVER"
-	if file_path.get_extension().to_lower() == "mod":
+	if ModModule.is_module(file_path):
 		file_type = "MODULE"
 	elif BmsChart.is_bms(file_path):
 		file_type = "BMS"

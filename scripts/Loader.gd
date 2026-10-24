@@ -5,6 +5,11 @@ var file_path = ""
 var chart_difficulty = ""
 # Place of chart_difficulty among the difficulties of its song, for the songs without that name
 var difficulty_slot = 0
+# The chart is tested from the BMS editor: the game goes back to the editor
+var editor_test = false
+
+const EDITOR_SCENE = "res://scenes/editor/editor.tscn"
+const MUSIC_SELECT_SCENE = "res://scenes/menu/music_select.tscn"
 
 const SONG_CACHE_PATH = "user://song_catalog.json"
 # Bump when selection metadata or module chart generation changes.
@@ -90,6 +95,10 @@ func get_song_catalog(force_refresh: bool = false) -> Array:
 func clear_song_catalog() -> void:
 	if FileAccess.file_exists(SONG_CACHE_PATH):
 		DirAccess.remove_absolute(SONG_CACHE_PATH)
+
+# Scene after a game that could not start
+func back_scene() -> String:
+	return EDITOR_SCENE if editor_test else MUSIC_SELECT_SCENE
 
 # Orders the difficulties of a song when their levels are equal
 func note_count(lanes: Array) -> int:

@@ -39,6 +39,7 @@ var modes = [
 	{"name": "FREE", "short": "FREE", "icon": "free", "scene": "res://scenes/menu/music_select.tscn", "desc": "PLAY THE SONGS YOU WANT, FREELY."},
 	{"name": "NETPLAY", "short": "NET", "icon": "netplay", "scene": "res://scenes/netplay/lobby.tscn", "desc": "PLAY AGAINST OTHER DJS ON THE NETWORK."},
 	{"name": "TRAINING", "short": "TRAIN", "icon": "training", "scene": "res://scenes/menu/music_select.tscn", "training": true, "desc": "PRACTICE A SECTION OF A SONG, AT NORMAL SPEED OR SLOWER."},
+	{"name": "EDITOR", "short": "EDIT", "icon": "editor", "scene": "res://scenes/editor/editor.tscn", "desc": "CREATE AND EDIT KEYSOUNDED BMS CHARTS FROM YOUR SONGS."},
 	{"name": "OPTIONS", "short": "OPTION", "icon": "options", "scene": "res://scenes/menu/options.tscn", "desc": "DISPLAY, SOUND, DJ NAME AND CONTROLLERS."},
 	{"name": "DOWNLOAD", "short": "DL", "icon": "download", "scene": "res://scenes/menu/download.tscn", "desc": "IMPORT NEW SONGS INTO THE GAME."},
 ]
@@ -467,6 +468,12 @@ func draw_icon(icon: String, center: Vector2, icon_color: Color) -> void:
 			draw_rect(Rect2(center + Vector2(-4, -18), Vector2(8, 5)), icon_color)
 			draw_line(center + Vector2(0, 3), center + Vector2(6, -4), icon_color, 3.0)
 			draw_line(center + Vector2(11, -10), center + Vector2(15, -14), icon_color, 3.0)
+		"editor":
+			# Pencil over a note
+			draw_rect(Rect2(center + Vector2(-16, 8), Vector2(20, 8)), icon_color)
+			draw_line(center + Vector2(-2, 4), center + Vector2(12, -12), icon_color, 6.0)
+			draw_colored_polygon([center + Vector2(-6, 6), center + Vector2(-4, -1), center + Vector2(1, 4)], icon_color)
+			draw_line(center + Vector2(13, -13), center + Vector2(16, -16), icon_color, 6.0)
 		"options":
 			for i in 8:
 				var direction = Vector2.from_angle(i * TAU / 8)

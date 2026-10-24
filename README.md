@@ -24,7 +24,7 @@ Le jeu est en cours de développement.
 - [x] DOUBLE PLAY (14 touches sur les deux platines) pour les modules Amiga et les BMS
 - [x] Multijoueur en ligne
 - [ ] Classements en ligne
-- [ ] Éditeur de niveaux
+- [x] Éditeur de niveaux
 - [ ] Téléchargement de contenu crée par la communauté
 - [x] Lecture directe des beatmaps Quaver (.qua)
 - [x] Lecture directe des BMS (.bms, .bme, .bml) et bmson avec keysounds (SP 5 et 7 touches, DP)

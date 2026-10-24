@@ -49,6 +49,9 @@ scripts/
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
     options_menu.gd      Menu OPTIONS façon IIDX console (voir plus bas), scène scenes/menu/options.tscn
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs
+  editor/                Éditeur de BMS (voir plus bas) : editor.gd (class_name BmsEditor, scène scenes/editor/editor.tscn),
+                         EditorField.gd (lanes), EditorChart.gd (chart en temps), EditorPlayer.gd (lecture),
+                         AudioSlicer.gd (découpe en WAV, forme d'onde), EditorUI.gd (thème)
   result/                result.gd (écran de résultats unique, solo et versus) et result_panel.gd (panneau d'un joueur)
 scenes/
   game/main.gd + .tscn   Scène de jeu unique (1P, 2P, versus) : deux terrains P1/P2 toujours affichés, un AudioStreamPlayer partagé, plaque centrale (titre, BPM)
@@ -59,6 +62,7 @@ scenes/
   menu/                  Scènes des menus
   result/result.tscn     Écran de résultats (solo et versus local)
   arcade/                name_entry.tscn, ranking.tscn
+  editor/editor.tscn     Éditeur de BMS (scène vide, tout est construit par editor.gd)
   netplay/               lobby.tscn (salles et salle), result.tscn (résultats du round), img/crown.png
 ```
 
@@ -114,7 +118,7 @@ Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l
 
 ### Menu principal (`main_menu.gd`)
 MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).
-- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), TRAINING (sélection avec `"training": true`, qui appelle `Training.start()`), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
+- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), TRAINING (sélection avec `"training": true`, qui appelle `Training.start()`), EDITOR (éditeur de BMS), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
 - Platine (ou flèches, molette) : choisir, en boucle ; touche blanche : valider ; touche noire deux fois : quitter (rien en web).
 
 ### Mode ARCADE (`scripts/arcade/`)
@@ -268,6 +272,18 @@ Chaque fichier .bms, .bme, .bml ou .bmson est une difficulté de la musique de s
 - Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines.
 - Godot transforme `\` en `/` dans les chemins : un dossier dont le nom contient un `\` (mojibake de zip) n'est pas lisible.
 - Les titres japonais demandent une police système avec ces glyphes (`allow_system_fallback`).
+
+## Éditeur de BMS (`scripts/editor/`)
+
+Mode EDITOR du menu principal, inspiré de l'éditeur de Quaver ; le guide utilisateur est `BMS.md`. Il crée et modifie des .bms/.bme/.bml (SP et DP), pas les .mod ni les .qua. Interface en contrôles Godot avec le thème de `EditorUI.make_theme()` (sombre, orange, police FT2FONT pour les textes, 04B_20 pour les titres) : barre de menus (les raccourcis sont les accélérateurs des `PopupMenu`, `KEY_MASK_CTRL` et non `KEY_MASK_CMD_OR_CTRL` qui ne correspond pas sous Linux), DETAILS / TOOLS / TIMING à gauche, SONG / KEYSOUNDS à droite, lecture en bas, dialogues `AcceptDialog` (thème passé à chaque fenêtre), `FileDialog` natifs si possible.
+- `EditorChart` : la chart en **temps musicaux** (beats flottants, égalité à `EPSILON`) : `notes` `{lane, beat, length, sound}`, `bgm` `{beat, sound}`, `bpmChanges`, `stops` (en 1/192 de mesure), `measureLengths`, `sounds` (fichiers relatifs au dossier). Lecture comme `BmsChart` (première branche des `#RANDOM`, `hadRandom`), les lignes inconnues (BGA, mines, `#TOTAL`...) sont gardées dans `extraHeader`/`extraLines`. `toBms()` n'écrit que les sons utilisés (ids base 36, `#BASE 62` au-delà de 1295), `#LNTYPE 1`, plusieurs lignes 01 si besoin, la plus petite division de mesure (`measureData()`). Le temps vient d'un `BmsChart` interne (`buildTimeline`), `timeToBeat()` est l'inverse. `snapshot()`/`restore()` pour l'undo.
+- L'**offset** (TIMING) est la longueur de la mesure 000 : la mesure 001 commence sur le premier temps du fichier, la musique est en BGM au beat 0.
+- **Keysounds depuis un OGG** : SLICE THE SONG (`start_slice()`, dans un `WorkerThreadPool`) décode la musique (`AudioSlicer.decode()`, `AudioStreamPlayback.mix_audio()` au mix rate) et la coupe aux lignes de la grille et aux notes déjà posées, en WAV 16 bits dans `slices/` (`<nom>_0001.wav`, numéros après ceux du dossier, `find_next_slice()`). Chaque morceau dépasse de `AudioSlicer.TAIL` en fondu (pas de trou si la BGM démarre une image en retard). Les morceaux vont en BGM, sauf ceux des notes.
+- `grab_sound()` : une note posée (mode AUTO, `current_sound` = -1) prend le son de BGM sur son beat, sinon partage celui d'une note de l'accord, sinon `split_slice()` recoupe le morceau qui joue (deux nouveaux fichiers, jamais de réécriture : d'autres difficultés du dossier peuvent l'utiliser). `release_sound()` rend le son à la BGM (suppression avec DELETED NOTES STAY IN BGM, déplacement dans le temps).
+- `EditorField` (dessiné dans `_draw()`) : frise de toute la musique, colonne BPM (clic : `open_timing_dialog()`, BPM et STOP), lanes (ordre `order`, scratch à gauche, DP en 16 lanes), 4 colonnes BGM, ligne de lecture à `HIT_LINE_BOTTOM` du bas, grille du beat snap repartant de chaque mesure (couleurs de Quaver), forme d'onde des sons placés (`waveform`, enveloppes de `AudioSlicer.envelope()` calculées dans un thread).
+- `EditorPlayer` : joue tous les sons de la chart depuis n'importe quel temps (les sons déjà commencés repartent au bon endroit), une voix par son, métronome et tic sur les notes, ralenti par le bus `Training`. Pendant la lecture, touches 1~8 et contrôleur posent des notes au beat snap (`record()`).
+- Une nouvelle chart va dans `user://songs/editor/<titre>/` (musique copiée), une par difficulté (`<difficulté>.bme`, SAVE AS A NEW DIFFICULTY). Chaque sauvegarde vide le cache de la sélection.
+- **TEST PLAY** : enregistre, règle `Loader.file_path` et `Loader.editor_test`, puis ouvre `main.tscn` ; `playfield.finish()` revient directement à l'éditeur sans rien enregistrer (`Loader.back_scene()` pour les erreurs de chargement). L'état (fichier, curseur, zoom, undo) est gardé dans des variables statiques de `BmsEditor`.
 
 ## Netplay (`scripts/netplay/`)
 

@@ -464,7 +464,7 @@ func loadQuaChart() -> bool:
 	var chart : QuaChart = QuaChart.load_file(Loader.file_path)
 	if chart == null:
 		OS.alert("Invalid Quaver beatmap: " + Loader.file_path)
-		get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
+		get_tree().change_scene_to_file.call_deferred(Loader.back_scene())
 		return false
 	noteArray = chart.noteArray
 	measures = chart.measures
@@ -491,7 +491,7 @@ func loadModule() -> bool:
 		var module : ModModule = ModModule.load_file(Loader.file_path)
 		if module == null:
 			OS.alert("Invalid Amiga module: " + Loader.file_path)
-			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
+			get_tree().change_scene_to_file.call_deferred(Loader.back_scene())
 			return false
 		keysoundPlayer = ModPlayer.new(module, Training.bus() if Training.active else "Master")
 		keysoundPlayer.name = "ModPlayer"
@@ -522,7 +522,7 @@ func loadBms() -> bool:
 		var chart : BmsChart = BmsChart.load_file(Loader.file_path)
 		if chart == null:
 			OS.alert("Invalid BMS chart: " + Loader.file_path)
-			get_tree().change_scene_to_file.call_deferred("res://scenes/menu/music_select.tscn")
+			get_tree().change_scene_to_file.call_deferred(Loader.back_scene())
 			return false
 		keysoundPlayer = BmsPlayer.new(chart, Loader.file_path.get_base_dir(), Training.bus() if Training.active else "Master")
 		keysoundPlayer.name = "BmsPlayer"
@@ -984,6 +984,11 @@ func finish(failed : bool) -> void:
 		gaveUp = failed
 		judgeShown = ""
 		finished.emit()
+		return
+	# Test of the BMS editor: back to the editor, nothing is saved
+	if Loader.editor_test:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		get_tree().change_scene_to_file.call_deferred(Loader.EDITOR_SCENE)
 		return
 	var double : bool = partner != null
 	Global.set_player_var(player, "failed", failed)

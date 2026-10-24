@@ -118,7 +118,7 @@ Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l
 
 ### Menu principal (`main_menu.gd`)
 MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).
-- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), TRAINING (sélection avec `"training": true`, qui appelle `Training.start()`), EDITOR (éditeur de BMS), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets, barre du bas avec tous les modes.
+- Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), TRAINING (sélection avec `"training": true`, qui appelle `Training.start()`), EDITOR (éditeur de BMS), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets (`VISIBLE_TABS` = 5, le mode choisi au milieu, les autres défilent en boucle comme la roue de la sélection, `tab_scroll`), barre du bas avec tous les modes.
 - Platine (ou flèches, molette) : choisir, en boucle ; touche blanche : valider ; touche noire deux fois : quitter (rien en web).
 
 ### Mode ARCADE (`scripts/arcade/`)

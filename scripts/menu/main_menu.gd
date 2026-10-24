@@ -27,6 +27,9 @@ const SCREEN_HEIGHT = 230.0
 const TAB_HEIGHT = 44.0
 const TAB_GAP = 18.0
 const TABS_MARGIN = 100.0
+# Tabs on screen, the selected one in the middle, the others wrap around like the song wheel
+const VISIBLE_TABS = 5
+const TAB_SCROLL_TIME = 0.16
 const ANALOG_STEP = 0.08
 const TITLE_SLIDE_TIME = 0.2
 const NOTICE_TIME = 3.0
@@ -60,7 +63,7 @@ const BANDS = [
 	[Vector2(0.9, 0.2), -0.45, 12.0],
 ]
 
-var mode_index = 1
+var mode_index = 0
 var analog_previous = [0.0, 0.0]
 var analog_remainder = [0.0, 0.0]
 var repeat_direction = 0
@@ -68,6 +71,9 @@ var repeat_time = 0.0
 # Slide of the mode title, 1 when it arrives, 0 in place
 var title_slide = 0.0
 var title_tween: Tween
+# Scroll of the tabs, in tabs, eased back to 0 after a turn
+var tab_scroll = 0.0
+var tab_tween: Tween
 var notice = ""
 var notice_until = 0
 # A black key asks to quit, a second one quits
@@ -192,12 +198,12 @@ func click(at: Vector2) -> void:
 			turn(-1)
 		elif at.x > size.x - TABS_MARGIN:
 			turn(1)
-		for i in modes.size():
-			if tab_rect(i).has_point(at):
-				if i == mode_index:
+		for slot in VISIBLE_TABS:
+			if tab_rect(slot).has_point(at):
+				if slot == center_slot():
 					decide()
 				else:
-					turn(i - mode_index)
+					turn(slot - center_slot())
 				return
 
 func turn(steps: int) -> void:
@@ -208,6 +214,7 @@ func turn(steps: int) -> void:
 	exit_until = 0
 	scroll_sound.play()
 	animate_title()
+	animate_tabs(steps)
 
 func decide() -> void:
 	var mode = modes[mode_index]
@@ -245,6 +252,13 @@ func animate_title() -> void:
 	title_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	title_tween.tween_property(self, "title_slide", 0.0, TITLE_SLIDE_TIME)
 
+func animate_tabs(steps: int) -> void:
+	if tab_tween:
+		tab_tween.kill()
+	tab_scroll = clampf(tab_scroll + steps, -center_slot(), center_slot())
+	tab_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tab_tween.tween_property(self, "tab_scroll", 0.0, TAB_SCROLL_TIME)
+
 # Layout
 
 func body_top() -> float:
@@ -259,9 +273,17 @@ func screen_rect() -> Rect2:
 func tabs_top() -> float:
 	return screen_rect().end.y + 28
 
-func tab_rect(i: int) -> Rect2:
-	var width = (size.x - TABS_MARGIN * 2 - TAB_GAP * (modes.size() - 1)) / modes.size()
-	return Rect2(TABS_MARGIN + i * (width + TAB_GAP), tabs_top(), width, TAB_HEIGHT)
+func center_slot() -> int:
+	return floori(VISIBLE_TABS / 2.0)
+
+# Tab at a slot of the row, fractional while scrolling
+func tab_rect(slot: float) -> Rect2:
+	var width = (size.x - TABS_MARGIN * 2 - TAB_GAP * (VISIBLE_TABS - 1)) / VISIBLE_TABS
+	return Rect2(TABS_MARGIN + slot * (width + TAB_GAP), tabs_top(), width, TAB_HEIGHT)
+
+# Distance of a mode from the middle slot, wrapped around the modes
+func tab_offset(i: int) -> float:
+	return wrapf(i - mode_index + tab_scroll, -modes.size() / 2.0, modes.size() / 2.0)
 
 # OK and EXIT in the header
 func header_tag_rect(i: int) -> Rect2:
@@ -394,7 +416,7 @@ func clip_segment(a: Vector2, b: Vector2, rect: Rect2) -> Array:
 
 func draw_tabs() -> void:
 	var first = tab_rect(0)
-	var last = tab_rect(modes.size() - 1)
+	var last = tab_rect(VISIBLE_TABS - 1)
 	draw_corners(Rect2(first.position.x - 24, first.position.y - 14, last.end.x - first.position.x + 48, TAB_HEIGHT + 28), 10.0, Color.WHITE)
 
 	# Arrows on both sides
@@ -403,20 +425,29 @@ func draw_tabs() -> void:
 	draw_chevron(Vector2(TABS_MARGIN - 52 - bob, middle), -1)
 	draw_chevron(Vector2(size.x - TABS_MARGIN + 52 + bob, middle), 1)
 
+	# Copies on both sides, in case there are fewer modes than tabs
 	for i in modes.size():
-		if i != mode_index:
-			var rect = tab_rect(i)
-			draw_rect(Rect2(rect.position + Vector2(6, 6), rect.size), Color(0, 0, 0, 0.5))
-			draw_rect(rect, ROW)
-			draw_text(Vector2(rect.get_center().x, rect.get_center().y + 10), modes[i]["name"], fit_size(modes[i]["name"], 24, rect.size.x - 20), Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
+		if i == mode_index:
+			continue
+		for turn_ in [-1, 0, 1]:
+			var offset = tab_offset(i) + turn_ * modes.size()
+			# Tabs past the row fade out while they scroll away, gone half a tab further
+			var alpha = clampf((center_slot() + 0.5 - absf(offset)) * 2.0, 0.0, 1.0)
+			if alpha <= 0.0:
+				continue
+			var rect = tab_rect(center_slot() + offset)
+			draw_rect(Rect2(rect.position + Vector2(6, 6), rect.size), Color(0, 0, 0, 0.5 * alpha))
+			draw_rect(rect, Color(ROW, alpha))
+			draw_text(Vector2(rect.get_center().x, rect.get_center().y + 10), modes[i]["name"], fit_size(modes[i]["name"], 24, rect.size.x - 20), Color(Color.WHITE, alpha), HORIZONTAL_ALIGNMENT_CENTER)
 	draw_selected_tab()
 
 func draw_chevron(at: Vector2, direction: int) -> void:
 	draw_colored_polygon([at + Vector2(-8 * direction, -18), at + Vector2(4 * direction, -18), at + Vector2(16 * direction, 0), at + Vector2(4 * direction, 18), at + Vector2(-8 * direction, 18), at + Vector2(4 * direction, 0)], ORANGE)
 
-# Orange frame of the selected mode, hanging below its tab with its icon and DECIDE?
+# Orange frame of the selected mode in the middle slot, hanging below its tab with its icon and DECIDE?
+# The tab slides into it while the row scrolls
 func draw_selected_tab() -> void:
-	var rect = tab_rect(mode_index)
+	var rect = tab_rect(center_slot())
 	var frame_color = YELLOW if leaving and Time.get_ticks_msec() % 100 < 50 else ORANGE
 	var frame = Rect2(rect.position - Vector2(12, 14), Vector2(rect.size.x + 24, rect.size.y + 112))
 	var notch = frame.position.x + 60
@@ -426,13 +457,14 @@ func draw_selected_tab() -> void:
 	outline.append(frame.position)
 	draw_polyline(outline, frame_color, 6.0)
 
-	draw_rect(rect, ROW)
+	var tab = tab_rect(center_slot() + tab_offset(mode_index))
+	draw_rect(tab, ROW)
 	var mode = modes[mode_index]
-	var font_size = fit_size(mode["name"], 24, rect.size.x - 50)
-	draw_text(Vector2(rect.get_center().x, rect.get_center().y + 10), mode["name"], font_size, frame_color, HORIZONTAL_ALIGNMENT_CENTER)
+	var font_size = fit_size(mode["name"], 24, tab.size.x - 50)
+	draw_text(Vector2(tab.get_center().x, tab.get_center().y + 10), mode["name"], font_size, frame_color, HORIZONTAL_ALIGNMENT_CENTER)
 	for side in [-1, 1]:
-		var x = rect.get_center().x + side * (rect.size.x / 2 - 12)
-		draw_polyline([Vector2(x - side * 6, rect.position.y + 6), Vector2(x, rect.position.y + 6), Vector2(x, rect.end.y - 6), Vector2(x - side * 6, rect.end.y - 6)], frame_color, 2.0)
+		var x = tab.get_center().x + side * (tab.size.x / 2 - 12)
+		draw_polyline([Vector2(x - side * 6, tab.position.y + 6), Vector2(x, tab.position.y + 6), Vector2(x, tab.end.y - 6), Vector2(x - side * 6, tab.end.y - 6)], frame_color, 2.0)
 
 	# Fake readout lines, like the console menu
 	for line in 4:

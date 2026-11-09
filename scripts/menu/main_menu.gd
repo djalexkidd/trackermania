@@ -63,7 +63,9 @@ const BANDS = [
 	[Vector2(0.9, 0.2), -0.45, 12.0],
 ]
 
-var mode_index = 0
+# Last mode used, kept across scene changes (not saved to disk)
+static var last_mode_index = 0
+var mode_index = last_mode_index
 var analog_previous = [0.0, 0.0]
 var analog_remainder = [0.0, 0.0]
 var repeat_direction = 0
@@ -220,6 +222,7 @@ func decide() -> void:
 		return
 	decide_sound.play()
 	leaving = true
+	last_mode_index = mode_index
 	if mode.get("arcade", false):
 		Arcade.start()
 	if mode.get("training", false):

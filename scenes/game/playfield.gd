@@ -1016,6 +1016,8 @@ func finish(failed : bool) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		get_tree().change_scene_to_file("res://scenes/netplay/result.tscn")
 	elif versus:
+		if Arcade.active:
+			Arcade.add_stage(player)
 		judgeShown = ""
 		overlay.queue_redraw()
 		if failed:

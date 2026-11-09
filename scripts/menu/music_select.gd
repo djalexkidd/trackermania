@@ -226,8 +226,8 @@ func _process(delta):
 			continue
 		var prefix = "p%d_" % player
 		if Input.is_action_just_pressed(prefix + "start"):
-			# The arcade and training modes are played alone, and the DOUBLE PLAY takes both sides
-			if (Arcade.active or Training.active or Global.is_double_play()) and not is_joined(player):
+			# The arcade players join before the 1st stage, the training mode is played alone, and the DOUBLE PLAY takes both sides
+			if (not Arcade.can_join() or Training.active or Global.is_double_play()) and not is_joined(player):
 				continue
 			if not is_joined(player):
 				set_joined(player, true)
@@ -287,9 +287,9 @@ func set_joined(player: int, joined: bool) -> void:
 	if joined_players().is_empty():
 		leave()
 
-# Arcade: the game can only be given up before the 1st stage
+# Arcade: the game can only be given up before the 1st stage, by both players
 func can_leave() -> bool:
-	return not Arcade.active or Arcade.stages.is_empty()
+	return Arcade.can_join()
 
 # Back to the title menu, or to the netplay lobby
 func leave() -> void:

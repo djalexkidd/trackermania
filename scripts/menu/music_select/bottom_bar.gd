@@ -128,7 +128,8 @@ func draw_strip(player: int) -> void:
 
 	if not is_joined(player):
 		# PRESS START BUTTON hides the options of an absent player, nothing on the side of a DOUBLE PLAY
-		if not is_double_side(player):
+		# or in arcade after the 1st stage (nobody can join)
+		if Arcade.can_join() and not is_double_side(player):
 			var alpha = 0.6 + 0.4 * cos(Time.get_ticks_msec() / 1000.0 * TAU / BLINK_SEC)
 			draw_text(STRIP_FONT, inner, "PRESS START BUTTON", 26, Color(1, 1, 1, alpha), Color(0, 0, 0, alpha))
 		return

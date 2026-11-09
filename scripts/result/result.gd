@@ -63,12 +63,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		Global.set_player_var(player, "combo_max", 0)
 	if Arcade.active and Arcade.game_over():
 		game_over()
-	elif Arcade.active and Arcade.finished():
+		return
+	if Arcade.active and Arcade.finished():
 		get_tree().change_scene_to_file("res://scenes/arcade/name_entry.tscn")
 	else:
 		get_tree().change_scene_to_file("res://scenes/menu/music_select.tscn")
 
-# A failed stage ends the arcade game, back to the title menu
+# A stage failed by every player ends the arcade game, back to the title menu
 func game_over() -> void:
 	game_over_at = elapsed
 	Arcade.stop()

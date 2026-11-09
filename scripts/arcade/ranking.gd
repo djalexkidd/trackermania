@@ -1,7 +1,7 @@
 extends Control
 
 # Ranking of the arcade games after the NAME ENTRY: the best total EX scores,
-# the new game blinking. A key or the time goes back to the title menu.
+# the new games blinking (one per player in versus). A key or the time goes back to the title menu.
 
 const TITLE_FONT = preload("res://assets/font/04B_20__.TTF")
 const SONG_FONT = preload("res://assets/font/monofonto.otf")
@@ -86,10 +86,11 @@ func draw_table() -> void:
 	if entries.is_empty():
 		draw_text(TITLE_FONT, Vector2(size.x / 2, TABLE_TOP + 120), "NO RECORD", 32, TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER)
 		return
-	# The new game is shown under the 10 best when it is not in them
+	# The new games are shown under the 10 best when they are not in them
 	var rows = range(mini(entries.size(), SHOWN))
-	if Arcade.last_rank >= SHOWN:
-		rows.append(Arcade.last_rank)
+	var below = Arcade.last_ranks.values().filter(func(rank): return rank >= SHOWN and rank < entries.size())
+	below.sort()
+	rows.append_array(below)
 	for slot in rows.size():
 		var y = TABLE_TOP + slot * (ROW_HEIGHT + ROW_GAP)
 		if slot == SHOWN:
@@ -99,7 +100,7 @@ func draw_table() -> void:
 
 func draw_row(row: Rect2, rank: int, alpha: float) -> void:
 	var entry: Dictionary = entries[rank]
-	var new_game = rank == Arcade.last_rank
+	var new_game = rank in Arcade.last_ranks.values()
 	var lit = new_game and Time.get_ticks_msec() % 600 < 400
 	draw_rect(row, Color(Color(ORANGE, 0.45) if lit else ROW, alpha))
 	var accent = PODIUM_COLORS[rank] if rank < PODIUM_COLORS.size() else TAG_BORDER
@@ -112,7 +113,10 @@ func draw_row(row: Rect2, rank: int, alpha: float) -> void:
 	draw_text(TITLE_FONT, Vector2(x + COLUMNS[3] + 100, baseline), "%d" % entry.get("ex_score", 0), 20, Color(PALE_BLUE, alpha), HORIZONTAL_ALIGNMENT_RIGHT, 4)
 	draw_text(SONG_FONT, Vector2(x + COLUMNS[4], baseline + 2), entry.get("date", ""), 22, Color(Color.WHITE if lit else TEXT_DIM, alpha))
 	if new_game:
-		draw_text(TITLE_FONT, Vector2(row.end.x + 12, baseline), "NEW", 14, Color(YELLOW, alpha))
+		var tag = "NEW"
+		if Arcade.last_ranks.size() > 1:
+			tag = "%dP" % Arcade.last_ranks.find_key(rank)
+		draw_text(TITLE_FONT, Vector2(row.end.x + 12, baseline), tag, 14, Color(YELLOW, alpha))
 
 func draw_header() -> void:
 	draw_texture(INFO_BAR, Vector2(size.x + INFO_BAR_LEFT, 0))
@@ -128,7 +132,8 @@ func draw_footer(top: float) -> void:
 	draw_rect(Rect2(0, top, size.x, 4), Color.RED)
 	var bar = Rect2(20, top + 10, size.x - 40, FOOTER_HEIGHT - 8)
 	draw_rect(bar, TAG_BORDER, false, 2.0)
-	var songs = " / ".join(entries[Arcade.last_rank].get("songs", [])) if Arcade.last_rank >= 0 and Arcade.last_rank < entries.size() else ""
+	var ranks = Arcade.last_ranks.values().filter(func(rank): return rank < entries.size())
+	var songs = " / ".join(entries[ranks.min()].get("songs", [])) if not ranks.is_empty() else ""
 	var font_size = 24
 	while font_size > 8 and SONG_FONT.get_string_size(songs, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > bar.size.x - 260:
 		font_size -= 1

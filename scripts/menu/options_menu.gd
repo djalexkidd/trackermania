@@ -99,6 +99,7 @@ var decide_sound: AudioStreamPlayer
 var cancel_sound: AudioStreamPlayer
 var click_sound: AudioStreamPlayer
 var bgm: AudioStreamPlayer
+var bgm_path := ""
 var controller: ControllerPanel
 
 func _ready() -> void:
@@ -120,8 +121,6 @@ func _ready() -> void:
 	controller = ControllerPanel.new()
 	controller.assigned.connect(decide_sound.play)
 	add_child(controller)
-	# BGM disabled for now
-	#play_bgm()
 	for player in [1, 2]:
 		analog_previous[player - 1] = analog_value(player)
 
@@ -133,19 +132,32 @@ func add_sound(stream: AudioStream) -> AudioStreamPlayer:
 	add_child(player)
 	return player
 
-# The music select BGM, changed live while choosing it
+# The music select BGM, previewed live while choosing it
 func play_bgm() -> void:
-	var stream: AudioStream = DEFAULT_BGM
-	if Global.custom_music_select_bgm != "":
-		stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
-		stream.loop = true
-	if bgm.stream == stream:
+	var path = Global.custom_music_select_bgm
+	if bgm.playing and bgm_path == path:
 		return
+	var stream: AudioStream = DEFAULT_BGM
+	if path != "":
+		stream = AudioStreamOggVorbis.load_from_file(path)
+		if stream == null:
+			stream = DEFAULT_BGM
+		else:
+			stream.loop = true
+	bgm_path = path
 	bgm.stream = stream
 	bgm.play()
 
+# The preview only plays while the BGM setting is being edited
+func update_bgm_preview() -> void:
+	if level == Level.EDIT and current_item().get("var", "") == "custom_music_select_bgm":
+		play_bgm()
+	elif bgm.playing:
+		bgm.stop()
+
 func _process(delta: float) -> void:
 	queue_redraw()
+	update_bgm_preview()
 	var steps = poll_turntable(delta)
 	if level == Level.CALIBRATION:
 		process_calibration()
@@ -400,8 +412,6 @@ func restore_default() -> void:
 func set_setting(item: Dictionary, value) -> void:
 	Global.set(item["var"], value)
 	Global.apply_settings()
-	#if item["var"] == "custom_music_select_bgm":
-	#	play_bgm()
 
 func step_value(item: Dictionary, value, steps: int):
 	match item["type"]:

@@ -139,10 +139,14 @@ func load_key_mappings():
 		InputMap.action_erase_events(action)
 		InputMap.action_add_event(action, input_event)
 
-# Saved form of an input: key name, "Button:index:device" or "Axis:axis:sign:device"
+# Suffix of a key on the left or right side (Shift, Ctrl, Alt, Meta)
+const KEY_LOCATION_SUFFIX = {KEY_LOCATION_LEFT: ":L", KEY_LOCATION_RIGHT: ":R"}
+
+# Saved form of an input: key name ("Shift:L" for a side), "Button:index:device" or "Axis:axis:sign:device"
 func event_to_string(event: InputEvent) -> String:
 	if event is InputEventKey:
-		return OS.get_keycode_string(event.keycode if event.keycode != KEY_NONE else event.physical_keycode)
+		var name = OS.get_keycode_string(event.keycode if event.keycode != KEY_NONE else event.physical_keycode)
+		return name + KEY_LOCATION_SUFFIX.get(event.location, "")
 	if event is InputEventJoypadButton:
 		return "Button:%d:%d" % [event.button_index, event.device]
 	if event is InputEventJoypadMotion:
@@ -163,11 +167,20 @@ func string_to_event(saved_key: String, default_device := 0) -> InputEvent:
 		motion.axis_value = float(parts[2])
 		motion.device = int(parts[3])
 		return motion
-	var keycode = OS.find_keycode_from_string(saved_key)
+	var keycode = OS.find_keycode_from_string(parts[0])
 	if keycode == KEY_NONE:
 		return null
+	var location = KEY_LOCATION_SUFFIX.find_key(":" + parts[1]) if parts.size() > 1 else null
+	return make_key_event(keycode, location if location != null else KEY_LOCATION_UNSPECIFIED)
+
+# Godot checks the side of a key only on a physical binding (left and right Shift, Ctrl, Alt)
+func make_key_event(keycode: Key, location: KeyLocation) -> InputEventKey:
 	var key = InputEventKey.new()
-	key.keycode = keycode
+	if location == KEY_LOCATION_UNSPECIFIED:
+		key.keycode = keycode
+	else:
+		key.physical_keycode = keycode
+		key.location = location
 	return key
 
 # Bind a single input to an action and remember it in the mappings file

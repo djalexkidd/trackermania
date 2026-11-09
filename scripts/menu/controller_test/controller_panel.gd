@@ -156,7 +156,8 @@ func pad_name() -> String:
 # Short text of an input for the list
 func input_text(event: InputEvent) -> String:
 	if event is InputEventKey:
-		return OS.get_keycode_string(event.keycode if event.keycode != KEY_NONE else event.physical_keycode).to_upper()
+		var side = {KEY_LOCATION_LEFT: "L.", KEY_LOCATION_RIGHT: "R."}.get(event.location, "")
+		return side + OS.get_keycode_string(event.keycode if event.keycode != KEY_NONE else event.physical_keycode).to_upper()
 	if event is InputEventJoypadButton:
 		return "BUTTON %d" % event.button_index
 	if event is InputEventJoypadMotion:
@@ -187,8 +188,11 @@ func has_conflict(i: int) -> bool:
 func same_input(a: InputEvent, b: InputEvent) -> bool:
 	if a.get_class() != b.get_class():
 		return false
+	# A key without a side (old saves) also matches both sides
 	if a is InputEventKey:
-		return input_text(a) == input_text(b)
+		if a.location != b.location and a.location != KEY_LOCATION_UNSPECIFIED and b.location != KEY_LOCATION_UNSPECIFIED:
+			return false
+		return (a.keycode if a.keycode != KEY_NONE else a.physical_keycode) == (b.keycode if b.keycode != KEY_NONE else b.physical_keycode)
 	if a.device != b.device:
 		return false
 	if a is InputEventJoypadButton:
@@ -217,9 +221,8 @@ func next_assignment() -> void:
 # Clean copy of the input, the same as the one loaded from the mappings file at startup
 func clean_event(event: InputEvent) -> InputEvent:
 	if event is InputEventKey:
-		var key = InputEventKey.new()
-		key.keycode = event.keycode if event.keycode != KEY_NONE else event.physical_keycode
-		return key
+		# Left and right Shift, Ctrl, Alt are different inputs
+		return Global.make_key_event(event.keycode if event.keycode != KEY_NONE else event.physical_keycode, event.location)
 	if event is InputEventJoypadButton:
 		var button = InputEventJoypadButton.new()
 		button.button_index = event.button_index

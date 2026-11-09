@@ -46,7 +46,7 @@ scripts/
                          AUTO PLAY est un cheat code : la 3e touche noire maintenue `AUTO_HOLD_MSEC` (1 s) l'active ou le coupe (STYLE change seulement sur un appui court, au relâché), AUTO s'affiche alors dans l'en-tête.
                          Ouverture (music_select.gd) : en P1 la roue sort à droite puis le panneau entre par la droite ; en P2 le panneau entre seul par la gauche
     controller_test/     controller_panel.gd (class_name ControllerPanel) : CONTROLLER SET UP du menu OPTIONS (voir plus bas) ;
-                         touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Button:n:pad", "Axis:n:signe:pad")
+                         touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Shift:L"/"Shift:R" pour un côté, liée par `physical_keycode` car Godot ne vérifie le côté que là, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
     options_menu.gd      Menu OPTIONS façon IIDX console (voir plus bas), scène scenes/menu/options.tscn
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs

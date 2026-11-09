@@ -2,7 +2,8 @@ extends Control
 
 # DECIDE screen of IIDX, shown by main.gd over the game while the chart loads: the difficulty at the top,
 # the title on a band of a moving orange grid and lines, then the GAME OPTION panel of each player.
-# It plays once the charts are loaded (play()), holds, fades out, then emits closed.
+# decide.ogg starts with the screen; once the charts are loaded (play()) it holds until the music ends,
+# fades to black, then the black fades away over the game and closed is emitted.
 
 signal closed
 
@@ -40,9 +41,11 @@ const HEADER_HEIGHT = 30.0
 const CELL_GAP = Vector2(12, 6)
 const CAP_WIDTH = 5.0
 
-# Timeline (seconds from play()): everything comes in, holds, then fades out
+# Timeline (seconds from play()): everything comes in, holds at least HOLD_TIME and until the music ends
 const HOLD_TIME = 2.8
-const OUT_TIME = 0.45
+const BLACK_TIME = 0.6
+const OUT_TIME = 0.6
+const MUSIC = preload("res://assets/bgm/decide.ogg")
 const CELL_DELAY = 0.035
 
 var title := ""
@@ -54,6 +57,9 @@ var style := ""
 var started := false
 var done := false
 var start_usec := 0
+var music_done := false
+# elapsed() when the fade to black begins, -1 while the music plays
+var fade_start := -1.0
 # [x, slant, speed, width, alpha] crossing the band, and [y, x1, x2, speed] along it
 var lines: Array = []
 var flat_lines: Array = []
@@ -65,11 +71,25 @@ func _ready() -> void:
 	size = get_viewport_rect().size
 	mouse_filter = MOUSE_FILTER_IGNORE
 	build_band()
+	var music = AudioStreamPlayer.new()
+	music.stream = MUSIC
+	music.finished.connect(func(): music_done = true)
+	add_child(music)
+	music.play()
+
+# Progress of the fade to black (0 to 1) and of the fade of the black over the game
+func fade_black() -> float:
+	return 0.0 if fade_start < 0 else clampf((elapsed() - fade_start) / BLACK_TIME, 0.0, 1.0)
+
+func fade_game() -> float:
+	return 0.0 if fade_start < 0 else clampf((elapsed() - fade_start - BLACK_TIME) / OUT_TIME, 0.0, 1.0)
 
 func _process(_delta: float) -> void:
 	queue_redraw()
-	modulate.a = 1.0 - phase(HOLD_TIME, OUT_TIME)
-	if started and not done and elapsed() >= HOLD_TIME + OUT_TIME:
+	if started and fade_start < 0 and music_done and elapsed() >= HOLD_TIME:
+		fade_start = elapsed()
+	modulate.a = 1.0 - fade_game()
+	if started and not done and fade_game() >= 1.0:
 		done = true
 		closed.emit()
 		get_parent().queue_free()
@@ -121,19 +141,23 @@ func build_band() -> void:
 		streaks.append([rng.randf_range(0.1, 0.9), rng.randf_range(60, 260), rng.randf_range(250, 700), rng.randf_range(0, 1600)])
 
 func _draw() -> void:
-	var out = phase(HOLD_TIME, OUT_TIME)
+	# Once black, only the black remains and it fades over the game
+	if fade_black() >= 1.0:
+		draw_rect(Rect2(Vector2.ZERO, size), Color.BLACK)
+		return
 	draw_rect(Rect2(Vector2.ZERO, size), BACKGROUND)
 	# Faint diagonal stripes
 	for x in range(-720, int(size.x), 48):
 		draw_line(Vector2(x, size.y), Vector2(x + size.y, 0), Color(1, 1, 1, 0.02), 14.0)
 	if not started:
 		return
-	draw_band(phase(0.0, 0.3) * (1.0 - out))
+	draw_band(phase(0.0, 0.3))
 	draw_header()
 	draw_title()
 	var rise = phase(0.5, 0.35)
 	for player in [1, 2]:
-		draw_panel(player, (1.0 - rise + out) * 260.0, rise)
+		draw_panel(player, (1.0 - rise) * 260.0, rise)
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, fade_black()))
 
 func draw_band(opened: float) -> void:
 	var t = elapsed()

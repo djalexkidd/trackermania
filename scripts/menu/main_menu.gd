@@ -4,7 +4,7 @@ extends Control
 # the turntable selects a mode, the white keys decide, the black keys quit (pressed twice).
 
 const TITLE_FONT = preload("res://assets/font/04B_20__.TTF")
-const DEFAULT_BGM = preload("res://assets/bgm/music_select.ogg")
+const DEFAULT_BGM = preload("res://assets/bgm/main_menu.ogg")
 # Top bar of the music select, drawn the same way: right aligned, 32 px out of the screen
 const INFO_BAR = preload("res://assets/music_select/music_select_info.png")
 const INFO_BAR_LEFT = -1888.0
@@ -99,11 +99,7 @@ func _ready() -> void:
 	cancel_sound = add_sound(preload("res://assets/music_select/cancel.wav"))
 	bgm = add_sound(DEFAULT_BGM)
 	bgm.volume_db = BGM_VOLUME_DB
-	# BGM disabled for now
-	#if Global.custom_music_select_bgm != "":
-	#	bgm.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
-	#	bgm.stream.loop = true
-	#bgm.play()
+	bgm.play()
 	for player in [1, 2]:
 		analog_previous[player - 1] = analog_value(player)
 	animate_title()

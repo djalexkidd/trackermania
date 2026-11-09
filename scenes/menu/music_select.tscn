@@ -468,7 +468,6 @@ script = ExtResource("8_7kb4w")
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=2086807202]
 stream = ExtResource("5_pgr8v")
 volume_db = -6.0
-parameters/looping = true
 
 [node name="GameOptionSettings" type="ColorRect" parent="." unique_id=271449536]
 visible = false

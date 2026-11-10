@@ -178,7 +178,7 @@ var adjusting      : bool    = false
 var suddenShown    : bool    = true
 var lastStartMs    : int     = -DOUBLE_START_MS
 # Analog turntable position of the last frame, for the covers
-var coverAnalog    : float   = 0.0
+var coverAnalog    : float   = NAN
 # Note information corresponding to 7 channels
 var noteArray      : Array = []
 # Keysound of each note of noteArray (Amiga modules and BMS)
@@ -257,10 +257,18 @@ var gaugeRecovery  : float   = 0.0
 var gaugeBar       : TextureProgressBar
 var gaugeFlicker   : TextureRect
 var gaugeFlickerMs : int     = 0
-# Analog
-var previous_value := 0.0
-# The scratch lane stays lit this long after the analog turntable moved
-const SCRATCH_LIGHT_MS : int = 100
+# Analog turntable, like on IIDX: a scratch starts when the disc moves ANALOG_TRIGGER within ANALOG_IDLE_MS,
+# from rest or in the other direction, and stays held while it keeps turning that way (no new hit, even with inertia).
+# It is released when the disc did not turn that way for SCRATCH_LIGHT_MS. 1/127 is one step of an 8-bit axis.
+const ANALOG_TRIGGER  : float = 1.5 / 127.0
+const ANALOG_IDLE_MS  : int   = 100
+const SCRATCH_LIGHT_MS : int  = 100
+# Axis position of the last frame (read on the first frame: the disc rests anywhere), movement toward a new scratch
+var previous_value   : float = NAN
+var analogAccum      : float = 0.0
+var analogAccumMs    : int   = 0
+# Direction of the scratch held with the analog turntable (1 forward, -1 rewind, 0 none), and its last move
+var scratchActive    : float = 0.0
 var lastScratchMove : int = -SCRATCH_LIGHT_MS
 # Turntable disc speed in turns per second, clockwise is positive
 const DISC_SPEED     : float = 0.5
@@ -881,6 +889,8 @@ func suddenHeight() -> float:
 # the turntable moves the SUDDEN+ cover, or the LIFT when there is no cover. START twice shows or hides the cover
 func adjustOptions(delta : float) -> void:
 	var analog : float = Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
+	if is_nan(coverAnalog):
+		coverAnalog = analog
 	var motion : float = wrapf(analog - coverAnalog, -1.0, 1.0)
 	coverAnalog = analog
 	if Input.is_action_just_pressed(prefix + "start"):
@@ -907,6 +917,41 @@ func adjustOptions(delta : float) -> void:
 	elif Global.has_lift(player):
 		Global.set_player_var(player, "lift_height", clampf(liftHeight() - move, 0.0, LIFT_MAX))
 
+# Analog turntable: hit the scratch lane when a scratch starts or turns back, hold it while the disc keeps turning
+func updateAnalogScratch() -> void:
+	var value : float = Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
+	if is_nan(previous_value):
+		previous_value = value
+	# A jump of more than half the range is the axis wrapping around
+	var move : float = wrapf(value - previous_value, -1.0, 1.0)
+	previous_value = value
+	var now : int = Time.get_ticks_msec()
+	# START held: the turntable moves the covers, nothing is hit
+	if adjusting:
+		scratchActive = 0.0
+		analogAccum = 0.0
+		return
+	if move != 0.0:
+		var direction : float = signf(move)
+		if direction == scratchActive:
+			lastScratchMove = now
+			analogAccum = 0.0
+		else:
+			# Toward a new scratch: the steps must come in the same direction, close enough
+			if signf(analogAccum) != direction or now - analogAccumMs > ANALOG_IDLE_MS:
+				analogAccum = 0.0
+			analogAccum += move
+			analogAccumMs = now
+			if absf(analogAccum) >= ANALOG_TRIGGER:
+				analogAccum = 0.0
+				scratchActive = direction
+				scratchDirection = direction
+				lastScratchMove = now
+				if not keyPressed(7):
+					emptyPress(7)
+	if scratchActive != 0.0 and now - lastScratchMove >= SCRATCH_LIGHT_MS:
+		scratchActive = 0.0
+
 # Turn the disc: slowly clockwise, faster with Scratch+, backwards with Scratch-
 func spinDisc(delta : float) -> void:
 	var turns : float = DISC_SPEED
@@ -914,25 +959,12 @@ func spinDisc(delta : float) -> void:
 		turns = DISC_SPEED_FWD
 	elif Input.is_action_pressed(prefix + "digital_turntable_rew"):
 		turns = DISC_SPEED_REW
-	elif Time.get_ticks_msec() - lastScratchMove < SCRATCH_LIGHT_MS:
+	elif scratchActive != 0.0:
 		turns = DISC_SPEED_FWD if scratchDirection > 0 else DISC_SPEED_REW
 	disc.rotation += TAU * turns * delta
 
 func updateInputState() -> void:
-	# Get the current analog value from the turntable
-	var current_value := Input.get_action_strength(prefix + "analog_turntable_fwd") - Input.get_action_strength(prefix + "analog_turntable_rew")
-	# START held: the turntable moves the covers and the keys change the hi-speed, nothing is hit
-	if adjusting:
-		previous_value = current_value
-	# Check if the analog value has changed since the last frame
-	if current_value != previous_value:
-		keyPressed(7)
-		lastScratchMove = Time.get_ticks_msec()
-		# A jump of more than half the range is the axis wrapping around
-		var move : float = current_value - previous_value
-		scratchDirection = signf(move) if absf(move) < 1.0 else -signf(move)
-		# Update the previous value to the current one
-		previous_value = current_value
+	updateAnalogScratch()
 
 	if (Input.is_action_just_pressed(prefix + "digital_turntable_rew")) and not adjusting:
 		if not keyPressed(7):
@@ -940,7 +972,7 @@ func updateInputState() -> void:
 
 	# Scratch held while a digital direction is held or just after the analog turntable moved
 	pressed[7] = not adjusting and (Input.is_action_pressed(prefix + "digital_turntable_fwd") or Input.is_action_pressed(prefix + "digital_turntable_rew") \
-		or Time.get_ticks_msec() - lastScratchMove < SCRATCH_LIGHT_MS)
+		or scratchActive != 0.0)
 
 	for i in range(0, 8):
 		if (Input.is_action_just_pressed(keycodes[i])) and not adjusting:

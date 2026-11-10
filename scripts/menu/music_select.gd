@@ -6,6 +6,10 @@ const ALPHABET_CATEGORIES = ["ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWXYZ", "
 var netplay = false
 var songs_loading = true
 var song_preview: Node
+var spectrum: Control
+# Visualizer: on the bottom bar (76 px), this high, from the left edge to the song wheel
+const SPECTRUM_BOTTOM = -76.0
+const SPECTRUM_HEIGHT = 300.0
 # Arcade mode: TIME REMAIN, a song is picked when it runs out
 var arcade_timer: Control
 # Style of the songs shown: the DOUBLE PLAY shows the double play charts only
@@ -43,6 +47,18 @@ func _ready():
 	song_preview = preload("res://scripts/menu/music_select/song_preview.gd").new()
 	song_preview.bgm = $AudioStreamPlayer
 	add_child(song_preview)
+	# Bar visualizer of the preview, behind the song info
+	spectrum = preload("res://scripts/menu/music_select/spectrum.gd").new()
+	spectrum.song_preview = song_preview
+	spectrum.song_info = $SongInfo
+	spectrum.anchor_top = 1.0
+	spectrum.anchor_bottom = 1.0
+	spectrum.anchor_right = $SongWheel.anchor_left
+	spectrum.offset_right = $SongWheel.offset_left
+	spectrum.offset_top = SPECTRUM_BOTTOM - SPECTRUM_HEIGHT
+	spectrum.offset_bottom = SPECTRUM_BOTTOM
+	add_child(spectrum)
+	move_child(spectrum, $SongInfo.get_index())
 	wheel_x = $SongWheel.position.x
 	for player in [1, 2]:
 		options_x[player] = game_options(player).position.x

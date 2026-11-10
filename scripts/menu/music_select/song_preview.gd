@@ -25,6 +25,8 @@ var player: Node
 var start = 0.0
 var duration = 0.0
 var time = 0.0
+# Volume of the fade, also used by the visualizer
+var fade = 0.0
 
 func _ready() -> void:
 	# The buses are created here, the threads only read them
@@ -33,8 +35,19 @@ func _ready() -> void:
 		var index = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(index, BUS)
 		AudioServer.set_bus_send(index, "Master")
+	# Read by the bar visualizer (spectrum.gd)
+	var bus = AudioServer.get_bus_index(BUS)
+	if analyzer() == null:
+		AudioServer.add_bus_effect(bus, AudioEffectSpectrumAnalyzer.new())
 	ModPlayer.panningBus(-1.0, BUS)
 	ModPlayer.panningBus(1.0, BUS)
+
+func analyzer() -> AudioEffectSpectrumAnalyzerInstance:
+	var bus = AudioServer.get_bus_index(BUS)
+	for i in AudioServer.get_bus_effect_count(bus):
+		if AudioServer.get_bus_effect(bus, i) is AudioEffectSpectrumAnalyzer:
+			return AudioServer.get_bus_effect_instance(bus, i)
+	return null
 
 func select(new_path: String) -> void:
 	if new_path == path:
@@ -62,7 +75,7 @@ func _process(delta: float) -> void:
 	time += delta
 	if time >= duration:
 		restart()
-	var fade = clampf(minf(time / FADE_IN, (duration - time) / FADE_OUT), 0.0, 1.0)
+	fade = clampf(minf(time / FADE_IN, (duration - time) / FADE_OUT), 0.0, 1.0)
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(BUS), linear_to_db(fade) if fade > 0.0 else -80.0)
 
 # Play the loaded song if it is still under the cursor

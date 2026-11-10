@@ -40,7 +40,7 @@ scripts/
                          Barre du bas (`BottomBar`, 76 px, `music_select/bottom_bar.gd`) dessinée dans `_draw()` comme sur IIDX RED : plaques PLAYER 1/2 (ou DJ NAME, DOUBLE) et plaque de l'effector au centre (bleue si un effet est actif), puis une bande d'options par joueur sur fond rouge (segments orange quand l'option est choisie, AUTO clignote) ; PRESS START BUTTON remplace les options d'un joueur absent
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, bottom_bar.gd
-                         song_preview.gd : aperçu de la musique sous le curseur (voir plus bas)
+                         song_preview.gd : aperçu de la musique sous le curseur (voir plus bas), spectrum.gd : son visualiseur à barres
                          difficulty_panel.gd : cases DIFFICULTY de la musique sous le curseur (voir plus bas)
                          game_option_settings.gd : panneau OPTION SETTING (START maintenu), dessiné dans _draw() comme sur IIDX :
                          choix des touches noires (RANDOM, GAUGE, STYLE) au-dessus de la platine, BATTLE, DOUBLE, RANGE (OFF, SUDDEN+, LIFT, LIFT SUD+) et HI-SPEED sous les touches 1, 3, 5 et 7,
@@ -111,6 +111,7 @@ Comme sur IIDX : 0.4 s après l'arrivée du curseur sur une musique, elle est ch
 - .qua : l'audio depuis `SongPreviewTime` (`QuaChart.previewTime`), sinon depuis le tiers de la musique.
 - .mod : un `ModPlayer` sans chart (tout en BGM, bus `ModLeftPreview`/`ModRightPreview`), lancé par `play_from()` à la mesure la plus proche du tiers.
 - BMS : le fichier `#PREVIEW` ou `preview_music` (`BmsChart.previewFile`) s'il existe, sinon un `BmsPlayer` comme pour un module.
+- Visualiseur (`spectrum.gd`, posé par `music_select.gd` juste avant `SongInfo`, donc derrière le titre et le score) : comme l'écran de verrouillage de CyanogenMod, 32 barres pleines pâles et translucides qui montent et descendent en douceur (`RISE_SPEED`, `FALL_SPEED`), posées sur la barre du bas (`SPECTRUM_BOTTOM`, `SPECTRUM_HEIGHT`), du bord gauche jusqu'à la roue. Lues sur l'`AudioEffectSpectrumAnalyzer` du bus `Preview` (`song_preview.analyzer()`), multipliées par le fondu (`song_preview.fade`). Il n'apparaît que pendant l'aperçu d'une musique et se cache avec `SongInfo` (panneau OPTION SETTING du P2).
 
 ### Effector (`Effector.gd`)
 Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l'autre joueur) : passe au preset suivant de `NAMES` (EFFECTOR OFF, CHORUS, PHASER, FLANGER, REVERB, ECHO, STADIUM, FILTER SWEEP, WOBBLE, RADIO, UNDERWATER, MEGA BASS, GARGLE, 8D AUDIO, CHIPMUNK, MONSTER, DRUNK). La maintenir `OFF_HOLD_MS` (1 s) remet EFFECTOR OFF : `Effector.update_button()`, appelée à chaque image avec les actions EFFECT des joueurs, gère l'appui et le maintien.
@@ -256,7 +257,8 @@ Construit avec `ModChart.new(module, difficulté, keys)`. Il donne `noteArray` (
 ### Lien avec `main.gd`
 - `keysoundPlayer` (non typé) est le `ModPlayer` ou le `BmsPlayer` : mêmes méthodes (`claim`, `play`, `get_playback_position`, `hit`, `preview`, `length`, `playing`).
 - `keysoundArray` suit `noteArray` partout : chargement, mélange RANDOM, vidage en 5 touches, création des notes (`note.keysound`, `lastKeysound`).
-- `keyPressed()` renvoie `false` s'il n'y avait aucune note à frapper. Dans ce cas, les pressions digitales (touches, turntable digital) appellent `previewKeysound()`. La turntable analogique n'en déclenche pas, sinon elle jouerait le son à chaque image.
+- `keyPressed()` renvoie `false` s'il n'y avait aucune note à frapper. Dans ce cas, les pressions (touches, turntable) appellent `emptyPress()` puis `previewKeysound()`.
+- Turntable analogique comme sur IIDX (`updateAnalogScratch()`) : la position de repos est lue à la première image ; un scratch démarre quand le disque tourne de `ANALOG_TRIGGER` (1,5 cran d'un axe 8 bits) en moins de `ANALOG_IDLE_MS`, depuis l'arrêt ou dans l'autre sens, et reste tenu (`scratchActive`, sans nouvel appui, même en inertie) tant que le disque tourne dans ce sens, relâché après `SCRATCH_LIGHT_MS` sans mouvement. Aller-retour = deux appuis.
 - La fin de partie est au minimum à `keysoundPlayer.length + ENDPOS_BIAS`.
 - Les lignes de mesure suivent `module.measures` (+ `LEAD_IN`), mises dans `measures` comme celles d'un .qua. Sans mesures, une ligne par seconde (`SUBLINE_LENGTH`).
 

@@ -81,6 +81,8 @@ var notice_until = 0
 # A black key asks to quit, a second one quits
 var exit_until = 0
 var leaving = false
+# Welcome screen over the menu on the first start, the menu waits under it
+var welcome_open = false
 
 var scroll_sound: AudioStreamPlayer
 var decide_sound: AudioStreamPlayer
@@ -105,6 +107,11 @@ func _ready() -> void:
 	for player in [1, 2]:
 		analog_previous[player - 1] = analog_value(player)
 	animate_title()
+	if not Global.welcome_seen:
+		welcome_open = true
+		var welcome = preload("res://scripts/menu/welcome.gd").new()
+		welcome.closed.connect(func(): welcome_open = false)
+		add_child(welcome)
 
 func add_sound(stream: AudioStream) -> AudioStreamPlayer:
 	var player = AudioStreamPlayer.new()
@@ -117,7 +124,7 @@ func add_sound(stream: AudioStream) -> AudioStreamPlayer:
 func _process(delta: float) -> void:
 	queue_redraw()
 	var steps = poll_turntable(delta)
-	if leaving:
+	if leaving or welcome_open:
 		return
 	if steps != 0:
 		turn(steps)
@@ -163,7 +170,7 @@ func poll_turntable(delta: float) -> int:
 
 # Keyboard and mouse, for a player without a controller
 func _unhandled_input(event: InputEvent) -> void:
-	if leaving:
+	if leaving or welcome_open:
 		return
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:

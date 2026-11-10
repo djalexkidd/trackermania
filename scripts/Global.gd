@@ -79,6 +79,8 @@ var fullscreen = false
 var vsync = true
 # Volume of the Master bus, in percent
 var master_volume = 100
+# The welcome screen shows once, on the first start
+var welcome_seen = false
 
 const KEY_MAPPING_PATH = "user://mappings.cfg"
 # System settings of the OPTIONS menu, saved in SETTINGS_PATH
@@ -92,6 +94,7 @@ const SETTING_DEFAULTS = {
 	"custom_music_select_bgm": "",
 	# The 1P name is the netplay name, saved by Netplay
 	"p2_name": "",
+	"welcome_seen": false,
 }
 
 func _ready():

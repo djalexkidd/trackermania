@@ -162,9 +162,11 @@ func _process(delta: float) -> void:
 	if level == Level.CALIBRATION:
 		process_calibration()
 		return
-	# The controller set up is waiting for an input
-	if level == Level.CONTROLLER and controller.busy():
-		return
+	# The controller set up is waiting for an input, or testing the inputs (E3 VEFX)
+	if level == Level.CONTROLLER:
+		controller.update_test()
+		if controller.busy():
+			return
 	if steps != 0:
 		turn(steps)
 	for player in [1, 2]:
@@ -212,7 +214,7 @@ func poll_turntable(delta: float) -> int:
 
 # Keyboard and mouse, for a player without a controller
 func _unhandled_input(event: InputEvent) -> void:
-	if level == Level.CALIBRATION:
+	if level == Level.CALIBRATION or controller.testing:
 		return
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
@@ -682,7 +684,12 @@ func draw_panel() -> void:
 		Level.NAME: help = "TURNTABLE: LETTER    WHITE: NEXT    BLACK: BACK"
 		Level.CALIBRATION: help = "PRESS A KEY ON EACH CLICK"
 		Level.CONTROLLER:
-			help = "PRESS THE NEW INPUT    ESC: CANCEL" if controller.listening >= 0 else "TURNTABLE: SELECT    WHITE: ASSIGN    BLACK: BACK"
+			if controller.testing:
+				help = "TEST MODE    HOLD E3 VEFX: EXIT"
+			elif controller.listening >= 0:
+				help = "PRESS THE NEW INPUT    ESC: CANCEL"
+			else:
+				help = "TURNTABLE: SELECT    WHITE: ASSIGN    BLACK: BACK    E3: TEST"
 	var banner_left = right - 600
 	draw_colored_polygon([Vector2(banner_left - 40, top + 4), Vector2(right, top + 4), Vector2(right, top + 42), Vector2(banner_left, top + 42)], YELLOW)
 	draw_colored_polygon([Vector2(banner_left - 70, top + 4), Vector2(banner_left - 52, top + 4), Vector2(banner_left - 12, top + 42), Vector2(banner_left - 30, top + 42)], ORANGE)

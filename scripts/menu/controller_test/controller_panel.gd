@@ -4,6 +4,7 @@ class_name ControllerPanel
 # CONTROLLER SET UP of the OPTIONS menu, drawn by options_menu.gd in its panel, which forwards the controls:
 # the IIDX deck of one side, lit by the inputs, and the list of its bindings.
 # A white key on a row waits for the input to assign to it (ESC or right click cancels).
+# E3 VEFX starts the test mode: the inputs only light the deck, holding E3 for 2 s (or ESC) leaves it.
 
 signal assigned
 
@@ -63,6 +64,8 @@ const DIGITAL_SPIN = 360.0 # degrees per second while a digital scratch is held
 const SCRATCH_LIGHT_MS = 150
 # The input that ends an assignment must not also drive the menu
 const ASSIGN_GUARD_MS = 300
+# E3 VEFX held this long leaves the test mode
+const TEST_EXIT_HOLD_MS = 2000
 
 var player := 1
 # Row under the cursor, in SLOTS
@@ -71,6 +74,10 @@ var cursor := 0
 var listening := -1
 var assign_all := false
 var last_assign_msec := -ASSIGN_GUARD_MS
+# Test mode: the menu ignores the inputs, which only light the deck
+var testing := false
+# Since when E3 is held in the test mode, -1 if not (the press that started it doesn't count)
+var test_hold_from := -1
 
 var rotation_angle := 0.0
 var previous_value := 0.0
@@ -88,9 +95,60 @@ func prefix() -> String:
 func blink() -> bool:
 	return Time.get_ticks_msec() % 500 < 300
 
-# Waiting for an input, or just got one: the menu ignores the controllers
+# Waiting for an input, testing, or just got out of it: the menu ignores the controllers
 func busy() -> bool:
-	return listening >= 0 or Time.get_ticks_msec() - last_assign_msec < ASSIGN_GUARD_MS
+	return listening >= 0 or testing or Time.get_ticks_msec() - last_assign_msec < ASSIGN_GUARD_MS
+
+# Called every frame by the screen showing the deck: E3 VEFX of either side starts the test mode,
+# held TEST_EXIT_HOLD_MS it ends it. True while testing.
+func update_test() -> bool:
+	if listening >= 0:
+		return false
+	var just_pressed = Input.is_action_just_pressed("p1_vefx") or Input.is_action_just_pressed("p2_vefx")
+	var held = Input.is_action_pressed("p1_vefx") or Input.is_action_pressed("p2_vefx")
+	if not testing:
+		if just_pressed and not busy():
+			testing = true
+			test_hold_from = -1
+		return testing
+	if just_pressed:
+		test_hold_from = Time.get_ticks_msec()
+	elif not held:
+		test_hold_from = -1
+	if test_hold_from >= 0 and Time.get_ticks_msec() - test_hold_from >= TEST_EXIT_HOLD_MS:
+		stop_test()
+	return testing
+
+func stop_test() -> void:
+	testing = false
+	test_hold_from = -1
+	# The keys still held must not drive the menu
+	last_assign_msec = Time.get_ticks_msec()
+
+# 0 -> 1 while E3 is held to leave the test mode
+func test_exit_progress() -> float:
+	if not testing or test_hold_from < 0:
+		return 0.0
+	return clampf(float(Time.get_ticks_msec() - test_hold_from) / TEST_EXIT_HOLD_MS, 0.0, 1.0)
+
+# Banner of the test mode over the rect, with the hold progress
+func draw_test_banner(canvas, rect: Rect2) -> void:
+	if not testing:
+		return
+	canvas.draw_rect(rect, Color(0, 0, 0, 0.85))
+	canvas.draw_rect(rect, YELLOW if blink() else ORANGE, false, 2.0)
+	var help = "HOLD E3 VEFX 2 SEC TO EXIT"
+	# TEST MODE on the left when there is room for both
+	var title_width = 0.0
+	if rect.size.x >= 420:
+		canvas.draw_text(TITLE_FONT, Vector2(rect.position.x + 12, rect.get_center().y + 6), "TEST MODE", 16, YELLOW, HORIZONTAL_ALIGNMENT_LEFT, 4)
+		title_width = TITLE_FONT.get_string_size("TEST MODE", HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x + 20
+	var help_size = canvas.fit_size(TITLE_FONT, help, 12, rect.size.x - title_width - 24)
+	var help_x = rect.end.x - 12 if title_width > 0 else rect.get_center().x
+	canvas.draw_text(TITLE_FONT, Vector2(help_x, rect.get_center().y + 5), help, help_size, Color.WHITE, HORIZONTAL_ALIGNMENT_RIGHT if title_width > 0 else HORIZONTAL_ALIGNMENT_CENTER, 4)
+	var progress = test_exit_progress()
+	if progress > 0.0:
+		canvas.draw_rect(Rect2(rect.position.x + 2, rect.end.y - 6, (rect.size.x - 4) * progress, 4), YELLOW)
 
 func set_player(value: int) -> void:
 	if value == player or value not in [1, 2]:
@@ -235,6 +293,11 @@ func clean_event(event: InputEvent) -> InputEvent:
 	return motion
 
 func _input(event: InputEvent) -> void:
+	if testing:
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+			stop_test()
+			get_viewport().set_input_as_handled()
+		return
 	if listening < 0:
 		return
 	if event is InputEventMouse:
@@ -283,6 +346,8 @@ func _process(delta: float) -> void:
 
 # Text of the footer
 func description() -> String:
+	if testing:
+		return "Test mode: try your inputs, the menu ignores them. Hold E3 VEFX for 2 seconds (or ESC) to leave."
 	if listening == ANALOG:
 		return "Turn the turntable, or press a key to skip it. ESC or right click: cancel."
 	if listening >= 0:
@@ -295,7 +360,7 @@ func description() -> String:
 		ANALOG:
 			return "Assign the axis of an analog turntable."
 		var action:
-			return "Assign an input to %s. EFFECT: back to the default." % ACTIONS[action][1]
+			return "Assign an input to %s. EFFECT: back to the default. E3 VEFX: test the inputs." % ACTIONS[action][1]
 
 # Mouse
 
@@ -349,7 +414,7 @@ func deck_element_at(point: Vector2) -> int:
 
 # A click on a tab, the deck or a row, false if it hit nothing
 func click(at: Vector2) -> bool:
-	if area.size == Vector2.ZERO:
+	if area.size == Vector2.ZERO or testing:
 		return false
 	for p in [1, 2]:
 		if tab_rect(p).has_point(at):
@@ -388,6 +453,9 @@ func draw(canvas, rect: Rect2, active: bool, notice: String) -> void:
 	draw_deck(canvas, active)
 	for slot in SLOTS.size():
 		draw_row(canvas, slot, active)
+	# Over the tabs line, right of the pad name
+	var left = area.position.x + 2 * TAB_WIDTH + 226
+	draw_test_banner(canvas, Rect2(left, area.position.y + TABS_TOP - 4, area.end.x - left, 38))
 
 # 1P / 2P tabs, the pad of the side, and the status on the right
 func draw_tabs(canvas, notice: String) -> void:
@@ -409,6 +477,8 @@ func draw_tabs(canvas, notice: String) -> void:
 	var status_color = YELLOW
 	if notice != "":
 		status = notice
+	elif testing:
+		status = ""
 	elif listening >= 0:
 		status = "MOVE THE TURNTABLE" if listening == ANALOG else "PRESS %s" % ACTIONS[listening][1]
 		if not blink():

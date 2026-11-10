@@ -1,7 +1,7 @@
 # noiseBMS
 
 Jeu de rythme libre inspiré de beatmania IIDX (7 touches + scratch), écrit en GDScript avec **Godot 4.7** (`/usr/bin/godot`).
-Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/main_menu.tscn`.
+Cibles : Windows, Linux, Android, HTML5. Scène de départ : `scenes/menu/title_screen.tscn` (écran titre), puis `scenes/menu/main_menu.tscn`.
 
 L'objectif d'origine : jouer directement des **modules Amiga (.MOD)** et **FastTracker II (.XM)**, le module étant la chart, avec des **keysounds** comme sur IIDX.
 Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues directement ; elles cohabitent avec les modules et les **BMS** (.bms, .bme, .bml, .bmson), keysoundés eux aussi. Les PMS (pop'n music, 9 touches) sont hors sujet.
@@ -33,7 +33,9 @@ scripts/
     ModChart.gd          Génération de la chart (lanes, difficultés, niveau)
     ModPlayer.gd         Lecture audio : une voix par canal, keysounds + BGM
   menu/
+    title_screen.gd      Écran titre (logo NOISEBMS, PRESS START BUTTON), voir plus bas
     main_menu.gd         Menu principal (MENU SELECT)
+    welcome.gd           Écran de bienvenue du premier démarrage, posé par main_menu.gd (voir plus bas)
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector).
                          Barre du bas (`BottomBar`, 76 px, `music_select/bottom_bar.gd`) dessinée dans `_draw()` comme sur IIDX RED : plaques PLAYER 1/2 (ou DJ NAME, DOUBLE) et plaque de l'effector au centre (bleue si un effet est actif), puis une bande d'options par joueur sur fond rouge (segments orange quand l'option est choisie, AUTO clignote) ; PRESS START BUTTON remplace les options d'un joueur absent
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
@@ -117,10 +119,15 @@ Touche EFFECT comme sur IIDX, dans la sélection et en jeu (`main.gd`, l'un ou l
 - Les pitch shifters utilisent une FFT de 512 (`PITCH_FFT`) : environ 8 ms de retard, une plus grande décalerait le son.
 - Le preset survit aux changements de scène ; le menu principal le coupe. En jeu, son nom remplace le titre de la plaque centrale pendant `EFFECTOR_SHOW_TIME`.
 
+### Écran titre (`title_screen.gd`)
+Première scène (`scenes/menu/title_screen.tscn`, grille animée derrière) : le logo dans une bande sombre bordée d'orange, PRESS START BUTTON qui clignote, crédits en bas (sans la version de Godot). START, une touche blanche, Entrée, Espace ou un clic ouvrent le menu principal ; Échap quitte (rien en web).
+- Logo comme l'ancien logo de TrackerMania : NOISEBMS en blanc, police `ABSTRACT.TTF`, avec une copie rouge décalée de (-3, +3) px pour une taille de 32 (`LOGO_SHADOW`). `draw_logo()` est statique (réduit la taille pour tenir dans `max_width`) : l'écran de bienvenue s'en sert aussi.
+
 ### Menu principal (`main_menu.gd`)
 MENU SELECT des IIDX console, dessiné dans `_draw()` avec le thème sombre du menu OPTIONS (grille, bandeau `music_select_info.png` dont la case OPTIONS est masquée).
 - Modes dans `modes` : ARCADE (sélection avec `"arcade": true`, qui appelle `Arcade.start()`), FREE (sélection), NETPLAY (lobby), TRAINING (sélection avec `"training": true`, qui appelle `Training.start()`), EDITOR (éditeur de BMS), OPTIONS, DOWNLOAD. Écran MENU INFORMATION (titre penché, cubes et bandes orange), onglets (`VISIBLE_TABS` = 5, le mode choisi au milieu, les autres défilent en boucle comme la roue de la sélection, `tab_scroll`), barre du bas avec tous les modes.
 - Platine (ou flèches, molette) : choisir, en boucle ; touche blanche : valider ; touche noire deux fois : quitter (rien en web).
+- Au premier démarrage (`Global.welcome_seen` faux, sauvé dans settings.cfg), `main_menu.gd` pose par-dessus l'écran de bienvenue (`welcome.gd`, un `Control` enfant dessiné dans `_draw()`, `welcome_open` bloque le menu) : 5 slides qui glissent horizontalement (WELCOME avec le logo de l'écran titre, HOW TO PLAY avec un terrain de démo animé, YOUR SONGS avec le dossier `user://songs` et les modes, 1P CONTROLS, 2P CONTROLS). Les slides des touches dessinent la platine de chaque côté avec `ControllerPanel.draw_deck()` (elle s'allume avec les entrées), les touches actuelles (InputMap, remappées dans CONTROLLER SET UP, une touche du clavier en priorité ; KEYBOARD au lieu du nom de la manette si la touche 1 est au clavier) et le rôle de chaque bouton. Platine, flèches, molette : slide ; touche blanche, Entrée, clic : suivante (ferme sur la dernière) ; touche noire : précédente ; START ou Échap : passer. En fermant, `welcome_seen` est sauvé. Sur les slides des touches, E3 VEFX lance le mode test de la platine (voir CONTROLLER SET UP).
 
 ### Mode ARCADE (`scripts/arcade/`)
 Comme sur IIDX : 3 stages (`Arcade.STAGES`), seul ou à deux, puis NAME ENTRY et classement. L'état est dans des variables statiques de `Arcade` (`active`, `stages`, `last_ranks`), qui survivent aux changements de scène ; le menu principal l'arrête (`Arcade.stop()`) dans `_ready()`.
@@ -148,6 +155,7 @@ Ouvert depuis OPTIONS du menu principal. Tout est dessiné dans `_draw()` comme 
 - DISPLAY (plein écran, V-SYNC, timing en ms), SOUND (volume, audio offset, calibration, BGM de la sélection ; la musique des menus est coupée pour l’instant), DJ NAME (1P et 2P, 6 lettres à la platine ; 1P est le nom du netplay, `Netplay.set_dj_name()` copié dans `Global.p1_name`, 2P est `Global.p2_name` dans settings.cfg ; un nom vide est gardé comme dans le lobby, EFFECT l'efface ; vides par défaut. La sélection les affiche dans les cases P1/P2 du bas, le NAME ENTRY de l'ARCADE part de celui du côté qui joue), CONTROLLER SET UP.
 - CONTROLLER SET UP (`controller_panel.gd`, nœud enfant `ControllerPanel` que `options_menu.gd` dessine dans son panneau et à qui il passe les commandes, niveau `Level.CONTROLLER`) : onglets 1P/2P et manette utilisée, platine du côté choisi qui s'allume avec les entrées (cliquer un élément l'assigne), puis 16 lignes sur 2 colonnes : touches 1~7, ASSIGN ALL, TT UP/DOWN, ANALOG TT, E1~E4, PLAYER SIDE.
   Le côté est celui du joueur qui a validé la catégorie. Touche blanche sur une ligne : attend l'entrée (Échap ou clic droit annule, une touche passe ANALOG TT) ; pendant ce temps et `ASSIGN_GUARD_MS` après, le menu ignore les manettes (`busy()`). EFFECT : la touche sous le curseur, le côté entier sur ASSIGN ALL / PLAYER SIDE, les deux côtés depuis la roue. Une entrée utilisée deux fois s'affiche en rouge.
+  **Mode test** (`testing`, `update_test()` appelée à chaque image par l'écran qui montre la platine) : E3 VEFX de l'un ou l'autre côté le lance (pas pendant une assignation) ; les entrées n'allument plus que la platine, le menu les ignore toutes (`busy()`, souris et clavier compris). E3 maintenu `TEST_EXIT_HOLD_MS` (2 s, l'appui qui l'a lancé ne compte pas) ou Échap en sort ; `draw_test_banner()` affiche TEST MODE et la progression du maintien.
 - `Global.SETTING_DEFAULTS` liste les réglages sauvés dans `user://settings.cfg` (`save_settings()`, `load_settings()` au démarrage, `apply_settings()` pour la fenêtre, la V-SYNC et le volume du bus Master).
 
 ### Options des joueurs (`Global.gd`)

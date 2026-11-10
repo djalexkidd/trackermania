@@ -116,10 +116,6 @@ func play(song_title: String, song_artist: String, difficulty_name: String, char
 		style = "SP %d KEYS" % Global.get_player_var(player, "keys_mode")
 	start_usec = Time.get_ticks_usec()
 	started = true
-	var whoosh = AudioStreamPlayer.new()
-	whoosh.stream = preload("res://assets/music_select/open.ogg")
-	add_child(whoosh)
-	get_tree().create_timer(0.45).timeout.connect(whoosh.play)
 
 func elapsed() -> float:
 	return (Time.get_ticks_usec() - start_usec) / 1000000.0

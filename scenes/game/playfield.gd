@@ -85,6 +85,17 @@ const TRAINING_LEAD : float = 1.0
 const TRAINING_END_BIAS : float = 0.5
 const TRAINING_MEASURE : float = 2.0
 const TRAINING_MEASURE_COLOR : Color = Color(1, 0.55, 0.1)
+# FULL COMBO like in IIDX: waves of light rise from the judge line to the top of the lanes, the play waits for them
+const FULL_COMBO_TIME : float = 1.8
+const FULL_COMBO_WAVES : int = 3
+const FULL_COMBO_WAVE_DELAY : float = 0.2
+const FULL_COMBO_RISE : float = 1.1
+const FULL_COMBO_TAIL : float = 170.0
+const FULL_COMBO_AMPLITUDE : float = 12.0
+const FULL_COMBO_WAVELENGTH : float = 140.0
+const FULL_COMBO_STEP : float = 5.0
+const FULL_COMBO_FLASH_TIME : float = 0.35
+const FULL_COMBO_COLOR : Color = Color(0.4, 0.8, 1.0)
 const FONT : Font = preload("res://assets/font/04B_20__.TTF")
 const NUMBER_FONT : Font = preload("res://assets/font/digitalix.ttf")
 const LANE_COLOR : Color = Color(0, 0, 0)
@@ -266,6 +277,8 @@ var scratchFrame   : Texture2D
 var keyFrameOrigin : Vector2
 # Last judgement shown over the lanes, when it was shown (ms), and the timing of the hit under it
 var judgeShown     : String  = ""
+# When the FULL COMBO waves started (ms), -1 when there are none
+var fullComboMs    : int     = -1
 var judgeMs        : int     = 0
 var timingText     : String  = ""
 var timingColor    : Color
@@ -496,7 +509,8 @@ func loadModule() -> bool:
 		keysoundPlayer = ModPlayer.new(module, Training.bus() if Training.active else "Master")
 		keysoundPlayer.name = "ModPlayer"
 		get_node(audio).add_child(keysoundPlayer)
-	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, opt("keys_mode"), partner != null)
+	# Always generated for 7 keys: in 5 keys mode the lanes 6 and 7 are emptied later and play as BGM, like on IIDX
+	var chart : ModChart = ModChart.new(keysoundPlayer.module, Loader.chart_difficulty, 7, partner != null)
 	noteArray = sideLanes(chart.noteArray)
 	keysoundArray = sideLanes(chart.keysoundArray)
 	var title : String = keysoundPlayer.module.title
@@ -747,6 +761,16 @@ func countJudge(judgement : String, offset : float) -> void:
 	else:
 		combo += 1
 		comboMax = maxi(comboMax, combo)
+	if judgedNotes == noteCount and comboBreak == 0:
+		startFullCombo()
+
+# The last note is judged without a combo break: the waves on both sides of a double play, and the end waits for them
+func startFullCombo() -> void:
+	endPos = maxf(endPos, currentSongPos + FULL_COMBO_TIME * playRate)
+	for field in [self, partner]:
+		if field:
+			field.fullComboMs = Time.get_ticks_msec()
+			field.endPos = endPos
 
 # Show a judgement over the lanes, with the combo after it
 func showJudge(judgement : String) -> void:
@@ -1080,6 +1104,7 @@ func resetPlay() -> void:
 	lastKeysound.fill(-1)
 	judgeShown = ""
 	timingText = ""
+	fullComboMs = -1
 	gauge = Judge.gaugeStart(opt("gauge_level"))
 
 # TRAINING: play the notes from a time until another, the clock starting at begin, at a rate of the song.
@@ -1484,6 +1509,50 @@ func drawJudge(canvas : CanvasItem) -> void:
 		canvas.draw_string_outline(FONT, timing, timingText, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, 4, Color.BLACK)
 		canvas.draw_string(FONT, timing, timingText, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, timingColor)
 
+# FULL COMBO: a flash on the judge line, then waves with a wavy bright front and a fading tail rising over the lanes
+func drawFullCombo(canvas : CanvasItem) -> void:
+	if fullComboMs < 0:
+		return
+	var elapsed : float = (Time.get_ticks_msec() - fullComboMs) / 1000.0
+	if elapsed > FULL_COMBO_TIME:
+		return
+	var bottom : float = judgeY()
+	var flash : float = 1.0 - elapsed / FULL_COMBO_FLASH_TIME
+	if flash > 0.0:
+		canvas.draw_primitive(PackedVector2Array([Vector2(0, bottom - 60), Vector2(PLAYFIELD_WIDTH, bottom - 60), Vector2(PLAYFIELD_WIDTH, bottom), Vector2(0, bottom)]),
+			PackedColorArray([Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 0.8 * flash), Color(1, 1, 1, 0.8 * flash)]), PackedVector2Array())
+	for w in FULL_COMBO_WAVES:
+		var t : float = (elapsed - w * FULL_COMBO_WAVE_DELAY) / FULL_COMBO_RISE
+		if t <= 0.0 or t >= 1.0:
+			continue
+		# Fast from the judge line, slower at the top, until the tail is out of the lanes
+		var front : float = lerpf(bottom, -FULL_COMBO_TAIL - FULL_COMBO_AMPLITUDE, 1.0 - pow(1.0 - t, 2.0))
+		var alpha : float = (1.0 - 0.3 * w) * minf(1.0, (1.0 - t) * 4.0)
+		var phase : float = elapsed * 5.0 + w * 2.0
+		var x : float = 0.0
+		while x < PLAYFIELD_WIDTH:
+			var x2 : float = minf(x + FULL_COMBO_STEP, PLAYFIELD_WIDTH)
+			var y1 : float = front + FULL_COMBO_AMPLITUDE * sin(TAU * x / FULL_COMBO_WAVELENGTH + phase)
+			var y2 : float = front + FULL_COMBO_AMPLITUDE * sin(TAU * x2 / FULL_COMBO_WAVELENGTH + phase)
+			# Tail under the front, then the white crest
+			fullComboQuad(canvas, x, x2, y1, y2, FULL_COMBO_TAIL, Color(FULL_COMBO_COLOR, 0.6 * alpha), Color(FULL_COMBO_COLOR, 0.0), bottom)
+			fullComboQuad(canvas, x, x2, y1 - 3.0, y2 - 3.0, 7.0, Color(1, 1, 1, 0.9 * alpha), Color(1, 1, 1, 0.4 * alpha), bottom)
+			x = x2
+
+# One column of a wave, from its top edge down by a height, kept between the top of the lanes and the judge line
+func fullComboQuad(canvas : CanvasItem, x1 : float, x2 : float, y1 : float, y2 : float, height : float, top : Color, under : Color, bottom : float) -> void:
+	var points := PackedVector2Array([Vector2(x1, y1), Vector2(x2, y2), Vector2(x2, y2 + height), Vector2(x1, y1 + height)])
+	var colors := PackedColorArray([top, top, under, under])
+	for k in 4:
+		var y : float = clampf(points[k].y, 0.0, bottom)
+		if y != points[k].y:
+			# The colour where the edge of the lanes cuts the gradient
+			var from : float = points[k].y - (0.0 if k < 2 else height)
+			colors[k] = top.lerp(under, clampf((y - from) / height, 0.0, 1.0))
+			points[k].y = y
+	if points[3].y > points[0].y or points[2].y > points[1].y:
+		canvas.draw_primitive(points, colors, PackedVector2Array())
+
 # SUDDEN+ cover on top of the lanes, LIFT cover under the raised judge line, and the numbers while START is held
 func drawCovers(canvas : CanvasItem) -> void:
 	var lift : float = liftHeight()
@@ -1621,6 +1690,8 @@ class Overlay extends Node2D:
 	func _draw() -> void:
 		if field.active:
 			field.drawCovers(self)
+		# Over the covers like in IIDX, under the keys
+		field.drawFullCombo(self)
 		field.drawPlate(self)
 		field.drawKeys(self)
 		if field.active:

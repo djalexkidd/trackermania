@@ -281,7 +281,7 @@ Chaque fichier .bms, .bme, .bml ou .bmson est une difficulté de la musique de s
 ### Limites
 - Pas de BGA, de `#TOTAL`, de `#RANK`, de LNTYPE 2, de mines.
 - Godot transforme `\` en `/` dans les chemins : un dossier dont le nom contient un `\` (mojibake de zip) n'est pas lisible.
-- Les titres japonais demandent une police système avec ces glyphes (`allow_system_fallback`).
+- Les titres japonais demandent une police système avec ces glyphes. `Global.add_cjk_fallback()` donne au démarrage à chaque police de `assets/font` une `SystemFont` japonaise (`CJK_FONT_NAMES`) en secours : le secours système (`allow_system_fallback`) recherche la police à chaque mise en forme (plusieurs ms par titre, la roue ramait).
 
 ## Éditeur de BMS (`scripts/editor/`)
 

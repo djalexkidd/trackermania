@@ -95,8 +95,28 @@ const SETTING_DEFAULTS = {
 }
 
 func _ready():
+	add_cjk_fallback()
 	load_key_mappings()
 	load_settings()
+
+# Japanese fonts tried in order (Linux/Android, Windows, macOS)
+const CJK_FONT_NAMES = ["Noto Sans CJK JP", "Yu Gothic UI", "Yu Gothic", "Meiryo", "MS Gothic", "Hiragino Sans", "Droid Sans Japanese", "Droid Sans Fallback"]
+# Keeps the fonts loaded, with their fallback, for the whole game
+var fonts_with_fallback: Array[Font] = []
+
+# The system fallback looks fonts up again each time a text is shaped (several ms per
+# Japanese title, which made the wheel stutter): give every font an explicit fallback.
+func add_cjk_fallback() -> void:
+	var fallback = SystemFont.new()
+	fallback.font_names = PackedStringArray(CJK_FONT_NAMES)
+	for file in ResourceLoader.list_directory("res://assets/font"):
+		if file.get_extension().to_lower() not in ["ttf", "otf"]:
+			continue
+		var font = load("res://assets/font/" + file) as Font
+		if font == null:
+			continue
+		font.fallbacks = font.fallbacks + [fallback]
+		fonts_with_fallback.append(font)
 
 func load_settings() -> void:
 	var config = ConfigFile.new()

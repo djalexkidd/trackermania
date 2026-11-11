@@ -69,7 +69,7 @@ scenes/
   netplay/               lobby.tscn (salles et salle), result.tscn (résultats du round), img/crown.png
 ```
 
-Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/noiseBMS/songs/`), scannées récursivement. Un chemin contenant `official` va dans la catégorie Official, le reste dans Downloaded. Les catégories FILE TYPE (MODULE, QUAVER, BMS), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
+Les musiques ne sont pas dans le dépôt : elles sont dans `user://songs` (sous Linux `~/.local/share/godot/app_userdata/noiseBMS/songs/`), scannées récursivement. Chaque dossier de `user://songs` est une catégorie (nom en majuscules, après ALL MUSIC, ordre naturel, `music_select.folder_category()`) avec tout ce qu'il contient, sous-dossiers compris (pas de navigation dedans) ; les fichiers posés directement dans `songs/` vont dans SONGS (`ROOT_FOLDER_CATEGORY`), en dernier. `category.gd` (`fit_label()`) réduit la police d'un nom trop long (jusqu'à `MIN_FONT_SIZE`, puis « … ») et centre les capitales sur la bande de la case. Les catégories FILE TYPE (MODULE, QUAVER, BMS), sous les ALPHABET, trient par extension et restent masquées tant qu'elles sont vides.
 
 ## Fonctionnement du jeu
 

@@ -10,7 +10,6 @@
 [ext_resource type="FontFile" uid="uid://bggd18styexhu" path="res://assets/font/monofonto.otf" id="6_me461"]
 [ext_resource type="Texture2D" uid="uid://dbae6r7si4gea" path="res://assets/music_select/all_music.png" id="7_iesjm"]
 [ext_resource type="FontFile" uid="uid://2hpnmrm7wumh" path="res://assets/font/FT2FONT.TTF" id="7_q6por"]
-[ext_resource type="Texture2D" uid="uid://cl00dgt34uhvh" path="res://assets/music_select/version.png" id="8_2ygyf"]
 [ext_resource type="Script" path="res://scripts/menu/music_select/bottom_bar.gd" id="8_7kb4w"]
 [ext_resource type="FontFile" uid="uid://bmqjsoyv3o27y" path="res://assets/font/tallpixelfont.ttf" id="8_qtw6o"]
 [ext_resource type="Script" uid="uid://mmou6ix3nudg" path="res://scripts/menu/music_select/game_option_settings.gd" id="9_fxi4t"]
@@ -159,34 +158,6 @@ category_name = "ALL MUSIC"
 category_texture = ExtResource("7_iesjm")
 
 [node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/AllMusic" unique_id=522676359]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="Official" type="VBoxContainer" parent="SongWheel/Categories" unique_id=124139581]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="Category" parent="SongWheel/Categories/Official" unique_id=389589432 instance=ExtResource("3_ojufb")]
-layout_mode = 2
-category_name = "OFFICIAL"
-category_texture = ExtResource("8_2ygyf")
-
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Official" unique_id=2103322282]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="Downloaded" type="VBoxContainer" parent="SongWheel/Categories" unique_id=1686717313]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="Category" parent="SongWheel/Categories/Downloaded" unique_id=764328861 instance=ExtResource("3_ojufb")]
-layout_mode = 2
-category_name = "DOWNLOADED"
-category_texture = ExtResource("8_2ygyf")
-
-[node name="MusicList" type="VBoxContainer" parent="SongWheel/Categories/Downloaded" unique_id=1207149470]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 0

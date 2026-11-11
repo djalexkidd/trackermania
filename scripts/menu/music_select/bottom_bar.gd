@@ -23,6 +23,8 @@ const PLAYER_COLORS = [Color(0.305, 0.305, 0.305), Color(0, 0.686, 1), Color(1, 
 const PLATE_TOP = 8.0
 const PLATE_HEIGHT = 26.0
 const PLATE_WIDTH = 232.0
+# The capitals of 04B_20 sit high: move them down to the middle of the plate, under its light edge
+const PLATE_TEXT_OFFSET = 3.0
 const BAND_Y = 38.0
 const STRIP_TOP = 44.0
 const STRIP_HEIGHT = 26.0
@@ -83,7 +85,7 @@ func draw_plate(player: int) -> void:
 		var x = right + 6 + i * 12
 		draw_colored_polygon(side_points(player, [Vector2(x, top), Vector2(x + 7, top), Vector2(x - 7, bottom), Vector2(x - 14, bottom)]), Color(color, 0.7 - i * 0.3))
 
-	var text_rect = Rect2(minf(side_x(player, left), side_x(player, right - 14)), top, PLATE_WIDTH - 14, PLATE_HEIGHT)
+	var text_rect = Rect2(minf(side_x(player, left), side_x(player, right - 14)), top + PLATE_TEXT_OFFSET, PLATE_WIDTH - 14, PLATE_HEIGHT)
 	var dj_name = Global.p1_name if player == 1 else Global.p2_name
 	if is_double_side(player):
 		draw_text(TITLE_FONT, text_rect, "DOUBLE", 18, Color.BLACK)

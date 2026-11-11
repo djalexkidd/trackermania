@@ -1,6 +1,10 @@
 extends Control
 
 const ALPHABET_CATEGORIES = ["ABCD", "EFGH", "IJKL", "MNOP", "QRST", "UVWXYZ", "OTHERS"]
+# Category of the songs put directly in user://songs, outside a folder
+const ROOT_FOLDER_CATEGORY = "SONGS"
+# Folder categories (one per folder of user://songs), by folder name
+var folder_categories := {}
 
 # Opened from the netplay lobby: only P1 plays, the chosen song goes to the room
 var netplay = false
@@ -71,6 +75,7 @@ func _ready():
 		get_tree().change_scene_to_file("res://scenes/arcade/name_entry.tscn")
 		return
 	sort_alphabet_categories()
+	sort_folder_categories()
 	add_random_entries()
 	update_category_lamps()
 
@@ -132,9 +137,10 @@ func add_song_entry(group: Array):
 	elif BmsChart.is_bms(file_path):
 		file_type = "BMS"
 	$SongWheel.get_node("Categories/" + file_type).show()
-	var lists = ["AllMusic", "Official" if file_path.contains("official") else "Downloaded", alphabet_category(title), file_type]
+	var lists = ["AllMusic", alphabet_category(title), file_type]
 	for category in lists:
 		$SongWheel.get_node("Categories/" + category + "/MusicList").add_child(new_song_entry(title, artist, charts))
+	folder_category(song_folder(file_path)).get_node("MusicList").add_child(new_song_entry(title, artist, charts))
 
 	# A level category only has the difficulties of its level
 	var levels = []
@@ -145,6 +151,43 @@ func add_song_entry(group: Array):
 		var level_path = "SongWheel/Categories/Level" + str(level)
 		get_node(level_path).show()
 		get_node(level_path + "/MusicList").add_child(new_song_entry(title, artist, charts.filter(func(chart): return chart["level"] == level)))
+
+# The folder of user://songs that holds the song, its subfolders are not categories
+func song_folder(file_path: String) -> String:
+	var relative = file_path.trim_prefix("user://songs/")
+	var slash = relative.find("/")
+	return relative.left(slash) if slash >= 0 else ""
+
+# The category of a folder of user://songs, made the first time, right after ALL MUSIC
+func folder_category(folder: String) -> Control:
+	if folder_categories.has(folder):
+		return folder_categories[folder]
+	var category = VBoxContainer.new()
+	category.add_theme_constant_override("separation", 0)
+	var button = preload("res://scenes/menu/music_select/category/category_purple.tscn").instantiate()
+	button.category_name = folder.to_upper() if folder != "" else ROOT_FOLDER_CATEGORY
+	button.category_texture = preload("res://assets/music_select/version.png")
+	category.add_child(button)
+	var music_list = VBoxContainer.new()
+	music_list.name = "MusicList"
+	music_list.visible = false
+	music_list.add_theme_constant_override("separation", 0)
+	category.add_child(music_list)
+	$SongWheel/Categories.add_child(category)
+	folder_categories[folder] = category
+	return category
+
+# Folder categories by name (natural order), the songs outside a folder last
+func sort_folder_categories() -> void:
+	var folders = folder_categories.keys()
+	folders.sort_custom(func(a, b):
+		if (a == "") != (b == ""):
+			return b == ""
+		return a.naturalnocasecmp_to(b) < 0)
+	var index = $SongWheel/Categories/AllMusic.get_index() + 1
+	for folder in folders:
+		$SongWheel/Categories.move_child(folder_categories[folder], index)
+		index += 1
 
 func new_song_entry(title: String, artist: String, charts: Array) -> Control:
 	var song_entry = preload("res://scenes/menu/music_select/song_entry.tscn").instantiate()

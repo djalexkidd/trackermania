@@ -58,9 +58,9 @@ script = ExtResource("2_7tuvw")
 [node name="Label" type="Label" parent="."]
 layout_mode = 0
 offset_left = 124.0
-offset_top = 23.0
+offset_top = 17.0
 offset_right = 497.0
-offset_bottom = 52.0
+offset_bottom = 46.0
 theme_override_colors/font_color = Color(0.968627, 0.968627, 0.968627, 1)
 theme_override_colors/font_outline_color = Color(0.101961, 0.156863, 0.34902, 1)
 theme_override_constants/outline_size = 4
@@ -71,9 +71,9 @@ text = "Test Music"
 [node name="Label2" type="Label" parent="."]
 layout_mode = 0
 offset_left = 32.0
-offset_top = 14.0
+offset_top = 6.0
 offset_right = 88.0
-offset_bottom = 54.0
+offset_bottom = 46.0
 theme_override_fonts/font = ExtResource("4_uqyhv")
 theme_override_font_sizes/font_size = 38
 text = "0"

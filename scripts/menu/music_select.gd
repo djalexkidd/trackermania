@@ -319,11 +319,15 @@ func _process(delta):
 				return
 		
 		# Black keys first return to the categories, then leave music select.
+		# With two players, the player leaves the game instead, like META.
 		for key in ["key2", "key4", "key6"]:
 			if Input.is_action_just_pressed("p%d_%s" % [player, key]):
 				if not $SongWheel.visible or $SongWheel.close_category() or not can_leave():
 					return
-				leave()
+				if joined_players().size() > 1 and not netplay:
+					set_joined(player, false)
+				else:
+					leave()
 				return
 
 # E3 (VEFX) like the SELECT button of IIDX: next difficulty of the song, kept for the other songs

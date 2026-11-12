@@ -40,6 +40,7 @@ scripts/
     main_menu.gd         Menu principal (MENU SELECT)
     welcome.gd           Écran de bienvenue du premier démarrage, posé par main_menu.gd (voir plus bas)
     music_select.gd      Sélection des musiques (scan user://songs, catégories, join P1/P2, effector).
+                         Touche noire : ferme la catégorie, sinon quitte vers MENU SELECT ; à deux, seul ce joueur quitte (comme META)
                          Barre du bas (`BottomBar`, 76 px, `music_select/bottom_bar.gd`) dessinée dans `_draw()` comme sur IIDX RED : plaques PLAYER 1/2 (ou DJ NAME, DOUBLE) et plaque de l'effector au centre (bleue si un effet est actif), puis une bande d'options par joueur sur fond rouge (segments orange quand l'option est choisie, AUTO clignote) ; PRESS START BUTTON remplace les options d'un joueur absent
     loading_screen.gd    Écran NOW LOADING façon Amstrad CPC (CanvasLayer) posé sur la sélection pendant qu'elle se construit
     music_select/        song_entry.gd (lance la partie), category.gd, game_option_settings.gd, bottom_bar.gd

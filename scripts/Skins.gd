@@ -61,6 +61,7 @@ const DISC_SIZE = 104
 const BACKGROUNDS = [
 	{"id": "grid", "name": "GRID"},
 	{"id": "cube", "name": "CUBE"},
+	{"id": "tunnel", "name": "TUNNEL"},
 ]
 
 # Colors of the game

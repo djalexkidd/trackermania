@@ -92,6 +92,39 @@ const KLEIN_FOV = 70.0
 const KLEIN_NEAR = 0.01
 const KLEIN_FOG = 1.3
 
+# WARP: streaks of stars rushing at the camera at a steady speed, in a slowly turning and swaying jump to hyperspace
+const WARP_STARS = 260
+# Stars are in a box this deep in front of the camera, this wide around its axis (nothing right on it)
+const WARP_DEPTH = 12.0
+const WARP_RADIUS = 3.0
+const WARP_HOLE = 0.25
+# Speed in units per second
+const WARP_SPEED = 4.0
+# Length of a streak in seconds of travel
+const WARP_STREAK = 0.09
+const WARP_ROLL = 0.1
+const WARP_NEAR = 0.05
+const WARP_FOG = 0.2
+const WARP_FAR = Color(1, 0.35, 0.02)
+const WARP_CLOSE = Color(1, 0.95, 0.75)
+
+# HORIZON: a floor and a ceiling of orange grid going to a bright horizon line, with waves of light
+# coming at the camera now and then
+const HORIZON_COLUMNS = 20
+const HORIZON_ROWS = 28
+# Size of a cell, height of the floor and of the ceiling from the camera, speed in units per second
+const HORIZON_CELL = 1.0
+const HORIZON_HEIGHT = 1.0
+const HORIZON_SPEED = 2.0
+# A wave of light comes every HORIZON_WAVE_PERIOD seconds, this many cells wide
+const HORIZON_WAVE_PERIOD = 3.5
+const HORIZON_WAVE_WIDTH = 1.5
+const HORIZON_FOV = 70.0
+const HORIZON_FOG = 0.09
+const HORIZON_FAR = Color(0.5, 0.12, 0.0)
+const HORIZON_CLOSE = Color(1, 0.6, 0.1)
+
+
 var mode := ""
 var grid_material: Material
 
@@ -122,6 +155,8 @@ static func draw_background(canvas: CanvasItem, id: String, rect: Rect2, time: f
 		"cube": draw_cube(canvas, rect, time)
 		"tunnel": draw_tunnel(canvas, rect, time)
 		"klein": draw_klein(canvas, rect, time)
+		"warp": draw_warp(canvas, rect, time)
+		"horizon": draw_horizon(canvas, rect, time)
 		_: draw_grid(canvas, rect, time)
 
 # Distance along the path at the end of each sample of a repeat of it, built once
@@ -210,6 +245,10 @@ static func draw_tunnel(canvas: CanvasItem, rect: Rect2, time: float) -> void:
 
 # A red line in camera space (tunnel, Klein bottle), cut at the near plane, darker in the fog
 static func red_segment(projector: CubeView, a: Vector3, b: Vector3, near: float, fog_density: float, points: PackedVector2Array, colors: PackedColorArray) -> void:
+	color_segment(projector, a, b, near, fog_density, points, colors, RED, PALE_RED)
+
+# A line in camera space, cut at the near plane, from far_color in the fog to near_color close by
+static func color_segment(projector: CubeView, a: Vector3, b: Vector3, near: float, fog_density: float, points: PackedVector2Array, colors: PackedColorArray, far_color: Color, near_color: Color) -> void:
 	if a.z < near and b.z < near:
 		return
 	if a.z < near:
@@ -219,17 +258,20 @@ static func red_segment(projector: CubeView, a: Vector3, b: Vector3, near: float
 	if not projector.add_segment(projector.project_camera(a), projector.project_camera(b), points):
 		return
 	var fog := exp(-fog_density * (a.length() + b.length()) / 2.0)
-	colors.append(Color(RED.lerp(PALE_RED, fog * fog), fog))
+	colors.append(Color(far_color.lerp(near_color, fog * fog), fog))
 
 # Lines of the glow then the lines themselves
 static func draw_red_lines(canvas: CanvasItem, points: PackedVector2Array, colors: PackedColorArray) -> void:
+	draw_glow_lines(canvas, points, colors, 1.5)
+
+static func draw_glow_lines(canvas: CanvasItem, points: PackedVector2Array, colors: PackedColorArray, width: float) -> void:
 	if points.is_empty():
 		return
 	var glow := PackedColorArray()
 	for color in colors:
 		glow.append(Color(color, color.a * 0.2))
-	canvas.draw_multiline_colors(points, glow, 6.0)
-	canvas.draw_multiline_colors(points, colors, 1.5)
+	canvas.draw_multiline_colors(points, glow, width * 4.0)
+	canvas.draw_multiline_colors(points, colors, width)
 
 # Mesh of the Klein bottle in 3d over two turns of the ring (v from 0 to 4 pi), built once:
 # 2 * KLEIN_LINES_V rows, KLEIN_LINES_U + 1 points each; u from 0 to pi is the loop of the camera
@@ -316,6 +358,112 @@ static func draw_klein(canvas: CanvasItem, rect: Rect2, time: float) -> void:
 					if points.size() > before and (j >= KLEIN_LINES_U / 2 and (b == a + columns or j + 1 > KLEIN_LINES_U / 2)):
 						colors[-1] = Color(colors[-1], colors[-1].a * KLEIN_OTHER_LOOP)
 	draw_red_lines(canvas, points, colors)
+
+# Stars of WARP, built once: position around the axis and depth in [0, 1)
+static var warp_stars := PackedVector3Array()
+
+static func draw_warp(canvas: CanvasItem, rect: Rect2, time: float) -> void:
+	canvas.draw_rect(rect, Color.BLACK)
+	if warp_stars.is_empty():
+		var random := RandomNumberGenerator.new()
+		random.seed = 4096
+		for k in WARP_STARS:
+			var angle := random.randf() * TAU
+			var radius := lerpf(WARP_HOLE, WARP_RADIUS, sqrt(random.randf()))
+			warp_stars.append(Vector3(cos(angle) * radius, sin(angle) * radius, random.randf()))
+	var projector := CubeView.new(Basis.IDENTITY, rect, rect.size.y * 0.8)
+	var distance := time * WARP_SPEED
+	var streak := WARP_SPEED * WARP_STREAK
+	# The way ahead sways a little, the view turns slowly
+	var sway := Vector2(sin(time * 0.23), cos(time * 0.17)) * 0.6
+	var roll := Basis(Vector3.BACK, time * WARP_ROLL)
+	var points := PackedVector2Array()
+	var colors := PackedColorArray()
+	for star in warp_stars:
+		var z := fposmod(star.z * WARP_DEPTH - distance, WARP_DEPTH)
+		# Bent toward the sway the farther it is, like a curved way
+		var bend := sway * (z / WARP_DEPTH) * (z / WARP_DEPTH)
+		var head := roll * Vector3(star.x + bend.x, star.y + bend.y, z)
+		var tail := roll * Vector3(star.x + bend.x, star.y + bend.y, z + streak)
+		color_segment(projector, head, tail, WARP_NEAR, WARP_FOG, points, colors, WARP_FAR, WARP_CLOSE)
+	draw_glow_lines(canvas, points, colors, 2.0)
+
+static func draw_horizon(canvas: CanvasItem, rect: Rect2, time: float) -> void:
+	canvas.draw_rect(rect, Color.BLACK)
+	var middle := rect.get_center().y
+	# Glow and line of the horizon
+	var glow := rect.size.y * 0.12
+	for side in [-1.0, 1.0]:
+		canvas.draw_polygon(PackedVector2Array([Vector2(rect.position.x, middle), Vector2(rect.end.x, middle),
+			Vector2(rect.end.x, middle + side * glow), Vector2(rect.position.x, middle + side * glow)]),
+			PackedColorArray([Color(HORIZON_CLOSE, 0.22), Color(HORIZON_CLOSE, 0.22), Color(HORIZON_FAR, 0.0), Color(HORIZON_FAR, 0.0)]))
+	canvas.draw_line(Vector2(rect.position.x, middle), Vector2(rect.end.x, middle), Color(HORIZON_CLOSE, 0.8), 2.0)
+
+	var projector := CubeView.new(Basis.IDENTITY, rect, rect.size.y / 2.0 / tan(deg_to_rad(HORIZON_FOV / 2.0)))
+	# Rows fixed on the floor and the ceiling, the camera going forward
+	var travel := time * HORIZON_SPEED
+	var first := floori(travel / HORIZON_CELL)
+	var far_z := (first + HORIZON_ROWS - 1) * HORIZON_CELL - travel
+	# Distance of the wave from the camera, coming closer
+	var wave := (1.0 - fposmod(time / HORIZON_WAVE_PERIOD, 1.0)) * HORIZON_ROWS * HORIZON_CELL
+	var columns := HORIZON_COLUMNS + 1
+	for y in [-HORIZON_HEIGHT, HORIZON_HEIGHT]:
+		var camera := PackedVector3Array()
+		var brightness := PackedFloat32Array()
+		for i in HORIZON_ROWS:
+			var z := (first + i) * HORIZON_CELL - travel
+			for j in columns:
+				var point := Vector3((j - HORIZON_COLUMNS / 2.0) * HORIZON_CELL, y, z)
+				camera.append(point)
+				# The farthest rows fade in, the wave lights up the rows it passes
+				var fade := clampf((far_z - z) / (3.0 * HORIZON_CELL), 0.0, 1.0)
+				var lit := 1.0 - clampf(absf(z - wave) / (HORIZON_WAVE_WIDTH * HORIZON_CELL), 0.0, 1.0)
+				brightness.append(minf(exp(-HORIZON_FOG * point.length()) * 0.75 + lit * 0.6, 1.0) * fade)
+		draw_wire_grid(canvas, projector, rect, camera, brightness, HORIZON_ROWS, columns, 0.05, HORIZON_FAR, HORIZON_CLOSE, 1.5)
+
+# Lines of a grid of points in camera space (rows of "columns" points), each point with its brightness:
+# the points are projected once, only the lines across the border of the rectangle are clipped
+static func draw_wire_grid(canvas: CanvasItem, projector: CubeView, rect: Rect2, camera: PackedVector3Array, brightness: PackedFloat32Array,
+		rows: int, columns: int, near: float, far_color: Color, near_color: Color, width: float) -> void:
+	var count := camera.size()
+	var screen := PackedVector2Array()
+	var inside := PackedByteArray()
+	screen.resize(count)
+	inside.resize(count)
+	for k in count:
+		var c := camera[k]
+		if c.z >= near:
+			screen[k] = projector.project_camera(c)
+			inside[k] = 1 if rect.has_point(screen[k]) else 0
+		else:
+			inside[k] = 2
+	var points := PackedVector2Array()
+	var colors := PackedColorArray()
+	for i in rows:
+		for j in columns:
+			var a := i * columns + j
+			for b in [a + 1 if j < columns - 1 else -1, a + columns if i < rows - 1 else -1]:
+				if b < 0:
+					continue
+				var light := minf(brightness[a], brightness[b])
+				if light <= 0.01 or (inside[a] == 2 and inside[b] == 2):
+					continue
+				var color := Color(far_color.lerp(near_color, light * light), light)
+				if inside[a] == 1 and inside[b] == 1:
+					points.append(screen[a])
+					points.append(screen[b])
+					colors.append(color)
+					continue
+				# Across the border or the near plane: cut it
+				var p := camera[a]
+				var q := camera[b]
+				if p.z < near:
+					p = p.lerp(q, (near - p.z) / (q.z - p.z))
+				elif q.z < near:
+					q = q.lerp(p, (near - q.z) / (p.z - q.z))
+				if projector.add_segment(projector.project_camera(p), projector.project_camera(q), points):
+					colors.append(color)
+	draw_glow_lines(canvas, points, colors, width)
 
 # grid.png scrolling up and left like scroll.gdshader, at the scale of the rectangle (to clip)
 static func draw_grid(canvas: CanvasItem, rect: Rect2, time: float) -> void:

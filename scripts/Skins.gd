@@ -63,6 +63,8 @@ const BACKGROUNDS = [
 	{"id": "cube", "name": "CUBE"},
 	{"id": "tunnel", "name": "TUNNEL"},
 	{"id": "klein", "name": "KLEIN"},
+	{"id": "warp", "name": "WARP"},
+	{"id": "horizon", "name": "HORIZON"},
 ]
 
 # Colors of the game

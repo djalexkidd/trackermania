@@ -63,6 +63,35 @@ const TUNNEL_FOG = 0.3
 const RED = Color(1, 0.08, 0.06)
 const PALE_RED = Color(1, 0.55, 0.5)
 
+# KLEIN, after "klein" of xscreensaver (klein.c), in red wireframe:
+#   Copyright (c) 2005-2026 Carsten Steger <carsten@mirsanmir.org>.
+#   Permission to use, copy, modify, and distribute this software and its documentation for any purpose
+#   and without fee is hereby granted, provided that the above copyright notice appear in all copies and
+#   that both that copyright notice and this permission notice appear in supporting documentation.
+#   This file is provided AS IS with no warranties of any kind.
+# The figure-8 Klein bottle of the hack (projected from 4d orthographically: the classic figure-8 bottle).
+# Its tube has a figure-8 cross-section that turns half a turn around the ring, and goes through itself
+# along the middle of the 8. The camera flies inside one loop of the 8, drawn bright ahead of it; the other
+# loop is drawn dim. After one turn of the ring the camera is in the other loop, after two at its start.
+# Lines of the mesh around the tube (u, even) and along the ring (v, per turn)
+const KLEIN_LINES_U = 24
+const KLEIN_LINES_V = 64
+# Turns of the ring drawn ahead of the camera (radians of v), and behind it
+const KLEIN_AHEAD = 2.6
+const KLEIN_BEHIND = 0.15
+# Brightness of the other loop of the 8
+const KLEIN_OTHER_LOOP = 0.18
+# v in radians per second, roll of the camera in radians per second
+const KLEIN_SPEED = 0.22
+const KLEIN_ROLL = 0.12
+# The camera looks at the middle of its loop this far ahead on the ring (radians of v)
+const KLEIN_LOOK_AHEAD = 0.3
+# Middle of a loop of the 8 in its own coordinates (sin u, sin 2u): the farthest point from its sides
+const KLEIN_LOOP_CENTER = 0.53
+const KLEIN_FOV = 70.0
+const KLEIN_NEAR = 0.01
+const KLEIN_FOG = 1.3
+
 var mode := ""
 var grid_material: Material
 
@@ -92,6 +121,7 @@ static func draw_background(canvas: CanvasItem, id: String, rect: Rect2, time: f
 	match Skins.find(Skins.BACKGROUNDS, id)["id"]:
 		"cube": draw_cube(canvas, rect, time)
 		"tunnel": draw_tunnel(canvas, rect, time)
+		"klein": draw_klein(canvas, rect, time)
 		_: draw_grid(canvas, rect, time)
 
 # Distance along the path at the end of each sample of a repeat of it, built once
@@ -173,28 +203,119 @@ static func draw_tunnel(canvas: CanvasItem, rect: Rect2, time: float) -> void:
 	for k in rings.size():
 		for i in TUNNEL_SIDES:
 			var a := rings[k][i]
-			tunnel_segment(projector, a, rings[k][(i + 1) % TUNNEL_SIDES], points, colors)
+			red_segment(projector, a, rings[k][(i + 1) % TUNNEL_SIDES], TUNNEL_NEAR, TUNNEL_FOG, points, colors)
 			if k > 0:
-				tunnel_segment(projector, rings[k - 1][i], a, points, colors)
-	if not points.is_empty():
-		var glow := PackedColorArray()
-		for color in colors:
-			glow.append(Color(color, color.a * 0.2))
-		canvas.draw_multiline_colors(points, glow, 6.0)
-		canvas.draw_multiline_colors(points, colors, 1.5)
+				red_segment(projector, rings[k - 1][i], a, TUNNEL_NEAR, TUNNEL_FOG, points, colors)
+	draw_red_lines(canvas, points, colors)
 
-# A line of the tunnel in camera space, cut at the near plane, darker in the fog
-static func tunnel_segment(projector: CubeView, a: Vector3, b: Vector3, points: PackedVector2Array, colors: PackedColorArray) -> void:
-	if a.z < TUNNEL_NEAR and b.z < TUNNEL_NEAR:
+# A red line in camera space (tunnel, Klein bottle), cut at the near plane, darker in the fog
+static func red_segment(projector: CubeView, a: Vector3, b: Vector3, near: float, fog_density: float, points: PackedVector2Array, colors: PackedColorArray) -> void:
+	if a.z < near and b.z < near:
 		return
-	if a.z < TUNNEL_NEAR:
-		a = a.lerp(b, (TUNNEL_NEAR - a.z) / (b.z - a.z))
-	elif b.z < TUNNEL_NEAR:
-		b = b.lerp(a, (TUNNEL_NEAR - b.z) / (a.z - b.z))
+	if a.z < near:
+		a = a.lerp(b, (near - a.z) / (b.z - a.z))
+	elif b.z < near:
+		b = b.lerp(a, (near - b.z) / (a.z - b.z))
 	if not projector.add_segment(projector.project_camera(a), projector.project_camera(b), points):
 		return
-	var fog := exp(-TUNNEL_FOG * (a.length() + b.length()) / 2.0)
+	var fog := exp(-fog_density * (a.length() + b.length()) / 2.0)
 	colors.append(Color(RED.lerp(PALE_RED, fog * fog), fog))
+
+# Lines of the glow then the lines themselves
+static func draw_red_lines(canvas: CanvasItem, points: PackedVector2Array, colors: PackedColorArray) -> void:
+	if points.is_empty():
+		return
+	var glow := PackedColorArray()
+	for color in colors:
+		glow.append(Color(color, color.a * 0.2))
+	canvas.draw_multiline_colors(points, glow, 6.0)
+	canvas.draw_multiline_colors(points, colors, 1.5)
+
+# Mesh of the Klein bottle in 3d over two turns of the ring (v from 0 to 4 pi), built once:
+# 2 * KLEIN_LINES_V rows, KLEIN_LINES_U + 1 points each; u from 0 to pi is the loop of the camera
+static var klein_mesh := PackedVector3Array()
+
+# Point of the figure-8 Klein bottle, scaled like in the hack (radius 2, plus 1.25). The bottle is the same
+# after a turn of v, with its two loops swapped; it is back after two.
+static func klein_point(u: float, v: float) -> Vector3:
+	return klein_section(sin(u), sin(2.0 * u), v)
+
+# Point of the cross-section in its own coordinates (the 8 is (sin u, sin 2u)), turned by v / 2 around the ring
+static func klein_section(a: float, b: float, v: float) -> Vector3:
+	var cv2 := cos(0.5 * v)
+	var sv2 := sin(0.5 * v)
+	var r := a * cv2 - b * sv2 + 2.0
+	return Vector3(r * cos(v), r * sin(v), a * sv2 + b * cv2) / 3.25
+
+static func build_klein_mesh() -> void:
+	for i in 2 * KLEIN_LINES_V:
+		for j in KLEIN_LINES_U + 1:
+			klein_mesh.append(klein_point(TAU * j / KLEIN_LINES_U, TAU * i / KLEIN_LINES_V))
+
+# Red wireframe of the Klein bottle, seen from inside its tube
+static func draw_klein(canvas: CanvasItem, rect: Rect2, time: float) -> void:
+	canvas.draw_rect(rect, Color.BLACK)
+	if klein_mesh.is_empty():
+		build_klein_mesh()
+	var v := fposmod(time * KLEIN_SPEED, 2.0 * TAU)
+	var eye := klein_section(KLEIN_LOOP_CENTER, 0.0, v)
+	var forward := (klein_section(KLEIN_LOOP_CENTER, 0.0, v + KLEIN_LOOK_AHEAD) - eye).normalized()
+	# The ring lies flat: its axis is up, the camera rolls slowly around its view
+	var up := (Vector3.BACK - forward * forward.z).normalized()
+	var right := forward.cross(up).normalized()
+	var view := Basis(Vector3.BACK, time * KLEIN_ROLL) * Basis(right, up, forward).transposed()
+	var projector := CubeView.new(Basis.IDENTITY, rect, rect.size.y / 2.0 / tan(deg_to_rad(KLEIN_FOV / 2.0)))
+
+	# Rows of the mesh around the camera, wrapped over the two turns
+	var rows := 2 * KLEIN_LINES_V
+	var columns := KLEIN_LINES_U + 1
+	var first := floori((v - KLEIN_BEHIND) / TAU * KLEIN_LINES_V)
+	var row_count := ceili((KLEIN_AHEAD + KLEIN_BEHIND) / TAU * KLEIN_LINES_V) + 1
+	# Each point once: camera space, screen, inside the rectangle (2 behind the camera), fog
+	var count := row_count * columns
+	var camera := PackedVector3Array()
+	var screen := PackedVector2Array()
+	var fogs := PackedFloat32Array()
+	var inside := PackedByteArray()
+	camera.resize(count)
+	screen.resize(count)
+	fogs.resize(count)
+	inside.resize(count)
+	for i in row_count:
+		var row := posmod(first + i, rows) * columns
+		for j in columns:
+			var k := i * columns + j
+			var c := view * (klein_mesh[row + j] - eye)
+			camera[k] = c
+			if c.z >= KLEIN_NEAR:
+				var at := projector.project_camera(c)
+				screen[k] = at
+				inside[k] = 1 if rect.has_point(at) else 0
+				# The other loop of the 8 (u past pi) is dim
+				fogs[k] = exp(-KLEIN_FOG * c.length()) * (1.0 if j <= KLEIN_LINES_U / 2 else KLEIN_OTHER_LOOP)
+			else:
+				inside[k] = 2
+	var points := PackedVector2Array()
+	var colors := PackedColorArray()
+	for i in row_count:
+		for j in columns:
+			var a := i * columns + j
+			for b in [a + 1 if j < KLEIN_LINES_U else -1, a + columns if i < row_count - 1 else -1]:
+				if b < 0:
+					continue
+				var fog := minf(fogs[a], fogs[b])
+				# Both ends on the screen: no clipping needed
+				if inside[a] == 1 and inside[b] == 1:
+					points.append(screen[a])
+					points.append(screen[b])
+					colors.append(Color(RED.lerp(PALE_RED, fog * fog), fog))
+				elif inside[a] != 2 or inside[b] != 2:
+					var before := points.size()
+					red_segment(projector, camera[a], camera[b], KLEIN_NEAR, KLEIN_FOG, points, colors)
+					# Clipped lines of the other loop stay dim
+					if points.size() > before and (j >= KLEIN_LINES_U / 2 and (b == a + columns or j + 1 > KLEIN_LINES_U / 2)):
+						colors[-1] = Color(colors[-1], colors[-1].a * KLEIN_OTHER_LOOP)
+	draw_red_lines(canvas, points, colors)
 
 # grid.png scrolling up and left like scroll.gdshader, at the scale of the rectangle (to clip)
 static func draw_grid(canvas: CanvasItem, rect: Rect2, time: float) -> void:

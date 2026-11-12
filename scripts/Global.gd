@@ -70,8 +70,13 @@ var song_info = {}
 var p1_name = ""
 var p2_name = ""
 
+# CUSTOMIZE menu: BGM of the music select (a file of user://music_select_bgm, "" for the default),
+# frame of the playfield, turntable disc and background of the menus (ids of Skins)
 var custom_music_select_bgm = ""
-# Show the timing error in ms under the judgement (Customization menu)
+var frame_skin = "standard"
+var turntable_skin = "standard"
+var menu_background = "grid"
+# Show the timing error in ms under the judgement
 var show_timing = false
 # Extra audio latency in ms (bluetooth headphones...), positive when the sound comes late
 var audio_offset = 0
@@ -92,6 +97,9 @@ const SETTING_DEFAULTS = {
 	"master_volume": 100,
 	"audio_offset": 0,
 	"custom_music_select_bgm": "",
+	"frame_skin": "standard",
+	"turntable_skin": "standard",
+	"menu_background": "grid",
 	# The 1P name is the netplay name, saved by Netplay
 	"p2_name": "",
 	"welcome_seen": false,

@@ -45,8 +45,12 @@ func _ready():
 	var loading_screen = preload("res://scripts/menu/loading_screen.gd").new()
 	add_child(loading_screen)
 
+	# BGM chosen in the CUSTOMIZE menu
 	if Global.custom_music_select_bgm != "":
-		$AudioStreamPlayer.stream = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
+		var custom_bgm = AudioStreamOggVorbis.load_from_file(Global.custom_music_select_bgm)
+		if custom_bgm != null:
+			custom_bgm.loop = true
+			$AudioStreamPlayer.stream = custom_bgm
 
 	song_preview = preload("res://scripts/menu/music_select/song_preview.gd").new()
 	song_preview.bgm = $AudioStreamPlayer

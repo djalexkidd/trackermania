@@ -6,7 +6,6 @@ extends Control
 
 const TITLE_FONT = preload("res://assets/font/04B_20__.TTF")
 const FONT = preload("res://assets/font/FT2FONT.TTF")
-const DEFAULT_BGM = preload("res://assets/bgm/music_select.ogg")
 # Top bar of the music select, drawn the same way: right aligned, 32 px out of the screen
 const INFO_BAR = preload("res://assets/music_select/music_select_info.png")
 const INFO_BAR_LEFT = -1888.0
@@ -36,9 +35,8 @@ const SCROLL_DURATION = 0.16
 const TITLE_SLIDE_TIME = 0.2
 const NOTICE_TIME = 3.0
 const SOUND_VOLUME_DB = -10.0
-const BGM_VOLUME_DB = -6.0
 
-# Latency calibration, same as the Customization menu
+# Latency calibration: clicks at a steady beat, the player presses a key on each click
 const CALIBRATION_CLICKS = 12
 const CALIBRATION_INTERVAL = 0.6
 const CALIBRATION_IGNORED = 2
@@ -57,11 +55,10 @@ var categories = [
 		{"name": "V-SYNC", "var": "vsync", "type": "bool", "desc": "Sync the frames with the screen. OFF lowers the input lag but may tear."},
 		{"name": "TIMING DISPLAY", "var": "show_timing", "type": "bool", "desc": "Show the timing error in ms under the judgement."},
 	]},
-	{"title": ["SOUND", "SETTINGS"], "icon": "sound", "desc": "Volume, audio latency and music select BGM.", "items": [
+	{"title": ["SOUND", "SETTINGS"], "icon": "sound", "desc": "Volume and audio latency.", "items": [
 		{"name": "MASTER VOLUME", "var": "master_volume", "type": "int", "min": 0, "max": 100, "step": 5, "format": "%d %%", "desc": "Volume of the whole game."},
 		{"name": "AUDIO OFFSET", "var": "audio_offset", "type": "int", "min": -500, "max": 500, "step": 5, "format": "%+d MS", "desc": "Delay of the sound (bluetooth headphones...), positive when it comes late."},
 		{"name": "AUTO CALIBRATION", "type": "action", "action": "start_calibration", "desc": "Press a key on each click to measure the audio offset."},
-		{"name": "MUSIC SELECT BGM", "var": "custom_music_select_bgm", "type": "choice", "values": [""], "labels": ["DEFAULT"], "desc": "BGM of the music select, from the music_select_bgm folder."},
 	]},
 	{"title": ["DJ NAME"], "icon": "name", "desc": "DJ names of the players, shown in the music select.", "items": [
 		{"name": "1P DJ NAME", "type": "name", "player": 1, "desc": "6 letters, chosen with the turntable. Also the name in netplay."},
@@ -98,26 +95,18 @@ var scroll_sound: AudioStreamPlayer
 var decide_sound: AudioStreamPlayer
 var cancel_sound: AudioStreamPlayer
 var click_sound: AudioStreamPlayer
-var bgm: AudioStreamPlayer
-var bgm_path := ""
 var controller: ControllerPanel
 
 func _ready() -> void:
 	# Full screen only exists on desktop
 	if not OS.has_feature("pc"):
 		categories[0]["items"].pop_front()
-	var bgm_item = categories[1]["items"][3]
-	for file in Loader.get_all_files("user://music_select_bgm", "ogg"):
-		bgm_item["values"].append(file)
-		bgm_item["labels"].append(file.get_file().get_basename().to_upper())
 
 	scroll_sound = add_sound(preload("res://assets/music_select/scroll.wav"))
 	decide_sound = add_sound(preload("res://assets/music_select/decide.wav"))
 	cancel_sound = add_sound(preload("res://assets/music_select/cancel.wav"))
 	click_sound = add_sound(make_click())
 	click_sound.volume_db = 0.0
-	bgm = add_sound(null)
-	bgm.volume_db = BGM_VOLUME_DB
 	controller = ControllerPanel.new()
 	controller.assigned.connect(decide_sound.play)
 	add_child(controller)
@@ -132,32 +121,8 @@ func add_sound(stream: AudioStream) -> AudioStreamPlayer:
 	add_child(player)
 	return player
 
-# The music select BGM, previewed live while choosing it
-func play_bgm() -> void:
-	var path = Global.custom_music_select_bgm
-	if bgm.playing and bgm_path == path:
-		return
-	var stream: AudioStream = DEFAULT_BGM
-	if path != "":
-		stream = AudioStreamOggVorbis.load_from_file(path)
-		if stream == null:
-			stream = DEFAULT_BGM
-		else:
-			stream.loop = true
-	bgm_path = path
-	bgm.stream = stream
-	bgm.play()
-
-# The preview only plays while the BGM setting is being edited
-func update_bgm_preview() -> void:
-	if level == Level.EDIT and current_item().get("var", "") == "custom_music_select_bgm":
-		play_bgm()
-	elif bgm.playing:
-		bgm.stop()
-
 func _process(delta: float) -> void:
 	queue_redraw()
-	update_bgm_preview()
 	var steps = poll_turntable(delta)
 	if level == Level.CALIBRATION:
 		process_calibration()

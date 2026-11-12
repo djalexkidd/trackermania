@@ -43,6 +43,7 @@ var modes = [
 	{"name": "NETPLAY", "short": "NET", "icon": "netplay", "scene": "res://scenes/netplay/lobby.tscn", "desc": "PLAY AGAINST OTHER DJS ON THE NETWORK."},
 	{"name": "TRAINING", "short": "TRAIN", "icon": "training", "scene": "res://scenes/menu/music_select.tscn", "training": true, "desc": "PRACTICE A SECTION OF A SONG, AT NORMAL SPEED OR SLOWER."},
 	{"name": "EDITOR", "short": "EDIT", "icon": "editor", "scene": "res://scenes/editor/editor.tscn", "desc": "CREATE AND EDIT KEYSOUNDED BMS CHARTS FROM YOUR SONGS."},
+	{"name": "CUSTOMIZE", "short": "CUSTOM", "icon": "customize", "scene": "res://scenes/menu/customization_menu.tscn", "desc": "CHANGE THE PLAYFIELD, THE TURNTABLE, THE BACKGROUND AND THE MUSIC."},
 	{"name": "OPTIONS", "short": "OPTION", "icon": "options", "scene": "res://scenes/menu/options.tscn", "desc": "DISPLAY, SOUND, DJ NAME AND CONTROLLERS."},
 	{"name": "DOWNLOAD", "short": "DL", "icon": "download", "scene": "res://scenes/menu/download.tscn", "desc": "IMPORT NEW SONGS INTO THE GAME."},
 ]
@@ -512,6 +513,13 @@ func draw_icon(icon: String, center: Vector2, icon_color: Color) -> void:
 			draw_line(center + Vector2(-2, 4), center + Vector2(12, -12), icon_color, 6.0)
 			draw_colored_polygon([center + Vector2(-6, 6), center + Vector2(-4, -1), center + Vector2(1, 4)], icon_color)
 			draw_line(center + Vector2(13, -13), center + Vector2(16, -16), icon_color, 6.0)
+		"customize":
+			# Paint palette and brush
+			draw_circle(center + Vector2(-3, 2), 14, icon_color, false, 4.0)
+			for dot in [Vector2(-10, -2), Vector2(-4, -8), Vector2(4, -6)]:
+				draw_circle(center + dot, 2.5, icon_color)
+			draw_line(center + Vector2(2, 10), center + Vector2(16, -14), icon_color, 4.0)
+			draw_colored_polygon([center + Vector2(-2, 16), center + Vector2(0, 8), center + Vector2(5, 11)], icon_color)
 		"options":
 			for i in 8:
 				var direction = Vector2.from_angle(i * TAU / 8)
@@ -551,4 +559,4 @@ func draw_footer() -> void:
 		else:
 			draw_rect(cell, TAG_BORDER, false, 1.0)
 		var text = modes[i]["short"]
-		draw_text(Vector2(cell.get_center().x, cell.get_center().y + 9), text, 20, ORANGE if selected else Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)
+		draw_text(Vector2(cell.get_center().x, cell.get_center().y + 9), text, fit_size(text, 20, cell.size.x - 10), ORANGE if selected else Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER)

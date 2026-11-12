@@ -67,8 +67,6 @@ const COVER_MIN_VISIBLE : float = 60.0
 const LIFT_MAX : float = 300.0
 # START pressed twice within this time shows or hides the SUDDEN+ cover, like on IIDX (ms)
 const DOUBLE_START_MS : int = 300
-const COVER_TOP : Color = Color(0.2, 0.21, 0.24)
-const COVER_BOTTOM : Color = Color(0.09, 0.09, 0.11)
 const COVER_STRIPE : Color = Color(1, 1, 1, 0.03)
 const COVER_TEXT : Color = Color(0.5, 0.52, 0.58)
 const JUDGE_LINE_COLOR : Color = Color(0.95, 0.1, 0.1)
@@ -98,19 +96,8 @@ const FULL_COMBO_FLASH_TIME : float = 0.35
 const FULL_COMBO_COLOR : Color = Color(0.4, 0.8, 1.0)
 const FONT : Font = preload("res://assets/font/04B_20__.TTF")
 const NUMBER_FONT : Font = preload("res://assets/font/digitalix.ttf")
-const LANE_COLOR : Color = Color(0, 0, 0)
-const LANE_BLACK_KEY_COLOR : Color = Color(0.035, 0.035, 0.045)
-const LANE_GAP_COLOR : Color = Color(0.1, 0.1, 0.11)
-const SEPARATOR_COLOR : Color = Color(0.22, 0.22, 0.25)
-const BEAM_COLOR : Color = Color(0.25, 0.55, 1.0)
-const BURST_COLOR : Color = Color(0.6, 0.85, 1.0)
 const MEASURE_COLOR : Color = Color(0.6, 0.6, 0.65, 0.6)
 # Metal of the frames: light at the top, darker at the bottom
-const METAL_LIGHT : Color = Color(0.8, 0.82, 0.86)
-const METAL_DARK : Color = Color(0.36, 0.38, 0.43)
-const METAL_EDGE : Color = Color(0.1, 0.1, 0.12)
-const SCREEN_COLOR : Color = Color(0.02, 0.025, 0.035)
-const SCREEN_GLOW : Color = Color(0.2, 0.75, 1.0, 0.35)
 const LABEL_COLOR : Color = Color(0.78, 0.82, 0.88)
 const GAUGE_LABEL_COLOR : Color = Color(1, 0.55, 0.1)
 const PROGRESS_COLOR : Color = Color(1, 0.55, 0.1)
@@ -293,6 +280,8 @@ var timingColor    : Color
 # Nodes made by buildLayout()
 var overlay        : Overlay
 var disc           : Sprite2D
+# Colors of the frame chosen in the CUSTOMIZE menu (Skins.FRAMES)
+var skin           : Dictionary = Skins.frame()
 
 # Set the side of this playfield before start(): the player, whether it plays here, and the mode
 func setup(p : int, plays : bool, both : bool, online : bool, s : int = p) -> void:
@@ -1257,7 +1246,7 @@ func buildLayout() -> void:
 	keyFrameOrigin = Vector2(laneX(0) - FRAME_FIRST_KEY_X * KEY_SCALE, KEYS_TOP)
 	disc = Sprite2D.new()
 	disc.name = "Disc"
-	disc.texture = load("res://assets/play/p1_turntable_disc.png")
+	disc.texture = Skins.disc_texture(Global.turntable_skin)
 	disc.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	# The disc goes over the hole of the frame, which is drawn at the same scale as the lane
 	var frameScale := Vector2(SCRATCH_WIDTH, SCRATCH_HEIGHT) / SCRATCH_ART_SIZE
@@ -1334,25 +1323,26 @@ func _draw() -> void:
 
 # Black lanes with grey separators, beams over the held keys, and the metal rails on both sides
 func drawLanes() -> void:
-	draw_rect(Rect2(0, 0, PLAYFIELD_WIDTH, PERFECT_YPOS), LANE_COLOR)
+	draw_rect(Rect2(0, 0, PLAYFIELD_WIDTH, PERFECT_YPOS), skin["lane"])
 	# Gap between the turntable lane and the keys
 	var gapLeft : float = 7 * KEY_WIDTH if mirrored else SCRATCH_WIDTH
-	draw_rect(Rect2(gapLeft, 0, SCRATCH_GAP, PERFECT_YPOS), LANE_GAP_COLOR)
+	draw_rect(Rect2(gapLeft, 0, SCRATCH_GAP, PERFECT_YPOS), skin["lane_gap"])
 	for i in range(8):
 		var left : float = laneLeft[i]
 		var right : float = left + laneWidth[i]
 		if i < 7 and i % 2 == 1:
-			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), LANE_BLACK_KEY_COLOR)
+			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), skin["lane_black"])
 		if pressed[i] and not disabled[i]:
+			var beam : Color = skin["beam"]
 			var bottom : float = judgeY()
 			var top : float = bottom - LANE_LIGHT_HEIGHT
 			draw_polygon(PackedVector2Array([Vector2(left, top), Vector2(right, top), Vector2(right, bottom), Vector2(left, bottom)]),
-				PackedColorArray([Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.0), Color(BEAM_COLOR, 0.65), Color(BEAM_COLOR, 0.65)]))
+				PackedColorArray([Color(beam, 0.0), Color(beam, 0.0), Color(beam, 0.65), Color(beam, 0.65)]))
 		if disabled[i]:
 			draw_rect(Rect2(left, 0, laneWidth[i], PERFECT_YPOS), Color(0.12, 0.12, 0.14))
 			drawLaneText(left + laneWidth[i] / 2.0, "AUTO PLAY LANE")
-		draw_line(Vector2(left, 0), Vector2(left, PERFECT_YPOS), SEPARATOR_COLOR, 1.0)
-		draw_line(Vector2(right, 0), Vector2(right, PERFECT_YPOS), SEPARATOR_COLOR, 1.0)
+		draw_line(Vector2(left, 0), Vector2(left, PERFECT_YPOS), skin["separator"], 1.0)
+		draw_line(Vector2(right, 0), Vector2(right, PERFECT_YPOS), skin["separator"], 1.0)
 	drawRail(-RAIL_WIDTH, not mirrored)
 	drawRail(PLAYFIELD_WIDTH, mirrored)
 
@@ -1367,18 +1357,20 @@ func drawLaneText(center : float, text : String) -> void:
 
 # A rounded metal rail beside the lanes, the outer one has a slot where the song progress goes down
 func drawRail(left : float, outer : bool) -> void:
+	var light : Color = skin["metal_light"]
+	var dark : Color = skin["metal_dark"]
 	var mid : float = left + RAIL_WIDTH / 2.0
 	var right : float = left + RAIL_WIDTH
 	draw_polygon(PackedVector2Array([Vector2(left, 0), Vector2(mid, 0), Vector2(mid, PLATE_TOP), Vector2(left, PLATE_TOP)]),
-		PackedColorArray([METAL_DARK, METAL_LIGHT, METAL_LIGHT, METAL_DARK]))
+		PackedColorArray([dark, light, light, dark]))
 	draw_polygon(PackedVector2Array([Vector2(mid, 0), Vector2(right, 0), Vector2(right, PLATE_TOP), Vector2(mid, PLATE_TOP)]),
-		PackedColorArray([METAL_LIGHT, METAL_DARK, METAL_DARK, METAL_LIGHT]))
-	draw_line(Vector2(left, 0), Vector2(left, PLATE_TOP), METAL_EDGE, 1.0)
-	draw_line(Vector2(right, 0), Vector2(right, PLATE_TOP), METAL_EDGE, 1.0)
+		PackedColorArray([light, dark, dark, light]))
+	draw_line(Vector2(left, 0), Vector2(left, PLATE_TOP), skin["metal_edge"], 1.0)
+	draw_line(Vector2(right, 0), Vector2(right, PLATE_TOP), skin["metal_edge"], 1.0)
 	if not outer:
 		return
 	var slot := Rect2(mid - 2, 6, 4, PLATE_TOP - 18)
-	draw_rect(slot, SCREEN_COLOR)
+	draw_rect(slot, skin["screen"])
 	if not active or endPos <= 0.0:
 		return
 	var marker : float = slot.position.y + (slot.size.y - 14) * clampf(currentSongPos / endPos, 0.0, 1.0)
@@ -1391,15 +1383,15 @@ func drawPlate(canvas : CanvasItem) -> void:
 	for p in [Vector2(-RAIL_WIDTH, PLATE_TOP), Vector2(392, PLATE_TOP), Vector2(404, 512), Vector2(PLATE_RIGHT, 512),
 			Vector2(PLATE_RIGHT, 708), Vector2(476, 720), Vector2(-RAIL_WIDTH, 720)]:
 		points.append(Vector2(sideX(p.x), p.y))
-	drawMetal(canvas, points)
+	drawMetal(canvas, points, skin)
 	for rect in [PERCENT_SCREEN, GAUGE_SCREEN, SCORE_SCREEN, DIFFICULTY_SCREEN]:
-		drawScreen(canvas, sideRect(rect))
+		drawScreen(canvas, sideRect(rect), skin)
 	for screw in [Vector2(PLATE_RIGHT - 7, 519), Vector2(PLATE_RIGHT - 7, 627), Vector2(284, 627), Vector2(-6, 627)]:
-		drawScrew(canvas, Vector2(sideX(screw.x), screw.y))
+		drawScrew(canvas, Vector2(sideX(screw.x), screw.y), skin)
 	# Blue lights under the bottom screens
 	for rect in [SCORE_SCREEN, DIFFICULTY_SCREEN]:
 		var screen : Rect2 = sideRect(rect)
-		canvas.draw_rect(Rect2(screen.get_center().x - 18, screen.end.y + 4, 36, 3), Color(SCREEN_GLOW, 0.9))
+		canvas.draw_rect(Rect2(screen.get_center().x - 18, screen.end.y + 4, 36, 3), Color(skin["screen_glow"], 0.9))
 
 # Gauge title, gauge percentage, score, max combo and difficulty, in the screens of the plate
 func drawHud(canvas : CanvasItem) -> void:
@@ -1508,8 +1500,8 @@ func drawBursts(canvas : CanvasItem) -> void:
 			continue
 		var center := Vector2(laneX(i), judgeY())
 		var radius : float = laneWidth[i] * (0.35 + 0.5 * (1.0 - f))
-		canvas.draw_circle(center, radius * 1.5, Color(BURST_COLOR, 0.15 * f))
-		canvas.draw_circle(center, radius, Color(BURST_COLOR, 0.35 * f))
+		canvas.draw_circle(center, radius * 1.5, Color(skin["burst"], 0.15 * f))
+		canvas.draw_circle(center, radius, Color(skin["burst"], 0.35 * f))
 		canvas.draw_circle(center, radius * 0.45, Color(1, 1, 1, 0.75 * f))
 		canvas.draw_rect(Rect2(center.x - radius * 1.8, center.y - 1.5, radius * 3.6, 3), Color(1, 1, 1, 0.6 * f))
 
@@ -1614,20 +1606,20 @@ func drawCovers(canvas : CanvasItem) -> void:
 # A lane cover: dark metal with faint lines, a light edge on the side of the notes
 func drawCover(canvas : CanvasItem, rect : Rect2, text : String, edgeAtBottom : bool) -> void:
 	canvas.draw_polygon(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]),
-		PackedColorArray([COVER_TOP, COVER_TOP, COVER_BOTTOM, COVER_BOTTOM]))
+		PackedColorArray([skin["cover_top"], skin["cover_top"], skin["cover_bottom"], skin["cover_bottom"]]))
 	var y : float = rect.position.y + 4.0
 	while y < rect.end.y:
 		canvas.draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), COVER_STRIPE, 2.0)
 		y += 8.0
 	var edge : float = rect.end.y - 2 if edgeAtBottom else rect.position.y
-	canvas.draw_rect(Rect2(rect.position.x, edge, rect.size.x, 2), METAL_LIGHT)
+	canvas.draw_rect(Rect2(rect.position.x, edge, rect.size.x, 2), skin["metal_light"])
 	if rect.size.y >= 24.0:
 		canvas.draw_string(FONT, Vector2(keysCenter() - 100, rect.get_center().y + 6), text, HORIZONTAL_ALIGNMENT_CENTER, 200, 14, COVER_TEXT)
 
 # Key frame and scratch frame of the game art, the held keys are drawn again in red over it
 func drawKeys(canvas : CanvasItem) -> void:
 	var frameSize : Vector2 = keyFrame.get_size()
-	canvas.draw_texture_rect(keyFrame, Rect2(keyFrameOrigin, Vector2(frameSize.x * KEY_SCALE, frameSize.y * KEY_SCALE_Y)), false)
+	canvas.draw_texture_rect(keyFrame, Rect2(keyFrameOrigin, Vector2(frameSize.x * KEY_SCALE, frameSize.y * KEY_SCALE_Y)), false, skin["keys"])
 	for i in range(7):
 		if not pressed[i]:
 			continue
@@ -1636,7 +1628,7 @@ func drawKeys(canvas : CanvasItem) -> void:
 		region.position.x += KEY_SPACING * floorf(i / 2.0)
 		var dest := Rect2(keyFrameOrigin + Vector2(region.position.x * KEY_SCALE, region.position.y * KEY_SCALE_Y), Vector2(region.size.x * KEY_SCALE, region.size.y * KEY_SCALE_Y))
 		canvas.draw_texture_rect_region(keyFrame, dest, region, KEY_LIGHT_WHITE if white else KEY_LIGHT_BLACK)
-	canvas.draw_texture_rect(scratchFrame, Rect2(laneLeft[7], KEYS_TOP, SCRATCH_WIDTH, SCRATCH_HEIGHT), false, KEY_LIGHT_WHITE if pressed[7] else Color.WHITE)
+	canvas.draw_texture_rect(scratchFrame, Rect2(laneLeft[7], KEYS_TOP, SCRATCH_WIDTH, SCRATCH_HEIGHT), false, KEY_LIGHT_WHITE if pressed[7] else skin["keys"])
 
 # The last filled segment stays lit, the GAUGE_FLICKER_SEGMENTS before it light up from the left like a spectrum analyzer
 func flickerGauge() -> void:
@@ -1660,7 +1652,7 @@ func flickerGauge() -> void:
 	gaugeFlicker.size = Vector2((to - from) * ratio, bar.size.y)
 
 # A metal panel of the frame, lit from the top
-static func drawMetal(canvas : CanvasItem, points : PackedVector2Array) -> void:
+static func drawMetal(canvas : CanvasItem, points : PackedVector2Array, colors_ : Dictionary = Skins.frame()) -> void:
 	var top : float = INF
 	var bottom : float = -INF
 	for p in points:
@@ -1668,22 +1660,22 @@ static func drawMetal(canvas : CanvasItem, points : PackedVector2Array) -> void:
 		bottom = maxf(bottom, p.y)
 	var colors := PackedColorArray()
 	for p in points:
-		colors.append(METAL_LIGHT.lerp(METAL_DARK, (p.y - top) / maxf(bottom - top, 1.0)))
+		colors.append(colors_["metal_light"].lerp(colors_["metal_dark"], (p.y - top) / maxf(bottom - top, 1.0)))
 	canvas.draw_polygon(points, colors)
 	var outline := points.duplicate()
 	outline.append(points[0])
-	canvas.draw_polyline(outline, METAL_EDGE, 2.0)
+	canvas.draw_polyline(outline, colors_["metal_edge"], 2.0)
 
 # A dark screen sunk in the metal: shadow on its border, a thin blue glow inside, a light lip under it
-static func drawScreen(canvas : CanvasItem, rect : Rect2) -> void:
+static func drawScreen(canvas : CanvasItem, rect : Rect2, colors : Dictionary = Skins.frame()) -> void:
 	var points := chamfered(rect, 6)
-	canvas.draw_colored_polygon(points, SCREEN_COLOR)
+	canvas.draw_colored_polygon(points, colors["screen"])
 	var outline := points.duplicate()
 	outline.append(points[0])
-	canvas.draw_polyline(outline, METAL_EDGE, 2.0)
+	canvas.draw_polyline(outline, colors["metal_edge"], 2.0)
 	var glow := chamfered(rect.grow(-3), 4)
 	glow.append(glow[0])
-	canvas.draw_polyline(glow, SCREEN_GLOW, 1.0)
+	canvas.draw_polyline(glow, colors["screen_glow"], 1.0)
 	canvas.draw_line(Vector2(rect.position.x + 6, rect.end.y + 1.5), Vector2(rect.end.x - 6, rect.end.y + 1.5), Color(1, 1, 1, 0.5), 1.0)
 
 # Corners of a rectangle with its corners cut
@@ -1694,10 +1686,10 @@ static func chamfered(rect : Rect2, cut : float) -> PackedVector2Array:
 		Vector2(b.x - cut, b.y), Vector2(a.x + cut, b.y), Vector2(a.x, b.y - cut), Vector2(a.x, a.y + cut)])
 
 # A screw of the metal frame
-static func drawScrew(canvas : CanvasItem, at : Vector2) -> void:
-	canvas.draw_circle(at, 3.5, METAL_EDGE)
-	canvas.draw_circle(at, 2.5, METAL_LIGHT)
-	canvas.draw_line(at - Vector2(2, -2), at + Vector2(2, -2), METAL_DARK, 1.0)
+static func drawScrew(canvas : CanvasItem, at : Vector2, colors : Dictionary = Skins.frame()) -> void:
+	canvas.draw_circle(at, 3.5, colors["metal_edge"])
+	canvas.draw_circle(at, 2.5, colors["metal_light"])
+	canvas.draw_line(at - Vector2(2, -2), at + Vector2(2, -2), colors["metal_dark"], 1.0)
 
 # Width of a number of digits drawn by drawNumber()
 static func numberWidth(digits : int, size : int) -> float:

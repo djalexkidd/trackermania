@@ -20,6 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://bd6bcg8yqaho8" path="res://assets/music_select/alphabet.png" id="21_alphabet"]
 [ext_resource type="Texture2D" uid="uid://8bxcwuyj5as8" path="res://assets/music_select/file_type.png" id="22_file_type"]
 [ext_resource type="Script" uid="uid://dffipdpnu5gwn" path="res://scripts/menu/music_select/difficulty_panel.gd" id="23_difficulty"]
+[ext_resource type="Script" path="res://scripts/menu/menu_background.gd" id="menu_background"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i76ow"]
 shader = ExtResource("1_y1sfi")
@@ -35,6 +36,7 @@ grow_vertical = 2
 script = ExtResource("1_8an63")
 
 [node name="Background" type="TextureRect" parent="." unique_id=1112605652]
+script = ExtResource("menu_background")
 texture_repeat = 2
 material = SubResource("ShaderMaterial_i76ow")
 layout_mode = 1

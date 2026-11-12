@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://mmou6ix3nudg" path="res://scripts/menu/music_select/game_option_settings.gd" id="7_options"]
 [ext_resource type="AudioStream" uid="uid://ux7v8plg8aqx" path="res://assets/music_select/open.ogg" id="8_open"]
 [ext_resource type="AudioStream" uid="uid://csvkylr0deve0" path="res://assets/music_select/close.ogg" id="9_close"]
+[ext_resource type="Script" path="res://scripts/menu/menu_background.gd" id="menu_background"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scroll"]
 shader = ExtResource("2_scroll")
@@ -24,6 +25,7 @@ grow_vertical = 2
 script = ExtResource("1_lobby")
 
 [node name="Background" type="TextureRect" parent="."]
+script = ExtResource("menu_background")
 texture_repeat = 2
 material = SubResource("ShaderMaterial_scroll")
 layout_mode = 1

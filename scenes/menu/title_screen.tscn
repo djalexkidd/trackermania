@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/menu/title_screen.gd" id="1_title"]
 [ext_resource type="Shader" uid="uid://dh1q1o0o7bxmf" path="res://assets/shaders/scroll.gdshader" id="2_scroll"]
 [ext_resource type="Texture2D" uid="uid://b1ogmyjnmfqun" path="res://assets/backgrounds/grid.png" id="3_grid"]
+[ext_resource type="Script" path="res://scripts/menu/menu_background.gd" id="menu_background"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_grid"]
 shader = ExtResource("2_scroll")
@@ -18,6 +19,7 @@ grow_vertical = 2
 script = ExtResource("1_title")
 
 [node name="Background" type="TextureRect" parent="."]
+script = ExtResource("menu_background")
 show_behind_parent = true
 texture_repeat = 2
 material = SubResource("ShaderMaterial_grid")

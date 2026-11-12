@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://chbs0wrhvlynr" path="res://assets/music_select/music_select_info.png" id="4_banner"]
 [ext_resource type="FontFile" uid="uid://dq26ibghph1f4" path="res://assets/font/04B_20__.TTF" id="5_title"]
 [ext_resource type="FontFile" uid="uid://bggd18styexhu" path="res://assets/font/monofonto.otf" id="6_name"]
+[ext_resource type="Script" path="res://scripts/menu/menu_background.gd" id="menu_background"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scroll"]
 shader = ExtResource("2_scroll")
@@ -21,6 +22,7 @@ grow_vertical = 2
 script = ExtResource("1_result")
 
 [node name="Background" type="TextureRect" parent="."]
+script = ExtResource("menu_background")
 texture_repeat = 2
 material = SubResource("ShaderMaterial_scroll")
 layout_mode = 1

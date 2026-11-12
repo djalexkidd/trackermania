@@ -215,7 +215,7 @@ func pad_name() -> String:
 func input_text(event: InputEvent) -> String:
 	if event is InputEventKey:
 		var side = {KEY_LOCATION_LEFT: "L.", KEY_LOCATION_RIGHT: "R."}.get(event.location, "")
-		return side + OS.get_keycode_string(event.keycode if event.keycode != KEY_NONE else event.physical_keycode).to_upper()
+		return side + Global.key_text(event)
 	if event is InputEventJoypadButton:
 		return "BUTTON %d" % event.button_index
 	if event is InputEventJoypadMotion:
@@ -250,7 +250,7 @@ func same_input(a: InputEvent, b: InputEvent) -> bool:
 	if a is InputEventKey:
 		if a.location != b.location and a.location != KEY_LOCATION_UNSPECIFIED and b.location != KEY_LOCATION_UNSPECIFIED:
 			return false
-		return (a.keycode if a.keycode != KEY_NONE else a.physical_keycode) == (b.keycode if b.keycode != KEY_NONE else b.physical_keycode)
+		return Global.key_code(a) == Global.key_code(b)
 	if a.device != b.device:
 		return false
 	if a is InputEventJoypadButton:

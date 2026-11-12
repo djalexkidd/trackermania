@@ -99,6 +99,7 @@ const SETTING_DEFAULTS = {
 
 func _ready():
 	add_cjk_fallback()
+	fix_iso_key()
 	load_key_mappings()
 	load_settings()
 
@@ -145,6 +146,32 @@ func apply_settings() -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	AudioServer.set_bus_volume_db(0, linear_to_db(master_volume / 100.0))
+
+# The "<" key (ISO, left of W/Z) is KEY_SECTION in project.godot (X11, Windows, macOS),
+# but Godot gives it another physical code under Wayland and on the web
+func iso_key() -> Key:
+	if DisplayServer.get_name() == "Wayland":
+		return KEY_QUOTELEFT
+	if OS.has_feature("web"):
+		return KEY_BACKSLASH
+	return KEY_SECTION
+
+# Default inputs of an action (project.godot), with the "<" key of this platform
+func default_events(action: String) -> Array[InputEvent]:
+	var events: Array[InputEvent] = []
+	for event in ProjectSettings.get_setting("input/" + action)["events"]:
+		if event is InputEventKey and event.physical_keycode == KEY_SECTION:
+			event = event.duplicate()
+			event.physical_keycode = iso_key()
+		events.append(event)
+	return events
+
+func fix_iso_key() -> void:
+	for action in InputMap.get_actions():
+		if action.begins_with("p1_") or action.begins_with("p2_"):
+			InputMap.action_erase_events(action)
+			for event in default_events(action):
+				InputMap.action_add_event(action, event)
 
 # Apply the remapped keys saved by the Controller Setup menu
 func load_key_mappings():
@@ -206,6 +233,22 @@ func make_key_event(keycode: Key, location: KeyLocation) -> InputEventKey:
 		key.location = location
 	return key
 
+# Key of the current layout: a physical binding (the default keys) follows the keyboard,
+# physical Z is W in AZERTY and Y in QWERTZ
+func key_code(event: InputEventKey) -> Key:
+	if event.keycode != KEY_NONE:
+		return event.keycode
+	return DisplayServer.keyboard_get_keycode_from_physical(event.physical_keycode)
+
+# Name of a key for the menus: its character when it has one (É, &, < in AZERTY)
+func key_text(event: InputEventKey) -> String:
+	var code = event.keycode
+	if code == KEY_NONE:
+		code = DisplayServer.keyboard_get_label_from_physical(event.physical_keycode)
+	if code > KEY_SPACE and code < KEY_SPECIAL:
+		return char(code).to_upper()
+	return OS.get_keycode_string(code).to_upper()
+
 # Bind a single input to an action and remember it in the mappings file
 func save_key_mapping(action: String, event: InputEvent) -> void:
 	InputMap.action_erase_events(action)
@@ -218,7 +261,7 @@ func save_key_mapping(action: String, event: InputEvent) -> void:
 # Back to the inputs of project.godot
 func reset_key_mapping(action: String) -> void:
 	InputMap.action_erase_events(action)
-	for event in ProjectSettings.get_setting("input/" + action)["events"]:
+	for event in default_events(action):
 		InputMap.action_add_event(action, event)
 	var config_file = ConfigFile.new()
 	if config_file.load(KEY_MAPPING_PATH) == OK and config_file.has_section_key("input", action):

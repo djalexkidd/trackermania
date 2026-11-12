@@ -9,7 +9,9 @@ Les charts natives sont des beatmaps **Quaver (.qua)** avec leur MP3/OGG, lues d
 ## Arborescence
 
 ```
-project.godot            Config : autoloads, InputMap (p1_*/p2_*), viewport 1280x720
+project.godot            Config : autoloads, InputMap (p1_*/p2_*), viewport 1280x720. Manettes + clavier en touches physiques (positions QWERTY, l'AZERTY suit) :
+                         1P W S X D C F V, scratch L.Shift / < ou L.Ctrl, E1~E4 & é " ' ; 2P , k ; l : m !, scratch R.Shift, E1~E4 è _ ç à.
+                         « < » est `KEY_SECTION` dans project.godot, remplacé au démarrage par le code de la plateforme (`Global.iso_key()`, `default_events()`)
 default_bus_layout.tres  Bus Master vide : les effets sont ajoutés par Effector.gd
 assets/                  Images, polices, sons (bgm de la sélection, frames, groove gauge, shader), shift_jis.tres (table Shift-JIS)
 scripts/
@@ -48,7 +50,7 @@ scripts/
                          AUTO PLAY est un cheat code : la 3e touche noire maintenue `AUTO_HOLD_MSEC` (1 s) l'active ou le coupe (STYLE change seulement sur un appui court, au relâché), AUTO s'affiche alors dans l'en-tête.
                          Ouverture (music_select.gd) : en P1 la roue sort à droite puis le panneau entre par la droite ; en P2 le panneau entre seul par la gauche
     controller_test/     controller_panel.gd (class_name ControllerPanel) : CONTROLLER SET UP du menu OPTIONS (voir plus bas) ;
-                         touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (touche, "Shift:L"/"Shift:R" pour un côté, liée par `physical_keycode` car Godot ne vérifie le côté que là, "Button:n:pad", "Axis:n:signe:pad")
+                         touches sauvées dans user://mappings.cfg via Global.save_key_mapping() (une touche remappée remplace tous les défauts de l'action ; `Global.key_text()` affiche une touche par son caractère sur le clavier en cours) (touche, "Shift:L"/"Shift:R" pour un côté, liée par `physical_keycode` car Godot ne vérifie le côté que là, "Button:n:pad", "Axis:n:signe:pad")
     customization_menu.gd  Choix de la BGM de la sélection (user://music_select_bgm/*.ogg)
     options_menu.gd      Menu OPTIONS façon IIDX console (voir plus bas), scène scenes/menu/options.tscn
   download/download.gd   Télécharge et dézippe un pack de musiques dans user://songs
@@ -321,7 +323,6 @@ Autoload `Netplay` (ENet, port 47800) : il survit aux changements de scène, tou
 - GDScript avec des tabulations. Fonctions et variables du gameplay en camelCase (`noteArray`, `keyPressed`) dans `main.gd`, `note.gd` et `scripts/mod/` ; snake_case dans les menus.
 - Commentaires courts en anglais au-dessus du code. Textes et README en français.
 - Godot génère les fichiers `.uid` : il faut les committer avec les scripts.
-- Le lien `bms` à la racine (BMS de référence, non suivi) ne doit pas être modifié. Avant un `godot --import` ou un test, le déplacer hors du projet, sinon Godot importe ses milliers de .ogg.
 
 ## Tester
 - `godot --headless --import` reconstruit le cache des classes après l'ajout d'un `class_name`.

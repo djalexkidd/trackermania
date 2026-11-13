@@ -18,6 +18,9 @@ const BOX_BORDER = Color(0.55, 0.55, 0.6)
 const LINE = Color(0.45, 0.45, 0.5)
 const P1_COLOR = Color(0, 0.686275, 1)
 const P2_COLOR = Color(1, 0.156863, 0)
+# Played on every option change, the scroll sound of the song wheel
+const CHANGE_SOUND = preload("res://assets/music_select/scroll.wav")
+const CHANGE_SOUND_DB = -10.0
 
 const HEADER_HEIGHT = 44.0
 # Black key columns: [key, title, choices]
@@ -65,8 +68,15 @@ var analog_previous := 0.0
 var analog_remainder := 0.0
 var turned_at := -TURN_LIGHT_MSEC
 
+var change_sound: AudioStreamPlayer
+
 func _ready():
 	color = Color(0.02, 0.03, 0.06, 0.94)
+	change_sound = AudioStreamPlayer.new()
+	change_sound.stream = CHANGE_SOUND
+	change_sound.volume_db = CHANGE_SOUND_DB
+	change_sound.max_polyphony = 4
+	add_child(change_sound)
 	analog_previous = analog_value()
 
 func _process(_delta: float) -> void:
@@ -129,6 +139,7 @@ func _process(_delta: float) -> void:
 			auto_switched = true
 			set_opt("auto_play", !get_opt("auto_play"))
 			emit_signal("update", "auto", get_opt("auto_play"))
+			change_sound.play()
 	elif style_pressed_at >= 0:
 		# A short press: 7 keys -> 5 keys -> auto scratch -> 5 keys with auto scratch
 		if Time.get_ticks_msec() - style_pressed_at < AUTO_HOLD_MSEC:
@@ -164,6 +175,7 @@ func can_battle() -> bool:
 
 func changed(i: int) -> void:
 	changed_at[i] = Time.get_ticks_msec()
+	change_sound.play()
 
 func style_index() -> int:
 	return (1 if get_opt("keys_mode") == 5 else 0) + (2 if get_opt("auto_scratch") else 0)

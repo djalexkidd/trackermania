@@ -105,7 +105,8 @@ func apply_style() -> void:
 		entries.assign(categories.map(func(category): return category.get_node("Category")))
 	selected_index = maxi(entries.find(selected), 0)
 	scroll_offset = 0.0
-	refresh()
+	# Silent: the OPTION SETTING panel already plays its sound
+	refresh(false)
 
 func close_category() -> bool:
 	if opened_category == null:
@@ -206,8 +207,9 @@ func selected_song() -> Control:
 	return entries[selected_index]
 
 # The entries changed their difficulty: rebuild the rows and the song info
-func refresh() -> void:
-	scroll_sound.play()
+func refresh(sound := true) -> void:
+	if sound:
+		scroll_sound.play()
 	for row in rows:
 		row.remove_meta("source")
 	info_entry = null
